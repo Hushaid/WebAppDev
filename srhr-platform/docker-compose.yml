@@ -9,8 +9,23 @@ services:
       POSTGRES_DB: srhr_platform
       POSTGRES_USER: srhr_user
       POSTGRES_PASSWORD: srhr_dev_password
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  electric:
+    image: electricsql/electric:latest
+    container_name: srhr-electric
+    restart: unless-stopped
+    ports:
+      - "3060:3000"
+    environment:
+      DATABASE_URL: postgresql://srhr_user:srhr_dev_password@postgres:5432/srhr_platform
+    depends_on:
+      - postgres
 
   redis:
     image: redis:7-alpine
