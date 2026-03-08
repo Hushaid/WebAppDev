@@ -14,6 +14,7 @@ import {
   Bell,
   ScrollText,
   Settings,
+  Database,
   LogOut,
 } from "lucide-react"
 
@@ -59,6 +60,7 @@ const navItems = [
   {
     title: "System",
     items: [
+      { title: "Data Sources", url: "/admin/data-sources", icon: Database },
       { title: "Settings", url: "/admin/settings", icon: Settings },
     ],
   },

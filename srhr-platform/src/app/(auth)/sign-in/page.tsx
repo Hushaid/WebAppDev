@@ -36,11 +36,20 @@ export default function SignInPage() {
     })
 
     if (authError) {
-      setError(authError.message ?? "Sign in failed. Please try again.")
+      const msg = authError.message ?? "Sign in failed."
+      // Detect lockout from error message
+      if (msg.toLowerCase().includes("locked") || msg.toLowerCase().includes("too many")) {
+        setError(
+          "Account locked due to too many failed attempts. Please try again in 15 minutes.",
+        )
+      } else {
+        setError(msg)
+      }
       setLoading(false)
       return
     }
 
+    // Role-based redirect via root page
     router.push("/")
     router.refresh()
   }
@@ -77,7 +86,12 @@ export default function SignInPage() {
             />
           </fieldset>
           {error && (
-            <output className="block text-sm text-destructive">{error}</output>
+            <output
+              className="block rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              role="alert"
+            >
+              {error}
+            </output>
           )}
         </form>
       </CardContent>

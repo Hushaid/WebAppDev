@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { SignOutButton } from "@/components/sign-out-button"
 
 export default function PersonalLayout({
   children,
@@ -19,6 +20,7 @@ export default function PersonalLayout({
               priority
             />
           </Link>
+          <SignOutButton />
         </nav>
       </header>
       <main className="mx-auto w-full max-w-2xl flex-1 p-4">{children}</main>

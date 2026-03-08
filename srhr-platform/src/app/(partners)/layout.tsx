@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { SignOutButton } from "@/components/sign-out-button"
 
 export default function PartnersLayout({
   children,
@@ -19,7 +20,7 @@ export default function PartnersLayout({
               priority
             />
           </Link>
-          <menu className="flex items-center gap-4">
+          <menu className="flex flex-1 items-center gap-4">
             <li>
               <Link
                 href="/partners"
@@ -44,7 +45,16 @@ export default function PartnersLayout({
                 Exports
               </Link>
             </li>
+            <li>
+              <Link
+                href="/partners/preferences"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Preferences
+              </Link>
+            </li>
           </menu>
+          <SignOutButton />
         </nav>
       </header>
       <main className="flex-1 p-6">{children}</main>

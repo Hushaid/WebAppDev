@@ -65,7 +65,7 @@ export default function FieldWorkerQuestionnairePage() {
       )
     }
 
-    router.push("/field-worker/history")
+    router.push("/field-worker/result")
   }
 
   return (

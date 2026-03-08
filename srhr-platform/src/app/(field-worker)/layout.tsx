@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { OnlineIndicator } from "@/components/online-indicator"
+import { SignOutButton } from "@/components/sign-out-button"
 
 export default function FieldWorkerLayout({
   children,
@@ -20,7 +21,10 @@ export default function FieldWorkerLayout({
               priority
             />
           </Link>
-          <OnlineIndicator />
+          <div className="flex items-center gap-3">
+            <OnlineIndicator />
+            <SignOutButton />
+          </div>
         </nav>
       </header>
       <main className="flex-1 p-4">{children}</main>
