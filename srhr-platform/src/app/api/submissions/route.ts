@@ -6,6 +6,7 @@ import {
   questionResponses,
   riskClassifications,
 } from "@/lib/db/schema"
+import { eq, and, gte, sql } from "drizzle-orm"
 import {
   computeRisk,
   type QuestionResponse,
@@ -24,11 +25,68 @@ interface SubmissionPayload {
   clientSubmissionId?: string
 }
 
+/** Dedup window: reject submissions from same submitter within 2 minutes */
+const DEDUP_WINDOW_MS = 2 * 60 * 1000
+/** GPS proximity threshold in degrees (~100m at equator) */
+const GPS_PROXIMITY_DEG = 0.001
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as SubmissionPayload
 
-    // 1. Insert submission
+    // 1. Duplicate detection
+    // a) Check by clientSubmissionId (offline sync retries)
+    if (body.clientSubmissionId) {
+      const [existing] = await db
+        .select({ id: submissions.id })
+        .from(submissions)
+        .where(eq(submissions.clientSubmissionId, body.clientSubmissionId))
+        .limit(1)
+
+      if (existing) {
+        // Already processed — return existing ID (idempotent)
+        const [existingClassification] = await db
+          .select()
+          .from(riskClassifications)
+          .where(eq(riskClassifications.submissionId, existing.id))
+          .limit(1)
+
+        return NextResponse.json({
+          submissionId: existing.id,
+          classification: existingClassification ?? null,
+          duplicate: true,
+        })
+      }
+    }
+
+    // b) Same submitter + GPS proximity + time window dedup
+    if (body.gpsLat && body.gpsLng) {
+      const windowStart = new Date(Date.now() - DEDUP_WINDOW_MS)
+      const lat = parseFloat(body.gpsLat)
+      const lng = parseFloat(body.gpsLng)
+
+      const [nearbyRecent] = await db
+        .select({ id: submissions.id })
+        .from(submissions)
+        .where(
+          and(
+            eq(submissions.submitterId, body.submitterId),
+            gte(submissions.createdAt, windowStart),
+            sql`abs(${submissions.gpsLat}::double precision - ${lat}) < ${GPS_PROXIMITY_DEG}`,
+            sql`abs(${submissions.gpsLng}::double precision - ${lng}) < ${GPS_PROXIMITY_DEG}`,
+          ),
+        )
+        .limit(1)
+
+      if (nearbyRecent) {
+        return NextResponse.json(
+          { error: "Duplicate submission detected (same location within 2 minutes)" },
+          { status: 409 },
+        )
+      }
+    }
+
+    // 2. Insert submission
     const [submission] = await db
       .insert(submissions)
       .values({
@@ -42,7 +100,7 @@ export async function POST(request: NextRequest) {
       })
       .returning()
 
-    // 2. Insert individual question responses with scores
+    // 3. Insert individual question responses with scores
     const questionResponseValues = Object.entries(body.responses)
       .filter(([questionId]) => {
         const config = SCORED_QUESTIONS.find((q) => q.id === questionId)
@@ -63,14 +121,14 @@ export async function POST(request: NextRequest) {
       await db.insert(questionResponses).values(questionResponseValues)
     }
 
-    // 3. Compute risk classification
+    // 4. Compute risk classification
     const scoredResponses: QuestionResponse[] = Object.entries(body.responses)
       .filter(([qId]) => SCORED_QUESTIONS.some((q) => q.id === qId))
       .map(([questionId, value]) => ({ questionId, value }))
 
     const risk = computeRisk(scoredResponses, body.sex)
 
-    // 4. Store risk classification
+    // 5. Store risk classification
     const [classification] = await db
       .insert(riskClassifications)
       .values({

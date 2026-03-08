@@ -16,7 +16,10 @@ interface Facility {
   id: string
   name: string
   type: string
-  address: string | null
+  ward: string | null
+  lga: string | null
+  gpsLat: string | null
+  gpsLng: string | null
   distance_km?: number
 }
 
@@ -160,7 +163,9 @@ export default function PersonalResultPage() {
                   <hgroup>
                     <h3 className="font-medium">{f.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {f.type} {f.address ? `— ${f.address}` : ""}
+                      {f.type}
+                      {f.ward ? ` · ${f.ward}` : ""}
+                      {f.lga ? `, ${f.lga} LGA` : ""}
                     </p>
                   </hgroup>
                   {f.distance_km !== undefined && (

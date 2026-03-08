@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
 import { captureGps } from "@/lib/utils/geo"
+import { addPendingSubmission } from "@/lib/offline/db"
 
 export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
@@ -25,20 +26,23 @@ export default function FieldWorkerQuestionnairePage() {
       // GPS optional — continue without it
     }
 
-    // Submit to API
+    const payload = {
+      submitterId: crypto.randomUUID(), // TODO: use actual user ID from session
+      submitterType: data.submitterType,
+      questionnaireVersionId: crypto.randomUUID(), // TODO: use actual questionnaire version
+      sex: data.sex,
+      responses: data.responses,
+      gpsLat,
+      gpsLng,
+      clientSubmissionId: crypto.randomUUID(),
+    }
+
+    // Try online submission first, fall back to offline queue
     try {
       const res = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submitterId: crypto.randomUUID(), // TODO: use actual user ID from session
-          submitterType: data.submitterType,
-          questionnaireVersionId: crypto.randomUUID(), // TODO: use actual questionnaire version
-          sex: data.sex,
-          responses: data.responses,
-          gpsLat,
-          gpsLng,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (res.ok) {
@@ -47,13 +51,18 @@ export default function FieldWorkerQuestionnairePage() {
           "lastRiskResult",
           JSON.stringify(data.riskResult),
         )
-        sessionStorage.setItem(
-          "lastSubmissionId",
-          result.submissionId,
-        )
+        sessionStorage.setItem("lastSubmissionId", result.submissionId)
+      } else {
+        // Server error — queue for later
+        await addPendingSubmission(payload)
       }
     } catch {
-      // TODO: queue for offline sync
+      // Network error — queue for offline sync
+      await addPendingSubmission(payload)
+      sessionStorage.setItem(
+        "lastRiskResult",
+        JSON.stringify(data.riskResult),
+      )
     }
 
     router.push("/field-worker/history")

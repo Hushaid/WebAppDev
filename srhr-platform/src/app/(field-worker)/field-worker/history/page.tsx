@@ -52,7 +52,7 @@ export default function FieldWorkerHistoryPage() {
                 </TableCell>
                 <TableCell>
                   <code className="text-xs">
-                    {(sub.subject_id as string).slice(0, 8)}...
+                    {(sub.id as string).slice(0, 8)}...
                   </code>
                 </TableCell>
                 <TableCell>

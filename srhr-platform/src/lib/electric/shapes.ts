@@ -4,7 +4,7 @@ import { createShapeStream } from "./client"
 export interface SubmissionRow {
   [key: string]: Value
   id: string
-  subject_id: string
+  subject_id: string | null
   submitter_id: string
   submitter_type: string
   questionnaire_version_id: string

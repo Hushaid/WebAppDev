@@ -34,11 +34,8 @@ export async function GET(request: NextRequest) {
       type: healthFacilities.type,
       ward: healthFacilities.ward,
       lga: healthFacilities.lga,
-      address: healthFacilities.address,
       gpsLat: healthFacilities.gpsLat,
       gpsLng: healthFacilities.gpsLng,
-      servicesOffered: healthFacilities.servicesOffered,
-      riskLevelsServed: healthFacilities.riskLevelsServed,
       distance: sql<number>`(
         6371 * acos(
           cos(radians(${parseFloat(lat)})) *
