@@ -1,0 +1,43 @@
+[project]
+name = "irix"
+version = "0.1.0"
+description = "IRIX community-level SRHR risk prediction service (BYM2 + spatial ML)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "pydantic>=2.10.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+    "pymc>=5.19.0",
+    "arviz>=0.20.0",
+    "xgboost>=2.1.0",
+    "h3>=4.2.0",
+    "libpysal>=4.12.0",
+    "esda>=2.6.0",
+    "spopt>=0.6.0",
+    "geopandas>=1.0.0",
+    "shapely>=2.0.0",
+    "scikit-learn>=1.6.0",
+    "scipy>=1.15.0",
+    "numpy>=2.0.0",
+    "pandas>=2.2.0",
+    "mlflow>=2.19.0",
+    "celery[redis]>=5.4.0",
+    "redis>=5.2.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

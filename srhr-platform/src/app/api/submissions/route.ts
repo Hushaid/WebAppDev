@@ -12,6 +12,7 @@ import {
   type QuestionResponse,
 } from "@/lib/scoring/engine"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
+import { triggerHighRiskAlert } from "@/lib/alerts/trigger"
 
 interface SubmissionPayload {
   submitterId: string
@@ -143,6 +144,20 @@ export async function POST(request: NextRequest) {
         aggregateScore: risk.aggregateScore,
       })
       .returning()
+
+    // 6. Trigger high-risk alert (non-blocking)
+    if (risk.overallRiskLevel === "high") {
+      triggerHighRiskAlert({
+        submissionId: submission.id,
+        overallRiskLevel: risk.overallRiskLevel,
+        stiRiskLevel: risk.stiRiskLevel,
+        maternalRiskLevel: risk.maternalRiskLevel,
+        communityWellbeingRiskLevel: risk.communityWellbeingRiskLevel,
+        aggregateScore: risk.aggregateScore,
+        gpsLat: body.gpsLat ?? null,
+        gpsLng: body.gpsLng ?? null,
+      }).catch(console.error)
+    }
 
     return NextResponse.json({
       submissionId: submission.id,

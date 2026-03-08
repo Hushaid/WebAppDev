@@ -34,5 +34,60 @@ services:
     ports:
       - "6379:6379"
 
+  irix:
+    build:
+      context: ../prediction/irix
+      dockerfile: Dockerfile
+    container_name: srhr-irix
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://srhr_user:srhr_dev_password@postgres:5432/srhr_platform
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    depends_on:
+      - postgres
+      - redis
+
+  irix-worker:
+    build:
+      context: ../prediction/irix
+      dockerfile: Dockerfile
+    container_name: srhr-irix-worker
+    restart: unless-stopped
+    command: celery -A app.tasks.batch worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://srhr_user:srhr_dev_password@postgres:5432/srhr_platform
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    depends_on:
+      - postgres
+      - redis
+
+  irix-beat:
+    build:
+      context: ../prediction/irix
+      dockerfile: Dockerfile
+    container_name: srhr-irix-beat
+    restart: unless-stopped
+    command: celery -A app.tasks.batch beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://srhr_user:srhr_dev_password@postgres:5432/srhr_platform
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.19.0
+    container_name: srhr-mlflow
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts
+    volumes:
+      - mlflow-data:/mlflow
+
 volumes:
   pgdata:
+  mlflow-data:
