@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Providers } from "@/components/providers"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ServiceWorkerRegister } from "@/components/sw-register"
 import { cn } from "@/lib/utils"
 
 const nunitoSans = Nunito_Sans({variable:'--font-sans'})
@@ -28,6 +29,7 @@ export default function RootLayout({
         <ThemeProvider>
           <Providers>
             <TooltipProvider>{children}</TooltipProvider>
+            <ServiceWorkerRegister />
           </Providers>
         </ThemeProvider>
       </body>

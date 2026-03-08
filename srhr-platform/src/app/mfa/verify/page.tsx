@@ -1,0 +1,89 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth/client"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
+export default function MfaVerifyPage() {
+  const router = useRouter()
+  const [code, setCode] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleVerify() {
+    setLoading(true)
+    setError("")
+    try {
+      const result = await authClient.twoFactor.verifyTotp({
+        code,
+      })
+
+      if (result.data) {
+        // Redirect to the appropriate dashboard based on role
+        router.push("/admin")
+      } else {
+        setError("Invalid code. Please try again.")
+        setCode("")
+      }
+    } catch {
+      setError("Verification failed. Please try again.")
+      setCode("")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Two-Factor Verification</CardTitle>
+        <CardDescription>
+          Enter the 6-digit code from your authenticator app.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleVerify()
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <Label htmlFor="totp-code">Authentication Code</Label>
+            <Input
+              id="totp-code"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              placeholder="000000"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="mt-1 text-center font-mono text-lg tracking-widest"
+              autoFocus
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button
+            type="submit"
+            disabled={loading || code.length !== 6}
+            className="w-full"
+          >
+            {loading ? "Verifying..." : "Verify"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}

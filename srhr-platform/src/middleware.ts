@@ -10,7 +10,10 @@ const protectedRoutes: Record<string, string[]> = {
   "/partners": ["partner", "gis_analyst", "admin", "super_admin"],
 }
 
-const publicPaths = ["/sign-in", "/sign-up", "/api/auth"]
+/** Roles that require MFA to access their routes */
+const MFA_REQUIRED_ROLES = ["admin", "super_admin", "partner", "gis_analyst"]
+
+const publicPaths = ["/sign-in", "/sign-up", "/api/auth", "/mfa"]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -46,10 +49,23 @@ export async function middleware(request: NextRequest) {
 
   // Check role authorization
   const allowedRoles = protectedRoutes[matchedRoute]
-  const userRole = (session.user as { role?: string }).role
+  const user = session.user as {
+    role?: string
+    mfaEnabled?: boolean
+    twoFactorVerified?: boolean
+  }
+  const userRole = user.role
 
   if (!userRole || !allowedRoles.includes(userRole)) {
     return NextResponse.redirect(new URL("/sign-in", request.url))
+  }
+
+  // Enforce MFA for admin and partner roles
+  if (MFA_REQUIRED_ROLES.includes(userRole)) {
+    if (!user.mfaEnabled) {
+      // Redirect to MFA setup page if MFA not yet enabled
+      return NextResponse.redirect(new URL("/mfa/setup", request.url))
+    }
   }
 
   return NextResponse.next()
@@ -57,6 +73,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/auth).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/auth|sw\\.js).*)",
   ],
 }
