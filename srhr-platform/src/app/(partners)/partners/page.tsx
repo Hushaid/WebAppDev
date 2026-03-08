@@ -11,6 +11,7 @@ import {
 } from "@/components/partners/irix-filters"
 import { IrixTrendChart } from "@/components/partners/irix-trend-chart"
 import { CellDetail } from "@/components/partners/cell-detail"
+import { ClimateLayer } from "@/components/partners/climate-layer"
 import { useElectricShape } from "@/lib/electric/use-shape"
 import type { IrixScoreRow } from "@/lib/electric/shapes"
 
@@ -30,6 +31,7 @@ interface MapScore {
 export default function PartnersDashboardPage() {
   const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS)
   const [selectedCell, setSelectedCell] = useState<MapScore | null>(null)
+  const [climateVisible, setClimateVisible] = useState(false)
 
   // Real-time IRIX scores via Electric SQL
   const { data: irixRows, isLoading } = useElectricShape<IrixScoreRow>(
@@ -157,6 +159,9 @@ export default function PartnersDashboardPage() {
           onClose={() => setSelectedCell(null)}
         />
       </div>
+
+      {/* Climate / Flood Risk Layer */}
+      <ClimateLayer visible={climateVisible} onToggle={setClimateVisible} />
 
       {/* Trend charts */}
       <IrixTrendChart data={trendData} />
