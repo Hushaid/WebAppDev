@@ -13,18 +13,8 @@ import {
 } from "@/lib/scoring/engine"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 import { triggerHighRiskAlert } from "@/lib/alerts/trigger"
-
-interface SubmissionPayload {
-  submitterId: string
-  submitterType: "field_worker" | "personal_user"
-  questionnaireVersionId: string
-  subjectId?: string
-  gpsLat?: string
-  gpsLng?: string
-  sex: "male" | "female"
-  responses: Record<string, string>
-  clientSubmissionId?: string
-}
+import { submissionSchema } from "@/lib/utils/validators"
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 
 /** Dedup window: reject submissions from same submitter within 2 minutes */
 const DEDUP_WINDOW_MS = 2 * 60 * 1000
@@ -33,7 +23,31 @@ const GPS_PROXIMITY_DEG = 0.001
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as SubmissionPayload
+    // Rate limiting
+    const ip = request.headers.get("x-forwarded-for") ?? "unknown"
+    const rateResult = checkRateLimit(`submission:${ip}`, RATE_LIMITS.submission)
+    if (!rateResult.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateResult.resetAt - Date.now()) / 1000)),
+          },
+        },
+      )
+    }
+
+    // Input validation
+    const rawBody = await request.json()
+    const parsed = submissionSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid submission data", details: parsed.error.flatten() },
+        { status: 400 },
+      )
+    }
+    const body = parsed.data
 
     // 1. Duplicate detection
     // a) Check by clientSubmissionId (offline sync retries)

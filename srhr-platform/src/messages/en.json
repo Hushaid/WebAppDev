@@ -1,0 +1,90 @@
+{
+  "common": {
+    "appName": "Hushaid SRHR",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "online": "Online",
+    "offline": "Offline",
+    "syncing": "Syncing...",
+    "pending": "Pending sync"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full Name",
+    "accessCode": "Access Code",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "mfaSetup": "Set Up Two-Factor Authentication",
+    "mfaVerify": "Verify Authentication Code",
+    "mfaRequired": "Two-factor authentication is required for your role."
+  },
+  "questionnaire": {
+    "title": "SRHR Health Assessment",
+    "progress": "Question {current} of {total}",
+    "sectionSti": "STI Risk Assessment",
+    "sectionMaternal": "Maternal Health",
+    "sectionCommunity": "Community Well-being",
+    "skipNote": "This question was skipped based on your previous answer.",
+    "submitting": "Submitting assessment...",
+    "submitted": "Assessment submitted successfully!",
+    "cooldown": "Assessment Cooldown",
+    "cooldownMessage": "You can submit another assessment after {time}.",
+    "gpsCapture": "Capturing GPS location...",
+    "gpsRequired": "GPS location is required for field submissions."
+  },
+  "risk": {
+    "low": "Low Risk",
+    "medium": "Medium Risk",
+    "high": "High Risk",
+    "stiRisk": "STI Risk",
+    "maternalRisk": "Maternal Health Risk",
+    "communityRisk": "Community Well-being Risk",
+    "overallRisk": "Overall Risk Level",
+    "referral": "Recommended Facility"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "recentSubmissions": "Recent Submissions",
+    "todayCount": "Today's Submissions",
+    "weekCount": "This Week",
+    "totalCount": "Total Submissions",
+    "noSubmissions": "No submissions yet."
+  },
+  "partners": {
+    "title": "Partners Dashboard",
+    "description": "Community-level SRHR risk visualisation and analytics.",
+    "geoCells": "Geographic Cells",
+    "hotspots": "Hotspots",
+    "highRisk": "High Risk Areas",
+    "totalSubmissions": "Total Submissions",
+    "climateLayer": "Climate / Flood Risk Layer",
+    "floodRisk": "Flood Risk",
+    "compoundRisk": "Compound Vulnerability"
+  },
+  "admin": {
+    "users": "Users",
+    "submissions": "Submissions",
+    "accessCodes": "Access Codes",
+    "questionnaires": "Questionnaires",
+    "alerts": "Alerts",
+    "auditLog": "Audit Log",
+    "settings": "Settings"
+  }
+}

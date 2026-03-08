@@ -1,0 +1,90 @@
+{
+  "common": {
+    "appName": "Hushaid SRHR",
+    "loading": "Ana lodi...",
+    "submit": "Aika",
+    "cancel": "Soke",
+    "save": "Ajiye",
+    "back": "Komawa",
+    "next": "Gaba",
+    "close": "Rufe",
+    "search": "Bincike",
+    "filter": "Tace",
+    "export": "Fitar",
+    "view": "Duba",
+    "edit": "Gyara",
+    "delete": "Goge",
+    "confirm": "Tabbatar",
+    "online": "A kan layi",
+    "offline": "Ba a kan layi ba",
+    "syncing": "Ana daidaitawa...",
+    "pending": "Jiran daidaitawa"
+  },
+  "auth": {
+    "signIn": "Shiga",
+    "signUp": "Yi Rajista",
+    "signOut": "Fita",
+    "email": "Imel",
+    "password": "Kalmar sirri",
+    "name": "Cikakken Suna",
+    "accessCode": "Lambar Shiga",
+    "forgotPassword": "An manta kalmar sirri?",
+    "noAccount": "Ba ka da asusu?",
+    "hasAccount": "Kana da asusu?",
+    "mfaSetup": "Saita Tabbatarwa ta Hanyoyi Biyu",
+    "mfaVerify": "Tabbatar da Lambar",
+    "mfaRequired": "Ana buƙatar tabbatarwa ta hanyoyi biyu don matsayinka."
+  },
+  "questionnaire": {
+    "title": "Gwajin Lafiyar SRHR",
+    "progress": "Tambaya {current} daga {total}",
+    "sectionSti": "Gwajin Haɗarin STI",
+    "sectionMaternal": "Lafiyar Uwa",
+    "sectionCommunity": "Jin Daɗin Al'umma",
+    "skipNote": "An tsallake wannan tambaya bisa amsar da ta gabata.",
+    "submitting": "Ana aika gwaji...",
+    "submitted": "An aika gwajin da nasara!",
+    "cooldown": "Lokacin Jira",
+    "cooldownMessage": "Za ka iya aika wani gwaji bayan {time}.",
+    "gpsCapture": "Ana ɗaukar wurin GPS...",
+    "gpsRequired": "Ana buƙatar wurin GPS don aika daga filin."
+  },
+  "risk": {
+    "low": "Ƙaramin Haɗari",
+    "medium": "Matsakaicin Haɗari",
+    "high": "Babban Haɗari",
+    "stiRisk": "Haɗarin STI",
+    "maternalRisk": "Haɗarin Lafiyar Uwa",
+    "communityRisk": "Jin Daɗin Al'umma",
+    "overallRisk": "Jimlar Matakin Haɗari",
+    "referral": "Cibiyar da Aka Bayar da Shawara"
+  },
+  "dashboard": {
+    "welcome": "Barka da zuwa, {name}",
+    "recentSubmissions": "Abubuwan da Aka Aika Kwanan Nan",
+    "todayCount": "Na Yau",
+    "weekCount": "Wannan Mako",
+    "totalCount": "Jimla",
+    "noSubmissions": "Babu abubuwan da aka aika tukuna."
+  },
+  "partners": {
+    "title": "Hukumar Abokan Hulɗa",
+    "description": "Duba haɗarin SRHR na al'umma a kan taswira.",
+    "geoCells": "Yankunan Ƙasa",
+    "hotspots": "Wuraren Haɗari",
+    "highRisk": "Wuraren Babban Haɗari",
+    "totalSubmissions": "Jimlar Abubuwan da Aka Aika",
+    "climateLayer": "Yaduwar Haɗarin Ambaliya",
+    "floodRisk": "Haɗarin Ambaliya",
+    "compoundRisk": "Haɗarin Haɗe-haɗe"
+  },
+  "admin": {
+    "users": "Masu amfani",
+    "submissions": "Abubuwan da Aka Aika",
+    "accessCodes": "Lambobin Shiga",
+    "questionnaires": "Tambayoyi",
+    "alerts": "Sanarwa",
+    "auditLog": "Bayanan Duba",
+    "settings": "Saituna"
+  }
+}
