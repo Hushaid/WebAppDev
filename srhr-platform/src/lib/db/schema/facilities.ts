@@ -12,6 +12,8 @@ export const healthFacilities = pgTable("health_facilities", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(),
+  ward: text("ward"),
+  lga: text("lga"),
   address: text("address"),
   gpsLat: numeric("gps_lat"),
   gpsLng: numeric("gps_lng"),

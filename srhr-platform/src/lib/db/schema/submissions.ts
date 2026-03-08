@@ -13,9 +13,7 @@ import { questionnaires, questions } from "./questionnaires"
 
 export const submissions = pgTable("submissions", {
   id: uuid("id").defaultRandom().primaryKey(),
-  subjectId: uuid("subject_id")
-    .notNull()
-    .references(() => subjects.id),
+  subjectId: uuid("subject_id").references(() => subjects.id),
   submitterId: uuid("submitter_id")
     .notNull()
     .references(() => users.id),

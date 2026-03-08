@@ -13,10 +13,10 @@ import {
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 
 interface SubmissionPayload {
-  subjectId: string
   submitterId: string
   submitterType: "field_worker" | "personal_user"
   questionnaireVersionId: string
+  subjectId?: string
   gpsLat?: string
   gpsLng?: string
   sex: "male" | "female"
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const [submission] = await db
       .insert(submissions)
       .values({
-        subjectId: body.subjectId,
+        subjectId: body.subjectId ?? null,
         submitterId: body.submitterId,
         submitterType: body.submitterType,
         questionnaireVersionId: body.questionnaireVersionId,
