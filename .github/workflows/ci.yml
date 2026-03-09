@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: [main, stage]
 
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/srhr_test
+  BETTER_AUTH_SECRET: ci-test-secret-do-not-use-in-production
+  BETTER_AUTH_URL: http://localhost:3000
+  NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+  NEXT_PUBLIC_SENTRY_DSN: ""
+  NEXT_PUBLIC_ELECTRIC_URL: http://localhost:3000/api/electric
+  PII_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+
 jobs:
   lint-typecheck:
     name: Lint & Typecheck
@@ -40,6 +49,20 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [lint-typecheck, test]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: srhr_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     defaults:
       run:
         working-directory: srhr-platform
@@ -49,6 +72,6 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - name: Run database migrations
+        run: bunx drizzle-kit push
       - run: bun run build
-        env:
-          NEXT_PUBLIC_SENTRY_DSN: ""

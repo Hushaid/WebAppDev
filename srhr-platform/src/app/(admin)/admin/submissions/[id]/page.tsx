@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { notFound } from "next/navigation"
 import { getSubmissionDetail } from "../actions"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getSubmissions } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {

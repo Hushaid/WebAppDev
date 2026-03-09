@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getAlerts } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {

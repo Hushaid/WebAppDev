@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getUsers, updateUserRole, updateUserStatus } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {
