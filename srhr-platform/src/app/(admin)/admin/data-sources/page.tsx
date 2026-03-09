@@ -81,8 +81,8 @@ export default function DataSourcesPage() {
         <hgroup>
           <h1 className="text-2xl font-bold">External Data Sources</h1>
           <p className="text-muted-foreground">
-            Climate and environmental data sources feeding the flood prediction
-            model.
+            Climate and environmental datasets that feed the community health risk model.
+            Flood and weather patterns directly affect access to healthcare and disease spread.
           </p>
         </hgroup>
       </header>

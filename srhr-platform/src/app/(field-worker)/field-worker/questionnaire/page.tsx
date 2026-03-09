@@ -82,7 +82,7 @@ export default function FieldWorkerQuestionnairePage() {
         <p className="text-muted-foreground">
           {submitting
             ? "Submitting assessment..."
-            : "Complete the SRHR risk assessment questionnaire."}
+            : "Complete the health risk assessment for the individual you are assisting."}
         </p>
       </header>
       {!submitting && (

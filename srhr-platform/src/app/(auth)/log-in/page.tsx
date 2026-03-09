@@ -38,10 +38,13 @@ export default function LogInPage() {
 
     if (authError) {
       const msg = authError.message ?? "Log in failed."
-      // Detect lockout from error message
       if (msg.toLowerCase().includes("locked") || msg.toLowerCase().includes("too many")) {
         setError(
-          "Account locked due to too many failed attempts. Please try again in 15 minutes.",
+          "Your account has been temporarily locked due to too many failed attempts. Please try again in 15 minutes.",
+        )
+      } else if (msg.toLowerCase().includes("verify") || msg.toLowerCase().includes("email_not_verified")) {
+        setError(
+          "Please verify your email address before logging in. Check your inbox for a verification link.",
         )
       } else {
         setError(msg)
@@ -50,7 +53,6 @@ export default function LogInPage() {
       return
     }
 
-    // Role-based redirect via root page
     router.push("/")
     router.refresh()
   }
@@ -60,7 +62,7 @@ export default function LogInPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Log In</CardTitle>
         <CardDescription>
-          Enter your credentials to access the platform.
+          Sign in to your Hushaid account to continue.
         </CardDescription>
       </CardHeader>
       <CardContent>

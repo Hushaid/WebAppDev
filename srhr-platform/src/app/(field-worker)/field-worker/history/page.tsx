@@ -27,23 +27,23 @@ export default function FieldWorkerHistoryPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Submission History</h1>
+        <h1 className="text-2xl font-bold">Assessment History</h1>
         <p className="text-muted-foreground">
-          View your past questionnaire submissions. This list updates in real time.
+          All the health assessments you have conducted. This list updates automatically.
         </p>
       </header>
 
       {isLoading ? (
-        <p className="text-muted-foreground">Loading submissions...</p>
+        <p className="text-muted-foreground">Loading your assessments...</p>
       ) : submissions.length === 0 ? (
-        <p className="text-muted-foreground">No submissions yet.</p>
+        <p className="text-muted-foreground">You have not conducted any assessments yet. Start a new assessment to see your history here.</p>
       ) : (
         <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>Subject</TableHead>
+              <TableHead>Reference</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>GPS</TableHead>
             </TableRow>

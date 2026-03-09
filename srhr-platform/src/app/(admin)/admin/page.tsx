@@ -76,9 +76,9 @@ export default async function AdminDashboard() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <p className="text-muted-foreground">
-          Overview of platform activity and key metrics.
+          Monitor platform activity, track assessments, and manage health risk data across all users.
         </p>
       </header>
 
@@ -145,7 +145,7 @@ export default async function AdminDashboard() {
         <CardContent>
           {stats.recentSubmissions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No submissions yet.
+              No assessments have been submitted yet. They will appear here once field workers or individuals begin submitting.
             </p>
           ) : (
             <ul className="space-y-3">

@@ -132,7 +132,7 @@ export default function PartnersDashboardPage() {
         <hgroup>
           <h1 className="text-2xl font-bold">Partners Dashboard</h1>
           <p className="text-muted-foreground">
-            Community-level SRHR risk visualisation and analytics.
+            Community-level health risk data and analytics. All data is aggregated and de-identified — no personal information is shown.
           </p>
         </hgroup>
       </header>
@@ -142,7 +142,7 @@ export default function PartnersDashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Geographic Cells
+              Monitored Areas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -192,7 +192,7 @@ export default function PartnersDashboardPage() {
       <div className="relative">
         {isLoading ? (
           <div className="flex h-[500px] items-center justify-center rounded-lg border">
-            <p className="text-muted-foreground">Loading IRIX data...</p>
+            <p className="text-muted-foreground">Loading community health risk data...</p>
           </div>
         ) : (
           <IrixMap scores={filteredScores} onCellClick={setSelectedCell} />

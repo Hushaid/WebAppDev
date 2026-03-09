@@ -115,7 +115,7 @@ export default function PersonalQuestionnairePage() {
     return (
       <section className="space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Self Assessment</h1>
+          <h1 className="text-2xl font-bold">Health Assessment</h1>
           <p className="text-muted-foreground">Checking availability...</p>
         </header>
       </section>
@@ -130,16 +130,16 @@ export default function PersonalQuestionnairePage() {
     return (
       <section className="space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Self Assessment</h1>
+          <h1 className="text-2xl font-bold">Health Assessment</h1>
         </header>
         <Card>
           <CardHeader>
-            <CardTitle>Assessment Cooldown</CardTitle>
+            <CardTitle>Please wait before retaking</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground">
-              You have already completed an assessment recently. To ensure
-              accurate results, please wait before taking another one.
+              You completed an assessment recently. To keep your results accurate
+              and meaningful, there is a short waiting period between assessments.
             </p>
             {endsAt && (
               <p className="text-sm">
@@ -161,11 +161,11 @@ export default function PersonalQuestionnairePage() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Self Assessment</h1>
+        <h1 className="text-2xl font-bold">Health Assessment</h1>
         <p className="text-muted-foreground">
           {submitting
-            ? "Submitting assessment..."
-            : "Complete the SRHR risk assessment questionnaire."}
+            ? "Submitting your answers..."
+            : "Answer the questions below to receive a confidential health risk assessment. Your data is encrypted and private."}
         </p>
       </header>
       {!submitting && (

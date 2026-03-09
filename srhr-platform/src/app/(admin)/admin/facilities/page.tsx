@@ -44,7 +44,7 @@ export default async function FacilitiesPage() {
         <hgroup>
           <h1 className="text-2xl font-bold">Health Facilities</h1>
           <p className="text-muted-foreground">
-            Registered health facilities for risk classification referrals.
+            Health facilities available for patient referrals based on risk assessments.
           </p>
         </hgroup>
       </header>
@@ -90,7 +90,7 @@ export default async function FacilitiesPage() {
               {facilities.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No facilities found. Run the seed script to populate.
+                    No facilities registered yet. Import facility data to populate this list.
                   </TableCell>
                 </TableRow>
               ) : (

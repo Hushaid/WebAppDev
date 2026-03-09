@@ -84,7 +84,7 @@ export default function PersonalResultPage() {
       <section className="space-y-6">
         <header>
           <h1 className="text-2xl font-bold">Your Results</h1>
-          <p className="text-muted-foreground">No assessment results found.</p>
+          <p className="text-muted-foreground">No results found. Complete a health assessment first to see your results here.</p>
         </header>
         <Link href="/personal/questionnaire">
           <Button>Take Assessment</Button>
@@ -98,7 +98,7 @@ export default function PersonalResultPage() {
       <header>
         <h1 className="text-2xl font-bold">Your Results</h1>
         <p className="text-muted-foreground">
-          Based on your assessment, here is your risk classification.
+          Based on your answers, here is your personalised health risk summary. This is not a medical diagnosis — please consult a healthcare provider for professional advice.
         </p>
       </header>
 
@@ -116,7 +116,7 @@ export default function PersonalResultPage() {
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-4 text-sm">
-            <dt className="text-muted-foreground">STI Risk</dt>
+            <dt className="text-muted-foreground">Infection Risk</dt>
             <dd className="text-end">
               <Badge variant={riskVariant(risk.stiRiskLevel)}>
                 {risk.stiRiskLevel} ({risk.stiScore})
@@ -149,10 +149,10 @@ export default function PersonalResultPage() {
           <CardTitle>Recommended Facilities</CardTitle>
           <CardDescription>
             {loading
-              ? "Loading nearby facilities..."
+              ? "Finding health facilities near you..."
               : facilities.length > 0
-                ? "Health facilities near you that can assist."
-                : "No facilities found. Contact your local health centre."}
+                ? "These health facilities are near your location and can provide support."
+                : "No nearby facilities found. Please contact your local health centre for assistance."}
           </CardDescription>
         </CardHeader>
         {facilities.length > 0 && (

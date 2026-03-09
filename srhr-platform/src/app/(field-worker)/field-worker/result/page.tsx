@@ -81,8 +81,8 @@ export default function FieldWorkerResultPage() {
     return (
       <section className="mx-auto max-w-2xl space-y-6 p-4">
         <header>
-          <h1 className="text-2xl font-bold">Submission Result</h1>
-          <p className="text-muted-foreground">No result data found.</p>
+          <h1 className="text-2xl font-bold">Assessment Result</h1>
+          <p className="text-muted-foreground">No result data found. Please complete an assessment first.</p>
         </header>
         <Button asChild>
           <Link href="/field-worker/questionnaire">New Assessment</Link>
@@ -94,7 +94,7 @@ export default function FieldWorkerResultPage() {
   return (
     <section className="mx-auto max-w-2xl space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Submission Result</h1>
+        <h1 className="text-2xl font-bold">Assessment Result</h1>
         {submissionId && (
           <p className="text-xs text-muted-foreground">
             ID: {submissionId.slice(0, 8)}...
@@ -155,8 +155,8 @@ export default function FieldWorkerResultPage() {
             {loading
               ? "Loading nearby facilities..."
               : facilities.length > 0
-                ? "Recommend these facilities to the subject."
-                : "No facilities found nearby."}
+                ? "You can recommend these facilities to the person you assessed."
+                : "No nearby facilities found. Refer them to their local health centre."}
           </CardDescription>
         </CardHeader>
         {facilities.length > 0 && (

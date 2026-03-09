@@ -39,7 +39,7 @@ export default function PersonalHomePage() {
             Welcome{session?.user?.name ? `, ${session.user.name}` : ""}
           </h1>
           <p className="text-muted-foreground">
-            Your personal SRHR health assessment dashboard.
+            Your confidential health assessment dashboard. All your data is encrypted and private.
           </p>
         </hgroup>
       </header>
@@ -67,8 +67,8 @@ export default function PersonalHomePage() {
         <CardContent>
           {mySubmissions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              You haven&apos;t taken any assessments yet. Take your first
-              assessment to see your SRHR risk profile.
+              You have not taken any assessments yet. Complete your first
+              health assessment to receive a personalised risk profile and facility recommendations.
             </p>
           ) : (
             <ul className="space-y-3">

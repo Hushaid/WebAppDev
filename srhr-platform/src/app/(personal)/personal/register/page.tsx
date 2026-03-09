@@ -68,7 +68,7 @@ export default function PersonalRegisterPage() {
               <h3 className="font-medium">What this assessment covers</h3>
               <p className="text-muted-foreground">
                 This questionnaire assesses your sexual and reproductive health
-                risks across three categories: STI Risk, Maternal Health, and
+                risks across three areas: infection risk, maternal health, and
                 Community Well-being.
               </p>
             </article>

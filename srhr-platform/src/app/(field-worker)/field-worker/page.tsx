@@ -34,9 +34,10 @@ export default function FieldWorkerDashboardPage() {
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <hgroup>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">Field Worker Dashboard</h1>
           <p className="text-muted-foreground">
-            Your field activity summary.
+            Your assessment activity at a glance. Each assessment you conduct helps identify
+            health risks in the community.
           </p>
         </hgroup>
         <Link href="/field-worker/questionnaire">
@@ -80,7 +81,7 @@ export default function FieldWorkerDashboardPage() {
               <CardContent>
                 <p className="text-3xl font-bold">{submissions.length}</p>
                 <p className="text-xs text-muted-foreground">
-                  {withGps} with GPS
+                  {withGps} with location captured
                 </p>
               </CardContent>
             </Card>

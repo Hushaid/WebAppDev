@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { signUp } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,11 +16,12 @@ import {
 } from "@/components/ui/card"
 
 export default function CreateAccountPage() {
-  const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState("")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -47,12 +47,40 @@ export default function CreateAccountPage() {
     })
 
     if (authError) {
-      setError(authError.message ?? "Create account failed. Please try again.")
+      setError(authError.message ?? "Could not create your account. Please try again.")
       setLoading(false)
       return
     }
 
-    router.push("/log-in")
+    setSubmittedEmail(email)
+    setVerificationSent(true)
+    setLoading(false)
+  }
+
+  if (verificationSent) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Check your inbox</CardTitle>
+          <CardDescription>
+            We sent a verification link to{" "}
+            <strong>{submittedEmail}</strong>. Please open the email and click the
+            link to activate your account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            The link expires in 1 hour. If you do not see the email, check your
+            spam or junk folder.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <Button variant="outline" asChild className="w-full">
+            <Link href="/log-in">Go to Log In</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    )
   }
 
   return (
@@ -60,7 +88,8 @@ export default function CreateAccountPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Create Account</CardTitle>
         <CardDescription>
-          Create an account to take a confidential health assessment and receive referrals to nearby health facilities.
+          Sign up to take a confidential health assessment and get referrals to
+          nearby health facilities.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -71,7 +100,7 @@ export default function CreateAccountPage() {
               id="name"
               name="name"
               type="text"
-              placeholder="Your name"
+              placeholder="Your full name"
               required
               autoComplete="name"
             />
@@ -86,6 +115,9 @@ export default function CreateAccountPage() {
               required
               autoComplete="email"
             />
+            <p className="text-xs text-muted-foreground">
+              We will send a verification link to this address.
+            </p>
           </fieldset>
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
@@ -98,7 +130,7 @@ export default function CreateAccountPage() {
                   aria-label="Show password"
                   className="size-3.5 rounded border-input"
                 />
-                Show password
+                Show
               </label>
             </div>
             <Input
@@ -109,6 +141,9 @@ export default function CreateAccountPage() {
               minLength={8}
               autoComplete="new-password"
             />
+            <p className="text-xs text-muted-foreground">
+              Must be at least 8 characters.
+            </p>
           </fieldset>
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
@@ -121,7 +156,7 @@ export default function CreateAccountPage() {
                   aria-label="Show confirm password"
                   className="size-3.5 rounded border-input"
                 />
-                Show password
+                Show
               </label>
             </div>
             <Input
@@ -134,7 +169,9 @@ export default function CreateAccountPage() {
             />
           </fieldset>
           {error && (
-            <output className="block text-sm text-destructive">{error}</output>
+            <output className="block rounded-md bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+              {error}
+            </output>
           )}
         </form>
       </CardContent>
