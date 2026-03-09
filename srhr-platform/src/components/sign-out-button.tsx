@@ -10,7 +10,7 @@ export function SignOutButton({ variant = "ghost" }: { variant?: "ghost" | "outl
 
   async function handleSignOut() {
     await signOut()
-    router.push("/sign-in")
+    router.push("/log-in")
     router.refresh()
   }
 

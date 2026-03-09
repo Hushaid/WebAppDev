@@ -19,10 +19,10 @@ export default async function HomePage() {
   })
 
   if (!session?.user) {
-    redirect("/sign-in")
+    redirect("/log-in")
   }
 
   const role = (session.user as { role?: string }).role || "personal_user"
-  const destination = roleRoutes[role] || "/sign-in"
+  const destination = roleRoutes[role] || "/log-in"
   redirect(destination)
 }

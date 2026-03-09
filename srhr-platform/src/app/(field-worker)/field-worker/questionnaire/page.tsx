@@ -17,7 +17,7 @@ export default function FieldWorkerQuestionnairePage() {
     setSubmitting(true)
 
     if (!session?.user?.id) {
-      router.push("/sign-in")
+      router.push("/log-in")
       return
     }
 

@@ -48,9 +48,9 @@ export default function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Link href="/sign-in" className="w-full">
+          <Link href="/log-in" className="w-full">
             <Button variant="outline" className="w-full">
-              Back to Sign In
+              Back to Log In
             </Button>
           </Link>
         </CardFooter>
@@ -95,8 +95,8 @@ export default function ForgotPasswordPage() {
         </Button>
         <p className="text-sm text-muted-foreground">
           Remember your password?{" "}
-          <Link href="/sign-in" className="text-primary underline">
-            Sign in
+          <Link href="/log-in" className="text-primary underline">
+            Log in
           </Link>
         </p>
       </CardFooter>

@@ -16,10 +16,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function SignInPage() {
+export default function LogInPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -36,7 +37,7 @@ export default function SignInPage() {
     })
 
     if (authError) {
-      const msg = authError.message ?? "Sign in failed."
+      const msg = authError.message ?? "Log in failed."
       // Detect lockout from error message
       if (msg.toLowerCase().includes("locked") || msg.toLowerCase().includes("too many")) {
         setError(
@@ -57,13 +58,13 @@ export default function SignInPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Sign In</CardTitle>
+        <CardTitle className="text-2xl">Log In</CardTitle>
         <CardDescription>
           Enter your credentials to access the platform.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form id="sign-in-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="log-in-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -78,20 +79,30 @@ export default function SignInPage() {
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-muted-foreground hover:text-primary"
-              >
-                Forgot password?
-              </Link>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  aria-label="Show password"
+                  className="size-3.5 rounded border-input"
+                />
+                Show password
+              </label>
             </div>
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               autoComplete="current-password"
             />
+            <Link
+              href="/forgot-password"
+              className="inline-block text-xs text-muted-foreground hover:text-primary"
+            >
+              Forgot password?
+            </Link>
           </fieldset>
           {error && (
             <output
@@ -106,16 +117,16 @@ export default function SignInPage() {
       <CardFooter className="flex flex-col gap-4">
         <Button
           type="submit"
-          form="sign-in-form"
+          form="log-in-form"
           className="w-full"
           disabled={loading}
         >
-          {loading ? "Signing in..." : "Sign In"}
+          {loading ? "Logging in..." : "Log In"}
         </Button>
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="text-primary underline">
-            Sign up
+          <Link href="/create-account" className="text-primary underline">
+            Create account
           </Link>
         </p>
       </CardFooter>

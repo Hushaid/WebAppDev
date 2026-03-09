@@ -21,8 +21,8 @@
     "pending": "Jiran daidaitawa"
   },
   "auth": {
-    "signIn": "Shiga",
-    "signUp": "Yi Rajista",
+    "logIn": "Shiga",
+    "createAccount": "Yi Rajista",
     "signOut": "Fita",
     "email": "Imel",
     "password": "Kalmar sirri",

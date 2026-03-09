@@ -21,8 +21,8 @@
     "pending": "Pending sync"
   },
   "auth": {
-    "signIn": "Sign In",
-    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "createAccount": "Create Account",
     "signOut": "Sign Out",
     "email": "Email",
     "password": "Password",

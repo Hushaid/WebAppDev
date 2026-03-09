@@ -16,10 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function SignUpPage() {
+export default function CreateAccountPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -45,12 +47,12 @@ export default function SignUpPage() {
     })
 
     if (authError) {
-      setError(authError.message ?? "Sign up failed. Please try again.")
+      setError(authError.message ?? "Create account failed. Please try again.")
       setLoading(false)
       return
     }
 
-    router.push("/sign-in")
+    router.push("/log-in")
   }
 
   return (
@@ -58,11 +60,11 @@ export default function SignUpPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Create Account</CardTitle>
         <CardDescription>
-          Sign up to access the SRHR platform.
+          Create an account to access the SRHR platform.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form id="sign-up-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="create-account-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input
@@ -86,22 +88,46 @@ export default function SignUpPage() {
             />
           </fieldset>
           <fieldset className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  aria-label="Show password"
+                  className="size-3.5 rounded border-input"
+                />
+                Show password
+              </label>
+            </div>
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               minLength={8}
               autoComplete="new-password"
             />
           </fieldset>
           <fieldset className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                <input
+                  type="checkbox"
+                  checked={showConfirmPassword}
+                  onChange={(e) => setShowConfirmPassword(e.target.checked)}
+                  aria-label="Show confirm password"
+                  className="size-3.5 rounded border-input"
+                />
+                Show password
+              </label>
+            </div>
             <Input
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               required
               minLength={8}
               autoComplete="new-password"
@@ -115,16 +141,16 @@ export default function SignUpPage() {
       <CardFooter className="flex flex-col gap-4">
         <Button
           type="submit"
-          form="sign-up-form"
+          form="create-account-form"
           className="w-full"
           disabled={loading}
         >
-          {loading ? "Creating account..." : "Sign Up"}
+          {loading ? "Creating account..." : "Create Account"}
         </Button>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/sign-in" className="text-primary underline">
-            Sign in
+          <Link href="/log-in" className="text-primary underline">
+            Log in
           </Link>
         </p>
       </CardFooter>

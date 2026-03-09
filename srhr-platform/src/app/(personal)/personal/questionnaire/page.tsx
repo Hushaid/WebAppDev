@@ -68,7 +68,7 @@ export default function PersonalQuestionnairePage() {
     }
 
     if (!session?.user?.id) {
-      router.push("/sign-in")
+      router.push("/log-in")
       return
     }
 

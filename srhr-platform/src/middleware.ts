@@ -13,7 +13,7 @@ const protectedRoutes: Record<string, string[]> = {
 /** Roles that require MFA to access their routes */
 const MFA_REQUIRED_ROLES = ["admin", "super_admin", "partner", "gis_analyst"]
 
-const publicPaths = ["/sign-in", "/sign-up", "/api/auth", "/mfa"]
+const publicPaths = ["/log-in", "/create-account", "/api/auth", "/mfa"]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
   )
 
   if (!session) {
-    return NextResponse.redirect(new URL("/sign-in", request.url))
+    return NextResponse.redirect(new URL("/log-in", request.url))
   }
 
   // Check role authorization
@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
   const userRole = user.role
 
   if (!userRole || !allowedRoles.includes(userRole)) {
-    return NextResponse.redirect(new URL("/sign-in", request.url))
+    return NextResponse.redirect(new URL("/log-in", request.url))
   }
 
   // Enforce MFA for admin and partner roles
