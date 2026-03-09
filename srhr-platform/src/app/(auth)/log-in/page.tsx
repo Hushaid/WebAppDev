@@ -81,16 +81,14 @@ export default function LogInPage() {
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
-                <input
-                  type="checkbox"
-                  checked={showPassword}
-                  onChange={(e) => setShowPassword(e.target.checked)}
-                  aria-label="Show password"
-                  className="size-3.5 rounded border-input"
-                />
-                Show password
-              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide password" : "Show password"}
+              </button>
             </div>
             <Input
               id="password"
