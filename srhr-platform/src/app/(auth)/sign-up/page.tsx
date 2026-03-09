@@ -30,6 +30,13 @@ export default function SignUpPage() {
     const name = formData.get("name") as string
     const email = formData.get("email") as string
     const password = formData.get("password") as string
+    const confirmPassword = formData.get("confirmPassword") as string
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.")
+      setLoading(false)
+      return
+    }
 
     const { error: authError } = await signUp.email({
       name,
@@ -83,6 +90,17 @@ export default function SignUpPage() {
             <Input
               id="password"
               name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </fieldset>
+          <fieldset className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
               type="password"
               required
               minLength={8}

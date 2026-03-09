@@ -11,10 +11,16 @@ from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 
-from ..data.chirps import fetch_chirps_rainfall, compute_cumulative_rainfall
-from ..data.era5 import fetch_era5_soil_moisture
-from ..data.glofas import fetch_glofas_discharge
-from ..data.openmeteo import fetch_openmeteo_forecast
+from ..data.chirps import fetch_chirps_daily, compute_cumulative_rainfall
+from ..data.era5 import fetch_era5_soil_moisture, load_era5_soil_moisture
+from ..data.glofas import (
+    fetch_glofas_forecast,
+    load_glofas_discharge,
+    extract_station_discharge,
+    BENUE_STATIONS,
+    NIGER_STATIONS,
+)
+from ..data.openmeteo import fetch_forecast, compute_forecast_risk_signal
 from ..models.xgboost_flood import FloodXGBoost
 from ..models.prophet_anomaly import RainfallAnomalyDetector
 from ..models.ensemble import FloodEnsemble
@@ -145,13 +151,29 @@ async def run_training_pipeline() -> dict:
 
     # For training, we build features for each historical date
     # (simplified: using current dynamic features as proxy)
-    chirps_data = fetch_chirps_rainfall(today - timedelta(days=30), today)
+    chirps_files = []
+    for day_offset in range(30):
+        target = today - timedelta(days=day_offset)
+        filepath = await fetch_chirps_daily(target)
+        if filepath:
+            chirps_files.append(filepath)
+
+    # compute_cumulative_rainfall returns {window_name: DataArray}
+    # We need to convert to {lga_id: {rain_1d, rain_3d, ...}} for build_dynamic_features
     cumulative = {}
-    if chirps_data is not None:
+    if chirps_files:
+        window_arrays = compute_cumulative_rainfall(chirps_files)
         for _, lga in lga_metadata.iterrows():
-            cumulative[lga["lga_id"]] = compute_cumulative_rainfall(
-                chirps_data, lga.get("lat", 9.0), lga.get("lon", 7.5)
-            )
+            lga_id = lga["lga_id"]
+            lat, lon = lga.get("lat", 9.0), lga.get("lon", 7.5)
+            lga_rain = {}
+            for window_key, arr in window_arrays.items():
+                try:
+                    val = float(arr.sel(y=lat, x=lon, method="nearest").values)
+                except (KeyError, ValueError):
+                    val = 0.0
+                lga_rain[window_key] = val
+            cumulative[lga_id] = lga_rain
 
     dynamic_features = build_dynamic_features(cumulative, None, None, None)
     features = merge_features(static_features, dynamic_features)

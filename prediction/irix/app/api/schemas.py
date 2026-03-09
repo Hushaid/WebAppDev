@@ -32,7 +32,6 @@ class IrixScoreResponse(BaseModel):
     """Single IRIX score for a geographic unit (H3 cell)."""
 
     geographic_unit_id: str
-    h3_index: str
     overall_irix_score: float
     overall_risk_level: RiskLevel
     sti_avg_score: float | None = None
@@ -45,25 +44,25 @@ class IrixScoreResponse(BaseModel):
     hotspot_flag: bool = False
     confidence_lower: float | None = None
     confidence_upper: float | None = None
-    computed_at: datetime
+    computed_at: str
+    model_version: str | None = None
 
 
 class HotspotResponse(BaseModel):
-    """Detected hotspot from Local Moran's I / Getis-Ord Gi*."""
+    """Detected hotspot from IRIX scores where hotspot_flag is true."""
 
-    h3_index: str
     geographic_unit_id: str
-    hotspot_type: str = Field(description="HH (high-high), HL (high-low), etc.")
-    statistic: float
-    p_value: float
-    risk_level: RiskLevel
+    overall_irix_score: float
+    overall_risk_level: RiskLevel
+    submission_count: int
+    confidence_lower: float | None = None
+    confidence_upper: float | None = None
 
 
 class IrixTrendPoint(BaseModel):
     """Single time-series data point for IRIX trends."""
 
-    period_start: datetime
-    period_end: datetime
+    computed_at: str
     overall_irix_score: float
     overall_risk_level: RiskLevel
     sti_avg_score: float | None = None
@@ -74,8 +73,7 @@ class IrixTrendPoint(BaseModel):
 
 class IrixTrendResponse(BaseModel):
     geographic_unit_id: str
-    h3_index: str
-    trend: list[IrixTrendPoint]
+    periods: list[IrixTrendPoint]
 
 
 class PredictRequest(BaseModel):

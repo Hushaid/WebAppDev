@@ -29,6 +29,8 @@ export default function PartnersExportsPage() {
       const params = new URLSearchParams({ path: "/api/v1/scores" })
       if (diseaseGroup !== "all") params.set("disease_group", diseaseGroup)
       if (riskLevel !== "all") params.set("risk_level", riskLevel)
+      if (dateFrom) params.set("date_from", dateFrom)
+      if (dateTo) params.set("date_to", dateTo)
 
       const res = await fetch(`/api/irix?${params}`)
       if (!res.ok) {

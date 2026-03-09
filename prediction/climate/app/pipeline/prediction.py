@@ -64,9 +64,22 @@ async def run_daily_prediction() -> dict:
         if filepath:
             chirps_files.append(filepath)
 
-    cumulative = {}
+    # compute_cumulative_rainfall returns {window_name: DataArray}
+    # Convert to {lga_id: {rain_1d, rain_3d, ...}} for build_dynamic_features
+    cumulative: dict[str, dict[str, float]] = {}
     if chirps_files:
-        cumulative = compute_cumulative_rainfall(chirps_files)
+        window_arrays = compute_cumulative_rainfall(chirps_files)
+        for _, lga in lga_metadata.iterrows():
+            lga_id = lga["lga_id"]
+            lat, lon = lga.get("lat", 9.0), lga.get("lon", 7.5)
+            lga_rain: dict[str, float] = {}
+            for window_key, arr in window_arrays.items():
+                try:
+                    val = float(arr.sel(y=lat, x=lon, method="nearest").values)
+                except (KeyError, ValueError):
+                    val = 0.0
+                lga_rain[window_key] = val
+            cumulative[lga_id] = lga_rain
 
     # ERA5 soil moisture (single date)
     era5 = None

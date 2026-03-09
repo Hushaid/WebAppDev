@@ -11,6 +11,7 @@ from app.api.schemas import (
     HotspotResponse,
     IrixFilters,
     IrixScoreResponse,
+    IrixTrendPoint,
     IrixTrendResponse,
     PredictRequest,
     PredictResponse,
@@ -89,11 +90,11 @@ async def get_scores(
     with engine.connect() as conn:
         rows = conn.execute(text(query), params).mappings().all()
 
-    return [
-        IrixScoreResponse(
+    def row_to_score(r: dict) -> IrixScoreResponse:
+        return IrixScoreResponse(
             geographic_unit_id=r["geographic_unit_id"],
             computed_at=str(r["computed_at"]),
-            model_version=r["model_version"],
+            model_version=r.get("model_version"),
             sti_avg_score=float(r["sti_avg_score"]) if r["sti_avg_score"] else None,
             sti_risk_level=r["sti_risk_level"],
             maternal_avg_score=float(r["maternal_avg_score"]) if r["maternal_avg_score"] else None,
@@ -107,8 +108,8 @@ async def get_scores(
             confidence_lower=float(r["confidence_lower"]) if r["confidence_lower"] else None,
             confidence_upper=float(r["confidence_upper"]) if r["confidence_upper"] else None,
         )
-        for r in rows
-    ]
+
+    return [row_to_score(r) for r in rows]
 
 
 @router.get("/scores/{geographic_unit_id}", response_model=IrixScoreResponse | None)
@@ -139,7 +140,7 @@ async def get_score_for_unit(geographic_unit_id: str):
     return IrixScoreResponse(
         geographic_unit_id=row["geographic_unit_id"],
         computed_at=str(row["computed_at"]),
-        model_version=row["model_version"],
+        model_version=row.get("model_version"),
         sti_avg_score=float(row["sti_avg_score"]) if row["sti_avg_score"] else None,
         sti_risk_level=row["sti_risk_level"],
         maternal_avg_score=float(row["maternal_avg_score"]) if row["maternal_avg_score"] else None,
@@ -182,8 +183,8 @@ async def get_hotspots(
             overall_irix_score=float(r["overall_irix_score"]),
             overall_risk_level=r["overall_risk_level"],
             submission_count=r["submission_count"],
-            confidence_lower=float(r["confidence_lower"]) if r["confidence_lower"] else None,
-            confidence_upper=float(r["confidence_upper"]) if r["confidence_upper"] else None,
+            confidence_lower=float(r["confidence_lower"]) if r.get("confidence_lower") else None,
+            confidence_upper=float(r["confidence_upper"]) if r.get("confidence_upper") else None,
         )
         for r in rows
     ]
@@ -219,15 +220,15 @@ async def get_trends(
     return IrixTrendResponse(
         geographic_unit_id=geographic_unit_id,
         periods=[
-            {
-                "computed_at": str(r["computed_at"]),
-                "overall_irix_score": float(r["overall_irix_score"]),
-                "overall_risk_level": r["overall_risk_level"],
-                "sti_avg_score": float(r["sti_avg_score"]) if r["sti_avg_score"] else None,
-                "maternal_avg_score": float(r["maternal_avg_score"]) if r["maternal_avg_score"] else None,
-                "community_wellbeing_avg_score": float(r["community_wellbeing_avg_score"]) if r["community_wellbeing_avg_score"] else None,
-                "submission_count": r["submission_count"],
-            }
+            IrixTrendPoint(
+                computed_at=str(r["computed_at"]),
+                overall_irix_score=float(r["overall_irix_score"]),
+                overall_risk_level=r["overall_risk_level"],
+                sti_avg_score=float(r["sti_avg_score"]) if r["sti_avg_score"] else None,
+                maternal_avg_score=float(r["maternal_avg_score"]) if r["maternal_avg_score"] else None,
+                community_wellbeing_avg_score=float(r["community_wellbeing_avg_score"]) if r["community_wellbeing_avg_score"] else None,
+                submission_count=r["submission_count"],
+            )
             for r in reversed(rows)
         ],
     )

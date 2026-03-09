@@ -21,14 +21,14 @@ describe("classifyRisk", () => {
     })
   })
 
-  describe("Maternal thresholds (low: 1-7, medium: 8-14, high: 15-21)", () => {
+  describe("Maternal thresholds (low: 1-7, medium: 8-14, high: 15-22)", () => {
     it.each([
       [0, "low"],
       [7, "low"],
       [8, "medium"],
       [14, "medium"],
       [15, "high"],
-      [21, "high"],
+      [22, "high"],
     ] as const)("score %d → %s", (score, expected) => {
       expect(classifyRisk(score, MATERNAL_THRESHOLDS)).toBe(expected)
     })

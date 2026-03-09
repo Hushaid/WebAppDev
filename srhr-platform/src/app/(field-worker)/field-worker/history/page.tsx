@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useElectricShape } from "@/lib/electric/use-shape"
 import { useSession } from "@/lib/auth/client"
 import type { SubmissionRow } from "@/lib/electric/shapes"
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/table"
 
 export default function FieldWorkerHistoryPage() {
+  const router = useRouter()
   const { data: session } = useSession()
   const userId = session?.user?.id
   // Real-time sync: submissions update automatically when new data hits Postgres
@@ -47,7 +49,11 @@ export default function FieldWorkerHistoryPage() {
           </TableHeader>
           <TableBody>
             {submissions.map((sub) => (
-              <TableRow key={sub.id as string}>
+              <TableRow
+                key={sub.id as string}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => router.push(`/field-worker/history/${sub.id}`)}
+              >
                 <TableCell>
                   <time dateTime={sub.created_at as string}>
                     {new Date(sub.created_at as string).toLocaleDateString()}
