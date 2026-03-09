@@ -13,8 +13,10 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   name: text("name"),
+  image: text("image"),
   role: userRoleEnum("role").notNull().default("personal_user"),
   status: userStatusEnum("status").notNull().default("active"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
   mfaEnabled: boolean("mfa_enabled").default(false).notNull(),
   failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
@@ -60,6 +62,15 @@ export const verifications = pgTable("verifications", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const twoFactors = pgTable("two_factor", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 })
 
 export const fieldWorkerCodes = pgTable("field_worker_codes", {
