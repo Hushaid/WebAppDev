@@ -191,8 +191,9 @@ export default async function SubmissionDetailPage(props: {
             </TableHeader>
             <TableBody>
               {responses.map((r) => {
+                const qNum = r.questionNumber ?? r.questionId
                 const config = SCORED_QUESTIONS.find(
-                  (q) => q.id === r.questionId,
+                  (q) => q.id === qNum,
                 )
                 const option = config?.options.find(
                   (o) => o.value === r.responseValue,
@@ -200,7 +201,7 @@ export default async function SubmissionDetailPage(props: {
                 return (
                   <TableRow key={r.id}>
                     <TableCell>
-                      <span className="font-mono text-xs">{r.questionId}</span>
+                      <span className="font-mono text-xs">{qNum}</span>
                       {config && (
                         <Badge variant="outline" className="ml-2 text-xs">
                           {config.diseaseGroup}

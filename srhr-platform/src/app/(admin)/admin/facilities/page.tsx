@@ -82,15 +82,14 @@ export default async function FacilitiesPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Ward</TableHead>
-                <TableHead>LGA</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Coordinates</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {facilities.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
                     No facilities found. Run the seed script to populate.
                   </TableCell>
                 </TableRow>
@@ -103,8 +102,7 @@ export default async function FacilitiesPage() {
                         {f.type}
                       </Badge>
                     </TableCell>
-                    <TableCell>{f.ward ?? "—"}</TableCell>
-                    <TableCell>{f.lga ?? "—"}</TableCell>
+                    <TableCell>{f.address ?? "—"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {f.gpsLat && f.gpsLng
                         ? `${f.gpsLat}, ${f.gpsLng}`

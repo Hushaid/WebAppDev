@@ -5,6 +5,8 @@ import {
   submissions,
   questionResponses,
   riskClassifications,
+  questionnaires,
+  questions,
 } from "@/lib/db/schema"
 import { eq, and, gte, sql } from "drizzle-orm"
 import {
@@ -101,21 +103,54 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 2. Insert submission
+    // 2. Resolve questionnaire version ID
+    // Frontend sends "v1" — look up the actual UUID from the DB
+    let questionnaireVersionId = body.questionnaireVersionId
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!isUuid.test(questionnaireVersionId)) {
+      // Look up by version number (e.g. "v1" → version 1)
+      const versionNum = parseInt(questionnaireVersionId.replace(/\D/g, ""), 10) || 1
+      const [q] = await db
+        .select({ id: questionnaires.id })
+        .from(questionnaires)
+        .where(eq(questionnaires.version, versionNum))
+        .limit(1)
+
+      if (!q) {
+        return NextResponse.json(
+          { error: "Questionnaire version not found. Please run the seed script." },
+          { status: 400 },
+        )
+      }
+      questionnaireVersionId = q.id
+    }
+
+    // 3. Build question number → UUID mapping
+    const questionRows = await db
+      .select({ id: questions.id, questionNumber: questions.questionNumber })
+      .from(questions)
+      .where(eq(questions.questionnaireId, questionnaireVersionId))
+
+    const questionNumberToId: Record<string, string> = {}
+    for (const row of questionRows) {
+      questionNumberToId[row.questionNumber] = row.id
+    }
+
+    // 4. Insert submission
     const [submission] = await db
       .insert(submissions)
       .values({
         subjectId: body.subjectId ?? null,
         submitterId: body.submitterId,
         submitterType: body.submitterType,
-        questionnaireVersionId: body.questionnaireVersionId,
+        questionnaireVersionId,
         gpsLat: body.gpsLat ?? null,
         gpsLng: body.gpsLng ?? null,
         clientSubmissionId: body.clientSubmissionId ?? null,
       })
       .returning()
 
-    // 3. Insert individual question responses with scores
+    // 5. Insert individual question responses with scores
     const questionResponseValues = Object.entries(body.responses)
       .filter(([questionId]) => {
         const config = SCORED_QUESTIONS.find((q) => q.id === questionId)
@@ -124,9 +159,11 @@ export async function POST(request: NextRequest) {
       .map(([questionId, responseValue]) => {
         const config = SCORED_QUESTIONS.find((q) => q.id === questionId)!
         const option = config.options.find((o) => o.value === responseValue)
+        // Map question number (Q11, Q12...) to actual UUID
+        const resolvedQuestionId = questionNumberToId[questionId] ?? questionId
         return {
           submissionId: submission.id,
-          questionId,
+          questionId: resolvedQuestionId,
           responseValue,
           score: option?.score ?? 0,
         }
@@ -136,14 +173,14 @@ export async function POST(request: NextRequest) {
       await db.insert(questionResponses).values(questionResponseValues)
     }
 
-    // 4. Compute risk classification
+    // 6. Compute risk classification
     const scoredResponses: QuestionResponse[] = Object.entries(body.responses)
       .filter(([qId]) => SCORED_QUESTIONS.some((q) => q.id === qId))
       .map(([questionId, value]) => ({ questionId, value }))
 
     const risk = computeRisk(scoredResponses, body.sex)
 
-    // 5. Store risk classification
+    // 7. Store risk classification
     const [classification] = await db
       .insert(riskClassifications)
       .values({
@@ -159,7 +196,7 @@ export async function POST(request: NextRequest) {
       })
       .returning()
 
-    // 6. Trigger high-risk alert (non-blocking)
+    // 8. Trigger high-risk alert (non-blocking)
     if (risk.overallRiskLevel === "high") {
       triggerHighRiskAlert({
         submissionId: submission.id,

@@ -5,6 +5,7 @@ import {
   submissions,
   questionResponses,
   riskClassifications,
+  questions,
 } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
 import { auditLog } from "@/lib/db/schema"
@@ -35,8 +36,16 @@ export async function getSubmissionDetail(submissionId: string) {
   if (!submission) return null
 
   const responses = await db
-    .select()
+    .select({
+      id: questionResponses.id,
+      questionId: questionResponses.questionId,
+      questionNumber: questions.questionNumber,
+      responseValue: questionResponses.responseValue,
+      score: questionResponses.score,
+      createdAt: questionResponses.createdAt,
+    })
     .from(questionResponses)
+    .leftJoin(questions, eq(questionResponses.questionId, questions.id))
     .where(eq(questionResponses.submissionId, submissionId))
 
   const [classification] = await db

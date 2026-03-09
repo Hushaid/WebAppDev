@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
-import { submissions, questionResponses } from "@/lib/db/schema"
+import { submissions, questionResponses, questions } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 import { Badge } from "@/components/ui/badge"
@@ -31,9 +31,17 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
 
   if (!submission) notFound()
 
+  // Join responses with questions to get question_number for display
   const responses = await db
-    .select()
+    .select({
+      id: questionResponses.id,
+      questionId: questionResponses.questionId,
+      questionNumber: questions.questionNumber,
+      responseValue: questionResponses.responseValue,
+      score: questionResponses.score,
+    })
     .from(questionResponses)
+    .leftJoin(questions, eq(questionResponses.questionId, questions.id))
     .where(eq(questionResponses.submissionId, id))
 
   return (
@@ -106,8 +114,9 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
             </TableHeader>
             <TableBody>
               {responses.map((r) => {
+                const qNum = r.questionNumber ?? r.questionId
                 const config = SCORED_QUESTIONS.find(
-                  (q) => q.id === r.questionId,
+                  (q) => q.id === qNum,
                 )
                 const option = config?.options.find(
                   (o) => o.value === r.responseValue,
@@ -115,7 +124,7 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
                 return (
                   <TableRow key={r.id}>
                     <TableCell>
-                      <span className="font-mono text-xs">{r.questionId}</span>
+                      <span className="font-mono text-xs">{qNum}</span>
                       {config && (
                         <Badge variant="outline" className="ml-2 text-xs">
                           {config.diseaseGroup}
