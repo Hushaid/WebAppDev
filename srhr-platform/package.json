@@ -11,7 +11,9 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:studio": "drizzle-kit studio",
+    "db:studio:alt": "drizzle-kit studio --port=4984"
   },
   "dependencies": {
     "@better-fetch/fetch": "^1.1.21",
@@ -56,6 +58,7 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
+    "dotenv": "^16.4.7",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.6",

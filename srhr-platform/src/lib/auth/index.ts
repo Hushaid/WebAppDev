@@ -7,6 +7,8 @@ import * as schema from "@/lib/db/schema"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+const emailFrom = process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
+
 export const auth = betterAuth({
   advanced: {
     database: {
@@ -28,7 +30,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       await resend.emails.send({
-        from: "Hushaid <noreply@hushaid.com>",
+        from: emailFrom,
         to: user.email,
         subject: "Reset your Hushaid password",
         html: `
@@ -52,7 +54,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       await resend.emails.send({
-        from: "Hushaid <noreply@hushaid.com>",
+        from: emailFrom,
         to: user.email,
         subject: "Verify your Hushaid account",
         html: `
