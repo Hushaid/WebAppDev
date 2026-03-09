@@ -107,7 +107,7 @@ export default function PersonalRegisterPage() {
           </CardContent>
           <CardFooter>
             <Button variant="outline" asChild className="w-full">
-              <Link href="/log-in">Go to Log In</Link>
+              <Link href="/log-in">Go to log in</Link>
             </Button>
           </CardFooter>
         </Card>
@@ -160,7 +160,7 @@ export default function PersonalRegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button className="w-full" onClick={() => setStep("details")}>
-              I Understand &amp; Consent
+              I understand &amp; consent
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               By continuing you agree to the collection and anonymised use of your
@@ -182,6 +182,9 @@ export default function PersonalRegisterPage() {
             <form id="register-form" onSubmit={handleRegister} className="space-y-4">
               <fieldset className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
+                <p className="text-xs text-muted-foreground">
+                  Enter your first and last name as they appear on official documents.
+                </p>
                 <Input
                   id="name"
                   name="name"
@@ -193,17 +196,16 @@ export default function PersonalRegisterPage() {
               </fieldset>
               <fieldset className="space-y-2">
                 <Label htmlFor="email">Email</Label>
+                <p className="text-xs text-muted-foreground">
+                  We will send a verification link to this address.
+                </p>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="you@example.com"
                   required
                   autoComplete="email"
                 />
-                <p className="text-xs text-muted-foreground">
-                  We will send a verification link to this address.
-                </p>
               </fieldset>
               <fieldset className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -217,6 +219,9 @@ export default function PersonalRegisterPage() {
                     {showPassword ? "Hide password" : "Show password"}
                   </button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 8 characters.
+                </p>
                 <Input
                   id="password"
                   name="password"
@@ -226,9 +231,6 @@ export default function PersonalRegisterPage() {
                   maxLength={128}
                   autoComplete="new-password"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters.
-                </p>
               </fieldset>
               <fieldset className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -242,6 +244,9 @@ export default function PersonalRegisterPage() {
                     {showConfirmPassword ? "Hide password" : "Show password"}
                   </button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Re-enter your password to confirm.
+                </p>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -261,7 +266,7 @@ export default function PersonalRegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" form="register-form" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Create Account"}
+              {loading ? "Creating account..." : "Create account"}
             </Button>
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}

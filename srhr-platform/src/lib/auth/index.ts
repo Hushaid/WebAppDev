@@ -9,6 +9,13 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 const emailFrom = process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
 
+function capitalizeWords(str: string): string {
+  return str
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 export const auth = betterAuth({
   advanced: {
     database: {
@@ -94,6 +101,30 @@ export const auth = betterAuth({
           </div>
         `,
       })
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        async before(user) {
+          return {
+            data: {
+              ...user,
+              name: user.name ? capitalizeWords(user.name) : user.name,
+            },
+          }
+        },
+      },
+      update: {
+        async before(user) {
+          return {
+            data: {
+              ...user,
+              ...(user.name ? { name: capitalizeWords(user.name) } : {}),
+            },
+          }
+        },
+      },
     },
   },
   plugins: [

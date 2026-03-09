@@ -100,7 +100,7 @@ export default function CreateAccountPage() {
         </CardContent>
         <CardFooter>
           <Button variant="outline" asChild className="w-full">
-            <Link href="/log-in">Go to Log In</Link>
+            <Link href="/log-in">Go to log in</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -120,11 +120,13 @@ export default function CreateAccountPage() {
         <form id="create-account-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
+            <p className="text-xs text-muted-foreground">
+              Enter your first and last name as they appear on official documents.
+            </p>
             <Input
               id="name"
               name="name"
               type="text"
-              placeholder="Your full name"
               required
               minLength={2}
               maxLength={100}
@@ -133,17 +135,16 @@ export default function CreateAccountPage() {
           </fieldset>
           <fieldset className="space-y-2">
             <Label htmlFor="email">Email</Label>
+            <p className="text-xs text-muted-foreground">
+              We will send a verification link to this address.
+            </p>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="you@example.com"
               required
               autoComplete="email"
             />
-            <p className="text-xs text-muted-foreground">
-              We will send a verification link to this address.
-            </p>
           </fieldset>
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
@@ -157,6 +158,9 @@ export default function CreateAccountPage() {
                 {showPassword ? "Hide password" : "Show password"}
               </button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Must be at least 8 characters.
+            </p>
             <Input
               id="password"
               name="password"
@@ -166,9 +170,6 @@ export default function CreateAccountPage() {
               maxLength={128}
               autoComplete="new-password"
             />
-            <p className="text-xs text-muted-foreground">
-              Must be at least 8 characters.
-            </p>
           </fieldset>
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
@@ -182,6 +183,9 @@ export default function CreateAccountPage() {
                 {showConfirmPassword ? "Hide password" : "Show password"}
               </button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Re-enter your password to confirm.
+            </p>
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -206,7 +210,7 @@ export default function CreateAccountPage() {
           className="w-full"
           disabled={loading}
         >
-          {loading ? "Creating account..." : "Create Account"}
+          {loading ? "Creating account..." : "Create account"}
         </Button>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}

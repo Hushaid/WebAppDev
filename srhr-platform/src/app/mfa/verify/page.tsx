@@ -69,18 +69,20 @@ export default function MfaVerifyPage() {
           }}
           className="space-y-4"
         >
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="totp-code">Authentication Code</Label>
+            <p className="text-xs text-muted-foreground">
+              Enter the 6-digit code from your authenticator app.
+            </p>
             <Input
               id="totp-code"
               type="text"
               inputMode="numeric"
               pattern="[0-9]{6}"
               maxLength={6}
-              placeholder="000000"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="mt-1 text-center font-mono text-lg tracking-widest"
+              className="text-center font-mono text-lg tracking-widest"
               autoFocus
             />
           </div>

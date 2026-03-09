@@ -72,7 +72,7 @@ export default function VerifyEmailPage() {
         </CardHeader>
         <CardFooter>
           <Button asChild className="w-full">
-            <Link href="/log-in">Continue to Log In</Link>
+            <Link href="/log-in">Continue to log in</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -90,7 +90,7 @@ export default function VerifyEmailPage() {
       </CardContent>
       <CardFooter>
         <Button variant="outline" asChild className="w-full">
-          <Link href="/log-in">Back to Log In</Link>
+          <Link href="/log-in">Back to log in</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -128,19 +128,21 @@ function ResendVerification() {
   return (
     <form onSubmit={handleResend} className="space-y-3">
       <label htmlFor="resend-email" className="text-sm font-medium">
-        Enter your email to receive a new verification link
+        Email
       </label>
+      <p className="text-xs text-muted-foreground">
+        Enter your email to receive a new verification link.
+      </p>
       <input
         id="resend-email"
         type="email"
         required
-        placeholder="you@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
       />
       <Button type="submit" size="sm" disabled={sending} className="w-full">
-        {sending ? "Sending..." : "Resend Verification Email"}
+        {sending ? "Sending..." : "Resend verification email"}
       </Button>
     </form>
   )

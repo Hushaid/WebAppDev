@@ -92,7 +92,7 @@ export default function MfaSetupPage() {
         </CardHeader>
         <CardContent>
           <Button onClick={handleEnable} disabled={loading} className="w-full">
-            {loading ? "Setting up..." : "Set Up 2FA"}
+            {loading ? "Setting up..." : "Set up 2FA"}
           </Button>
           {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
         </CardContent>
@@ -136,7 +136,7 @@ export default function MfaSetupPage() {
             onClick={() => setStep("verify")}
             className="w-full"
           >
-            I&apos;ve Scanned the Code
+            I&apos;ve scanned the code
           </Button>
         </CardContent>
       </Card>
@@ -159,18 +159,20 @@ export default function MfaSetupPage() {
           }}
           className="space-y-4"
         >
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="totp-code">Verification Code</Label>
+            <p className="text-xs text-muted-foreground">
+              Enter the 6-digit code shown in your authenticator app.
+            </p>
             <Input
               id="totp-code"
               type="text"
               inputMode="numeric"
               pattern="[0-9]{6}"
               maxLength={6}
-              placeholder="000000"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="mt-1 text-center font-mono text-lg tracking-widest"
+              className="text-center font-mono text-lg tracking-widest"
               autoFocus
             />
           </div>
@@ -180,7 +182,7 @@ export default function MfaSetupPage() {
             disabled={loading || code.length !== 6}
             className="w-full"
           >
-            {loading ? "Verifying..." : "Verify & Enable 2FA"}
+            {loading ? "Verifying..." : "Verify & enable 2FA"}
           </Button>
         </form>
       </CardContent>

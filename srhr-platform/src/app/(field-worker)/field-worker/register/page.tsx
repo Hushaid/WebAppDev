@@ -48,8 +48,8 @@ export default function FieldWorkerRegisterPage() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const name = formData.get("name") as string
-    const email = formData.get("email") as string
+    const name = (formData.get("name") as string).trim()
+    const email = (formData.get("email") as string).trim().toLowerCase()
     const password = formData.get("password") as string
 
     const { data, error: authError } = await signUp.email({
@@ -93,11 +93,13 @@ export default function FieldWorkerRegisterPage() {
             <form id="code-form" onSubmit={handleCodeSubmit} className="space-y-4">
               <fieldset className="space-y-2">
                 <Label htmlFor="access-code">Code</Label>
+                <p className="text-xs text-muted-foreground">
+                  Enter the 8-character code your administrator gave you.
+                </p>
                 <Input
                   id="access-code"
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value)}
-                  placeholder="e.g. A1B2C3D4"
                   className="font-mono tracking-widest uppercase"
                   required
                   maxLength={8}
@@ -110,7 +112,7 @@ export default function FieldWorkerRegisterPage() {
           </CardContent>
           <CardFooter>
             <Button type="submit" form="code-form" className="w-full" disabled={loading}>
-              {loading ? "Validating..." : "Verify Code"}
+              {loading ? "Validating..." : "Verify code"}
             </Button>
           </CardFooter>
         </Card>
@@ -128,20 +130,43 @@ export default function FieldWorkerRegisterPage() {
             <form id="register-form" onSubmit={handleRegister} className="space-y-4">
               <fieldset className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" name="name" required autoComplete="name" />
+                <p className="text-xs text-muted-foreground">
+                  Enter your first and last name.
+                </p>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  minLength={2}
+                  maxLength={100}
+                  autoComplete="name"
+                />
               </fieldset>
               <fieldset className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required autoComplete="email" />
+                <p className="text-xs text-muted-foreground">
+                  We will send a verification link to this address.
+                </p>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                />
               </fieldset>
               <fieldset className="space-y-2">
                 <Label htmlFor="password">Password</Label>
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 8 characters.
+                </p>
                 <Input
                   id="password"
                   name="password"
                   type="password"
                   required
                   minLength={8}
+                  maxLength={128}
                   autoComplete="new-password"
                 />
               </fieldset>

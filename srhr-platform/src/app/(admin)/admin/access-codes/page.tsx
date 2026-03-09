@@ -33,7 +33,7 @@ export default async function AccessCodesPage() {
             await generateAccessCode(s?.user?.id ?? "")
           }}
         >
-          <Button type="submit">Generate Code</Button>
+          <Button type="submit">Generate code</Button>
         </form>
       </header>
 

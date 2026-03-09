@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
         <CardFooter>
           <Link href="/log-in" className="w-full">
             <Button variant="outline" className="w-full">
-              Back to Log In
+              Back to log in
             </Button>
           </Link>
         </CardFooter>
@@ -71,11 +71,13 @@ export default function ForgotPasswordPage() {
         <form id="forgot-password-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
             <Label htmlFor="email">Email</Label>
+            <p className="text-xs text-muted-foreground">
+              Enter the email address associated with your account.
+            </p>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="you@example.com"
               required
               autoComplete="email"
               value={email}
@@ -91,7 +93,7 @@ export default function ForgotPasswordPage() {
           className="w-full"
           disabled={loading}
         >
-          {loading ? "Sending..." : "Send Reset Link"}
+          {loading ? "Sending..." : "Send reset link"}
         </Button>
         <p className="text-sm text-muted-foreground">
           Remember your password?{" "}

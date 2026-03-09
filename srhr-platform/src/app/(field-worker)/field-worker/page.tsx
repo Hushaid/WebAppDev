@@ -41,7 +41,7 @@ export default function FieldWorkerDashboardPage() {
           </p>
         </hgroup>
         <Link href="/field-worker/questionnaire">
-          <Button>New Assessment</Button>
+          <Button>New assessment</Button>
         </Link>
       </header>
 
@@ -132,7 +132,7 @@ export default function FieldWorkerDashboardPage() {
 
           <nav className="flex gap-3">
             <Link href="/field-worker/questionnaire">
-              <Button>New Assessment</Button>
+              <Button>New assessment</Button>
             </Link>
             <Link href="/field-worker/history">
               <Button variant="outline">View All History</Button>
