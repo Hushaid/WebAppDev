@@ -60,7 +60,7 @@ export default function CreateAccountPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Create Account</CardTitle>
         <CardDescription>
-          Create an account to access the SRHR platform.
+          Create an account to take a confidential health assessment and receive referrals to nearby health facilities.
         </CardDescription>
       </CardHeader>
       <CardContent>
