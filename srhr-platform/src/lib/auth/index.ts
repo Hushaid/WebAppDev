@@ -28,6 +28,29 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    onExistingUserSignUp: async ({ user }) => {
+      const baseUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+      await resend.emails.send({
+        from: emailFrom,
+        to: user.email,
+        subject: "Sign-up attempt on your Hushaid account",
+        html: `
+          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+            <h2 style="color: #1e293b;">Someone tried to create an account with your email</h2>
+            <p>Hi ${user.name || "there"},</p>
+            <p>We received a sign-up request using your email address (<strong>${user.email}</strong>), but you already have a Hushaid account.</p>
+            <p>If this was you, you can log in to your existing account:</p>
+            <a href="${baseUrl}/log-in" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+              Log In to Your Account
+            </a>
+            <p>Forgot your password? <a href="${baseUrl}/forgot-password" style="color: #2563eb;">Reset it here</a>.</p>
+            <p style="color: #64748b; font-size: 14px;">If you didn't attempt to sign up, you can safely ignore this email. Your account is secure.</p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+            <p style="color: #94a3b8; font-size: 12px;">Hushaid &mdash; Confidential health assessments for Nigerian communities.</p>
+          </div>
+        `,
+      })
+    },
     sendResetPassword: async ({ user, url }) => {
       await resend.emails.send({
         from: emailFrom,

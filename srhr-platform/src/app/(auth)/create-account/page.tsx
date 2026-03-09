@@ -29,10 +29,34 @@ export default function CreateAccountPage() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const name = formData.get("name") as string
-    const email = formData.get("email") as string
+    const name = (formData.get("name") as string).trim()
+    const email = (formData.get("email") as string).trim().toLowerCase()
     const password = formData.get("password") as string
     const confirmPassword = formData.get("confirmPassword") as string
+
+    if (name.length < 2) {
+      setError("Please enter your full name (at least 2 characters).")
+      setLoading(false)
+      return
+    }
+
+    if (name.length > 100) {
+      setError("Name must be 100 characters or fewer.")
+      setLoading(false)
+      return
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.")
+      setLoading(false)
+      return
+    }
+
+    if (password.length > 128) {
+      setError("Password must be 128 characters or fewer.")
+      setLoading(false)
+      return
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.")
@@ -102,6 +126,8 @@ export default function CreateAccountPage() {
               type="text"
               placeholder="Your full name"
               required
+              minLength={2}
+              maxLength={100}
               autoComplete="name"
             />
           </fieldset>
@@ -137,6 +163,7 @@ export default function CreateAccountPage() {
               type={showPassword ? "text" : "password"}
               required
               minLength={8}
+              maxLength={128}
               autoComplete="new-password"
             />
             <p className="text-xs text-muted-foreground">
@@ -161,6 +188,7 @@ export default function CreateAccountPage() {
               type={showConfirmPassword ? "text" : "password"}
               required
               minLength={8}
+              maxLength={128}
               autoComplete="new-password"
             />
           </fieldset>
