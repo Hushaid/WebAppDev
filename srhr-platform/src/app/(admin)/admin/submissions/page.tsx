@@ -38,6 +38,7 @@ export default async function SubmissionsPage() {
       {submissions.length === 0 ? (
         <p className="text-muted-foreground">No submissions yet.</p>
       ) : (
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -80,6 +81,7 @@ export default async function SubmissionsPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </section>
   )

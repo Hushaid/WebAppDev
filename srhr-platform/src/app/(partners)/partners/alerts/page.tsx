@@ -121,6 +121,7 @@ export default function PartnersAlertsPage() {
       ) : alerts.length === 0 ? (
         <p className="text-muted-foreground">No alerts yet.</p>
       ) : (
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -159,6 +160,7 @@ export default function PartnersAlertsPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </section>
   )

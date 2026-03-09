@@ -76,6 +76,7 @@ export default async function FacilitiesPage() {
 
       <Card>
         <CardContent className="p-0">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -114,6 +115,7 @@ export default async function FacilitiesPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </section>

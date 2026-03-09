@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
-import { desc } from "drizzle-orm"
+import { desc, eq } from "drizzle-orm"
 
 /**
  * GET /api/alerts
  * Returns alerts for the current user (de-identified, no PII).
  */
 export async function GET() {
-  // TODO: filter by current user's recipientId from session
-  const alertList = await db
+  const session = await auth.api.getSession({ headers: await headers() })
+
+  let query = db
     .select({
       id: alerts.id,
       type: alerts.type,
@@ -20,6 +23,13 @@ export async function GET() {
       created_at: alerts.createdAt,
     })
     .from(alerts)
+
+  // Filter by recipient if user is authenticated
+  if (session?.user?.id) {
+    query = query.where(eq(alerts.recipientId, session.user.id)) as typeof query
+  }
+
+  const alertList = await query
     .orderBy(desc(alerts.createdAt))
     .limit(100)
 

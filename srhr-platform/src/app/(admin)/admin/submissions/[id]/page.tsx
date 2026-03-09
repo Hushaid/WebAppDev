@@ -180,6 +180,7 @@ export default async function SubmissionDetailPage(props: {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -222,6 +223,7 @@ export default async function SubmissionDetailPage(props: {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </section>

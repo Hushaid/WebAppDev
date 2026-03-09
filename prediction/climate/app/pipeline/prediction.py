@@ -9,10 +9,17 @@ import logging
 from datetime import date, timedelta
 
 import numpy as np
+import pandas as pd
 
 from ..data.chirps import fetch_chirps_daily, compute_cumulative_rainfall
-from ..data.era5 import fetch_era5_soil_moisture
-from ..data.glofas import fetch_glofas_forecast, load_glofas_discharge, extract_station_discharge, check_lagdo_dam_risk, BENUE_STATIONS
+from ..data.era5 import fetch_era5_soil_moisture, load_era5_soil_moisture
+from ..data.glofas import (
+    fetch_glofas_forecast,
+    load_glofas_discharge,
+    extract_station_discharge,
+    check_lagdo_dam_risk,
+    BENUE_STATIONS,
+)
 from ..data.openmeteo import (
     fetch_forecast,
     compute_forecast_risk_signal,
@@ -21,7 +28,7 @@ from ..models.xgboost_flood import FloodXGBoost
 from ..models.prophet_anomaly import RainfallAnomalyDetector
 from ..models.ensemble import FloodEnsemble
 from ..models.compound_risk import batch_compound_risk
-from .features import build_dynamic_features, FEATURE_NAMES
+from .features import build_dynamic_features, merge_features, FEATURE_NAMES
 from .training import (
     fetch_lga_metadata,
     fetch_irix_scores,
@@ -86,7 +93,6 @@ async def run_daily_prediction() -> dict:
     try:
         era5_path = fetch_era5_soil_moisture(today - timedelta(days=1))
         if era5_path is not None:
-            from ..data.era5 import load_era5_soil_moisture
             era5_ds = load_era5_soil_moisture(era5_path)
             era5 = {}
             for _, lga in lga_metadata.iterrows():
@@ -110,6 +116,7 @@ async def run_daily_prediction() -> dict:
         if glofas_path:
             glofas_ds = load_glofas_discharge(glofas_path)
             benue_discharge = extract_station_discharge(glofas_ds, BENUE_STATIONS)
+            glofas = benue_discharge
             lagdo_risk = check_lagdo_dam_risk(benue_discharge)
     except Exception as e:
         logger.warning("GloFAS fetch failed: %s", e)
@@ -133,11 +140,7 @@ async def run_daily_prediction() -> dict:
     # Load static features (precomputed)
     static_path = f"{MODEL_DIR}/static_features.parquet"
     if os.path.exists(static_path):
-        import pandas as pd
-
         static = pd.read_parquet(static_path)
-        from .features import merge_features
-
         features = merge_features(static, dynamic)
     else:
         features = dynamic

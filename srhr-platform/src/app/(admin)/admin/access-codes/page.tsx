@@ -37,6 +37,7 @@ export default async function AccessCodesPage() {
         </form>
       </header>
 
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -104,6 +105,7 @@ export default async function AccessCodesPage() {
           )}
         </TableBody>
       </Table>
+      </div>
     </section>
   )
 }

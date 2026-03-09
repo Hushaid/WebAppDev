@@ -42,6 +42,7 @@ export default async function AuditLogPage() {
       {logs.length === 0 ? (
         <p className="text-muted-foreground">No audit entries yet.</p>
       ) : (
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -99,6 +100,7 @@ export default async function AuditLogPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </section>
   )

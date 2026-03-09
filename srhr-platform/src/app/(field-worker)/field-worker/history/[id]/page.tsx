@@ -95,6 +95,7 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
           <CardTitle>Responses ({responses.length})</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -137,6 +138,7 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </section>

@@ -24,6 +24,7 @@ export default async function UsersPage() {
         </p>
       </header>
 
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -82,6 +83,7 @@ export default async function UsersPage() {
           )}
         </TableBody>
       </Table>
+      </div>
     </section>
   )
 }

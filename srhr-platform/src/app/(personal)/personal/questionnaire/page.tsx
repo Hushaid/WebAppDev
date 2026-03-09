@@ -6,6 +6,7 @@ import { useSession } from "@/lib/auth/client"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
 import { captureGps } from "@/lib/utils/geo"
+import { addPendingSubmission } from "@/lib/offline/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -96,7 +97,15 @@ export default function PersonalQuestionnairePage() {
         sessionStorage.setItem("lastSubmissionId", result.submissionId)
       }
     } catch {
-      // TODO: queue for offline sync
+      await addPendingSubmission({
+        submitterId: session.user.id,
+        submitterType: data.submitterType,
+        questionnaireVersionId: "v1",
+        sex: data.sex,
+        responses: data.responses,
+        gpsLat,
+        gpsLng,
+      })
     }
 
     router.push("/personal/result")
