@@ -15,7 +15,7 @@ export const STI_THRESHOLDS: ThresholdConfig = {
 export const MATERNAL_THRESHOLDS: ThresholdConfig = {
   low: [1, 7],
   medium: [8, 14],
-  high: [15, 21],
+  high: [15, 22],
 }
 
 export const COMMUNITY_WELLBEING_THRESHOLDS: ThresholdConfig = {

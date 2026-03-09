@@ -1,6 +1,7 @@
 "use client"
 
 import { useElectricShape } from "@/lib/electric/use-shape"
+import { useSession } from "@/lib/auth/client"
 import type { SubmissionRow } from "@/lib/electric/shapes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,9 +9,11 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function FieldWorkerDashboardPage() {
+  const { data: session } = useSession()
+  const userId = session?.user?.id
   const { data: submissions, isLoading } = useElectricShape<SubmissionRow>(
     "submissions",
-    // TODO: filter by current user ID
+    userId ? `"submitter_id" = '${userId}'` : undefined,
   )
 
   const today = new Date().toISOString().slice(0, 10)

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "@/lib/auth/client"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
 import { captureGps } from "@/lib/utils/geo"
@@ -11,6 +12,7 @@ import Link from "next/link"
 
 export default function PersonalQuestionnairePage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
   const [cooldown, setCooldown] = useState<{
     blocked: boolean
@@ -22,8 +24,7 @@ export default function PersonalQuestionnairePage() {
   useEffect(() => {
     async function checkCooldown() {
       try {
-        // TODO: replace with actual user ID from session
-        const submitterId = sessionStorage.getItem("userId") ?? ""
+        const submitterId = session?.user?.id ?? ""
         if (!submitterId) {
           setChecking(false)
           return
@@ -48,7 +49,7 @@ export default function PersonalQuestionnairePage() {
       }
     }
     checkCooldown()
-  }, [])
+  }, [session?.user?.id])
 
   async function handleComplete(data: QuestionnaireCompleteData) {
     setSubmitting(true)
@@ -65,15 +66,20 @@ export default function PersonalQuestionnairePage() {
       // GPS optional
     }
 
+    if (!session?.user?.id) {
+      router.push("/sign-in")
+      return
+    }
+
     // Submit to API
     try {
       const res = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          submitterId: crypto.randomUUID(), // TODO: use actual user ID from session
+          submitterId: session.user.id,
           submitterType: data.submitterType,
-          questionnaireVersionId: crypto.randomUUID(), // TODO: use actual questionnaire version
+          questionnaireVersionId: "v1",
           sex: data.sex,
           responses: data.responses,
           gpsLat,

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth/client"
+import { authClient, useSession } from "@/lib/auth/client"
 import {
   Card,
   CardContent,
@@ -14,8 +14,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+const roleRoutes: Record<string, string> = {
+  admin: "/admin",
+  super_admin: "/admin",
+  field_worker: "/field-worker",
+  personal_user: "/personal/questionnaire",
+  partner: "/partners",
+  gis_analyst: "/partners",
+}
+
 export default function MfaSetupPage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [step, setStep] = useState<"intro" | "qr" | "verify">("intro")
   const [totpUri, setTotpUri] = useState("")
   const [secret, setSecret] = useState("")
@@ -57,7 +67,8 @@ export default function MfaSetupPage() {
       })
 
       if (result.data) {
-        router.push("/admin")
+        const role = (session?.user as Record<string, unknown>)?.role as string ?? "admin"
+        router.push(roleRoutes[role] ?? "/admin")
       } else {
         setError("Invalid code. Please try again.")
       }
@@ -102,7 +113,7 @@ export default function MfaSetupPage() {
         <CardContent className="space-y-4">
           {totpUri && (
             <figure className="flex justify-center rounded-lg border bg-white p-4">
-              {/* QR code rendered via a simple img tag using a QR API */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- External QR code API, unoptimizable */}
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpUri)}`}
                 alt="TOTP QR Code"

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "@/lib/auth/client"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
 import { captureGps } from "@/lib/utils/geo"
@@ -9,10 +10,16 @@ import { addPendingSubmission } from "@/lib/offline/db"
 
 export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
 
   async function handleComplete(data: QuestionnaireCompleteData) {
     setSubmitting(true)
+
+    if (!session?.user?.id) {
+      router.push("/sign-in")
+      return
+    }
 
     // Capture GPS
     let gpsLat: string | undefined
@@ -27,9 +34,9 @@ export default function FieldWorkerQuestionnairePage() {
     }
 
     const payload = {
-      submitterId: crypto.randomUUID(), // TODO: use actual user ID from session
+      submitterId: session.user.id,
       submitterType: data.submitterType,
-      questionnaireVersionId: crypto.randomUUID(), // TODO: use actual questionnaire version
+      questionnaireVersionId: "v1",
       sex: data.sex,
       responses: data.responses,
       gpsLat,

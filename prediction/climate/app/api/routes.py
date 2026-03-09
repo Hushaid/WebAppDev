@@ -184,19 +184,28 @@ async def trigger_retrain():
 @router.get("/lagdo-dam", response_model=LagdoDamResponse)
 async def get_lagdo_dam_status():
     """Get current Lagdo Dam risk status."""
-    from ..data.glofas import fetch_glofas_discharge, check_lagdo_dam_risk
+    from ..data.glofas import (
+        fetch_glofas_forecast,
+        load_glofas_discharge,
+        extract_station_discharge,
+        check_lagdo_dam_risk,
+        BENUE_STATIONS,
+    )
 
-    discharge_data = fetch_glofas_discharge(date.today())
-    if not discharge_data:
+    glofas_path = fetch_glofas_forecast(date.today())
+    if not glofas_path:
         raise HTTPException(status_code=503, detail="GloFAS data unavailable")
 
-    risk = check_lagdo_dam_risk(discharge_data)
+    glofas_ds = load_glofas_discharge(glofas_path)
+    benue_discharge = extract_station_discharge(glofas_ds, BENUE_STATIONS)
+    risk = check_lagdo_dam_risk(benue_discharge)
+
     affected = os.getenv("LAGDO_AFFECTED_LGAS", "").split(",")
     affected = [a.strip() for a in affected if a.strip()]
 
     return LagdoDamResponse(
         risk_level=risk.get("risk_level", "unknown"),
-        discharge_m3s=risk.get("discharge_m3s", 0),
-        threshold_m3s=risk.get("threshold_m3s", 0),
+        discharge_m3s=risk.get("yola_discharge_m3s", 0),
+        threshold_m3s=3000,
         affected_lgas=affected,
     )

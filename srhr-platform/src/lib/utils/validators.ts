@@ -8,18 +8,14 @@ import { z } from "zod"
 const uuid = z.string().uuid()
 
 /** GPS coordinate: latitude (-90 to 90) */
-const latitude = z
+const gpsLat = z
   .string()
   .regex(/^-?\d+\.?\d*$/, "Invalid latitude")
-  .transform(Number)
-  .pipe(z.number().min(-90).max(90))
 
 /** GPS coordinate: longitude (-180 to 180) */
-const longitude = z
+const gpsLng = z
   .string()
   .regex(/^-?\d+\.?\d*$/, "Invalid longitude")
-  .transform(Number)
-  .pipe(z.number().min(-180).max(180))
 
 /** Strip HTML/script tags from free-text input */
 function sanitizeText(value: string): string {
@@ -32,10 +28,10 @@ const sanitizedText = z.string().transform(sanitizeText)
 export const submissionSchema = z.object({
   submitterId: uuid,
   submitterType: z.enum(["field_worker", "personal_user"]),
-  questionnaireVersionId: uuid,
+  questionnaireVersionId: z.string().min(1),
   subjectId: uuid.optional(),
-  gpsLat: z.string().optional(),
-  gpsLng: z.string().optional(),
+  gpsLat: gpsLat.optional(),
+  gpsLng: gpsLng.optional(),
   sex: z.enum(["male", "female"]),
   responses: z.record(z.string(), z.string()),
   clientSubmissionId: uuid.optional(),

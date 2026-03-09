@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth/client"
+import { authClient, useSession } from "@/lib/auth/client"
 import {
   Card,
   CardContent,
@@ -14,8 +14,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+const roleRoutes: Record<string, string> = {
+  admin: "/admin",
+  super_admin: "/admin",
+  field_worker: "/field-worker",
+  personal_user: "/personal/questionnaire",
+  partner: "/partners",
+  gis_analyst: "/partners",
+}
+
 export default function MfaVerifyPage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -29,8 +39,8 @@ export default function MfaVerifyPage() {
       })
 
       if (result.data) {
-        // Redirect to the appropriate dashboard based on role
-        router.push("/admin")
+        const role = (session?.user as Record<string, unknown>)?.role as string ?? "admin"
+        router.push(roleRoutes[role] ?? "/admin")
       } else {
         setError("Invalid code. Please try again.")
         setCode("")

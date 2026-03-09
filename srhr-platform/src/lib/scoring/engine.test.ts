@@ -81,7 +81,7 @@ describe("computeRisk", () => {
       expect(result.maternalRiskLevel).toBe("low")
     })
 
-    it("computes max maternal score = 21", () => {
+    it("computes max maternal score = 22", () => {
       const result = computeRisk(
         responses({
           Q22: "yes", // 2
@@ -97,14 +97,12 @@ describe("computeRisk", () => {
           Q33: "more_3", // 2
           Q34: "pregnant", // 1
           Q35: "none", // 3
-          Q36: "yes", // 1 (total would exceed 21 — let's verify)
+          Q36: "yes", // 1
         }),
         "female",
       )
-      // Q22(2)+Q24(2)+Q25(2)+Q26(3)+Q27(1)+Q28(1)+Q29(1)+Q30(1)+Q31(1)+Q32(1)+Q33(2)+Q34(1)+Q35(3) = 21
-      // Q36(1) would make it 22 but max possible per questions is 21
-      // Actually all these are additive, let me compute correctly
-      expect(result.maternalScore).toBe(22) // all maxed out including Q36
+      // Q22(2)+Q24(2)+Q25(2)+Q26(3)+Q27(1)+Q28(1)+Q29(1)+Q30(1)+Q31(1)+Q32(1)+Q33(2)+Q34(1)+Q35(3)+Q36(1) = 22
+      expect(result.maternalScore).toBe(22)
       expect(result.maternalRiskLevel).toBe("high")
     })
 

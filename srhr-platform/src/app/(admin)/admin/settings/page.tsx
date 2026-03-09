@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -169,9 +168,9 @@ export default function SettingsPage() {
 
           <ThresholdEditor
             title="Maternal Health Thresholds"
-            description="Questions Q22–Q36 (females only). Maximum possible score: 21."
+            description="Questions Q22–Q36 (females only). Maximum possible score: 22."
             thresholds={MATERNAL_THRESHOLDS}
-            maxPossible={21}
+            maxPossible={22}
           />
 
           <ThresholdEditor

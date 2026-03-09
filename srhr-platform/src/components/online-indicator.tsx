@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useOnlineStatus } from "@/lib/offline/use-online-status"
 import { getPendingSubmissions } from "@/lib/offline/db"
 import { processQueue } from "@/lib/offline/sync-queue"
@@ -9,6 +9,7 @@ export function OnlineIndicator() {
   const isOnline = useOnlineStatus()
   const [pendingCount, setPendingCount] = useState(0)
   const [syncing, setSyncing] = useState(false)
+  const syncTriggered = useRef(false)
 
   useEffect(() => {
     async function checkPending() {
@@ -26,9 +27,19 @@ export function OnlineIndicator() {
 
   // Auto-sync when coming back online
   useEffect(() => {
-    if (isOnline && pendingCount > 0) {
-      setSyncing(true)
-      processQueue().finally(() => setSyncing(false))
+    if (isOnline && pendingCount > 0 && !syncTriggered.current) {
+      syncTriggered.current = true
+      const run = async () => {
+        setSyncing(true)
+        try {
+          await processQueue()
+        } finally {
+          setSyncing(false)
+          syncTriggered.current = false
+        }
+      }
+      // Defer state update out of render via microtask
+      queueMicrotask(() => { run() })
     }
   }, [isOnline, pendingCount])
 

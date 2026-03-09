@@ -91,14 +91,14 @@ def store_irix_scores(engine, results: pd.DataFrame, model_version: str):
     records = []
     for _, row in results.iterrows():
         records.append({
-            "geographic_unit_id": row.get("geographic_unit_id"),
+            "geographic_unit_id": row.get("h3_index"),
             "computed_at": now,
             "model_version": model_version,
             "sti_avg_score": row.get("sti_avg_score"),
             "sti_risk_level": classify_risk_level(row.get("sti_avg_score", 0), 18),
             "maternal_avg_score": row.get("maternal_avg_score"),
             "maternal_risk_level": (
-                classify_risk_level(row["maternal_avg_score"], 21)
+                classify_risk_level(row["maternal_avg_score"], 22)
                 if pd.notna(row.get("maternal_avg_score"))
                 else None
             ),
@@ -148,17 +148,16 @@ def run_pipeline(
     # 3. Build spatial weights
     h3_indices = agg["h3_index"].tolist()
     weights = build_h3_adjacency(h3_indices)
-    node1, node2, n_edges = weights_to_sparse(weights)
+    from app.pipeline.spatial_weights import weights_to_adjacency_matrix
+    adj_matrix = weights_to_adjacency_matrix(weights)
 
     # 4. Fit BYM2 model
     observed = agg["overall_avg_score"].values
     trace = fit_bym2(
         observed_scores=observed,
         covariates=None,  # TODO: add auxiliary covariates
-        node1=node1,
-        node2=node2,
+        adj_matrix=adj_matrix,
         n_areas=len(h3_indices),
-        n_edges=n_edges,
         n_samples=500,
         n_tune=500,
         n_chains=2,

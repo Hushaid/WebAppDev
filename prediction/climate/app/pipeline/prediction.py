@@ -10,11 +10,11 @@ from datetime import date, timedelta
 
 import numpy as np
 
-from ..data.chirps import fetch_chirps_rainfall, compute_cumulative_rainfall
+from ..data.chirps import fetch_chirps_daily, compute_cumulative_rainfall
 from ..data.era5 import fetch_era5_soil_moisture
-from ..data.glofas import fetch_glofas_discharge, check_lagdo_dam_risk
+from ..data.glofas import fetch_glofas_forecast, load_glofas_discharge, extract_station_discharge, check_lagdo_dam_risk, BENUE_STATIONS
 from ..data.openmeteo import (
-    fetch_openmeteo_forecast,
+    fetch_forecast,
     compute_forecast_risk_signal,
 )
 from ..models.xgboost_flood import FloodXGBoost
@@ -56,23 +56,36 @@ async def run_daily_prediction() -> dict:
     lga_metadata = await fetch_lga_metadata(DATABASE_URL)
     irix_scores = await fetch_irix_scores(DATABASE_URL)
 
-    # CHIRPS rainfall
-    chirps = fetch_chirps_rainfall(today - timedelta(days=30), today)
-    cumulative = {}
-    if chirps is not None:
-        for _, lga in lga_metadata.iterrows():
-            cumulative[lga["lga_id"]] = compute_cumulative_rainfall(
-                chirps, lga.get("lat", 9.0), lga.get("lon", 7.5)
-            )
+    # CHIRPS rainfall — download daily files for last 30 days
+    chirps_files = []
+    for day_offset in range(30):
+        target = today - timedelta(days=day_offset)
+        filepath = await fetch_chirps_daily(target)
+        if filepath:
+            chirps_files.append(filepath)
 
-    # ERA5 soil moisture
+    cumulative = {}
+    if chirps_files:
+        cumulative = compute_cumulative_rainfall(chirps_files)
+
+    # ERA5 soil moisture (single date)
     era5 = None
     try:
-        era5_data = fetch_era5_soil_moisture(today - timedelta(days=1), today)
-        if era5_data is not None:
+        era5_path = fetch_era5_soil_moisture(today - timedelta(days=1))
+        if era5_path is not None:
+            from ..data.era5 import load_era5_soil_moisture
+            era5_ds = load_era5_soil_moisture(era5_path)
             era5 = {}
             for _, lga in lga_metadata.iterrows():
-                era5[lga["lga_id"]] = 0.3  # TODO: extract per-LGA values
+                try:
+                    val = float(era5_ds["swvl1"].sel(
+                        latitude=lga.get("lat", 9.0),
+                        longitude=lga.get("lon", 7.5),
+                        method="nearest",
+                    ).values)
+                    era5[lga["lga_id"]] = val
+                except (KeyError, ValueError):
+                    era5[lga["lga_id"]] = 0.3
     except Exception as e:
         logger.warning("ERA5 fetch failed: %s", e)
 
@@ -80,9 +93,11 @@ async def run_daily_prediction() -> dict:
     glofas = None
     lagdo_risk = None
     try:
-        glofas = fetch_glofas_discharge(today)
-        if glofas:
-            lagdo_risk = check_lagdo_dam_risk(glofas)
+        glofas_path = fetch_glofas_forecast(today)
+        if glofas_path:
+            glofas_ds = load_glofas_discharge(glofas_path)
+            benue_discharge = extract_station_discharge(glofas_ds, BENUE_STATIONS)
+            lagdo_risk = check_lagdo_dam_risk(benue_discharge)
     except Exception as e:
         logger.warning("GloFAS fetch failed: %s", e)
 
@@ -90,7 +105,7 @@ async def run_daily_prediction() -> dict:
     forecast_signals = {}
     try:
         for _, lga in lga_metadata.iterrows():
-            forecast = fetch_openmeteo_forecast(
+            forecast = await fetch_forecast(
                 lga.get("lat", 9.0), lga.get("lon", 7.5)
             )
             if forecast is not None:

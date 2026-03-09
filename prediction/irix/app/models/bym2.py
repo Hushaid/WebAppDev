@@ -14,26 +14,22 @@ import numpy as np
 import pymc as pm
 import arviz as az
 
-from app.pipeline.spatial_weights import weights_to_sparse
+from app.pipeline.spatial_weights import weights_to_sparse, weights_to_adjacency_matrix
 
 
 def build_bym2_model(
     observed_scores: np.ndarray,
     covariates: np.ndarray | None,
-    node1: np.ndarray,
-    node2: np.ndarray,
+    adj_matrix: np.ndarray,
     n_areas: int,
-    n_edges: int,
 ) -> pm.Model:
     """Build a BYM2 model in PyMC v5.
 
     Args:
         observed_scores: Array of observed risk scores per H3 cell (n_areas,)
         covariates: Optional covariate matrix (n_areas, n_covariates)
-        node1: Source node indices for adjacency
-        node2: Target node indices for adjacency
+        adj_matrix: Dense adjacency matrix (n_areas, n_areas)
         n_areas: Number of spatial units (H3 cells)
-        n_edges: Number of edges in adjacency graph
 
     Returns:
         PyMC model ready for sampling
@@ -58,7 +54,8 @@ def build_bym2_model(
         rho = pm.Beta("rho", alpha=1, beta=1)
 
         # ICAR component (spatially structured)
-        phi = pm.ICAR("phi", W=np.column_stack([node1, node2]).tolist(), sigma=1, shape=n_areas)
+        # PyMC v5 ICAR expects W as an adjacency matrix (dense or sparse)
+        phi = pm.ICAR("phi", W=adj_matrix, sigma=1, shape=n_areas)
 
         # Unstructured component
         theta = pm.Normal("theta", mu=0, sigma=1, shape=n_areas)
@@ -81,10 +78,8 @@ def build_bym2_model(
 def fit_bym2(
     observed_scores: np.ndarray,
     covariates: np.ndarray | None,
-    node1: np.ndarray,
-    node2: np.ndarray,
+    adj_matrix: np.ndarray,
     n_areas: int,
-    n_edges: int,
     n_samples: int = 1000,
     n_tune: int = 1000,
     n_chains: int = 2,
@@ -92,7 +87,7 @@ def fit_bym2(
 ) -> az.InferenceData:
     """Fit the BYM2 model and return posterior samples."""
     model = build_bym2_model(
-        observed_scores, covariates, node1, node2, n_areas, n_edges
+        observed_scores, covariates, adj_matrix, n_areas
     )
 
     with model:

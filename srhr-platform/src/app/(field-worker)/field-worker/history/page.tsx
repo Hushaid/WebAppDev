@@ -1,6 +1,7 @@
 "use client"
 
 import { useElectricShape } from "@/lib/electric/use-shape"
+import { useSession } from "@/lib/auth/client"
 import type { SubmissionRow } from "@/lib/electric/shapes"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -13,10 +14,12 @@ import {
 } from "@/components/ui/table"
 
 export default function FieldWorkerHistoryPage() {
+  const { data: session } = useSession()
+  const userId = session?.user?.id
   // Real-time sync: submissions update automatically when new data hits Postgres
   const { data: submissions, isLoading } = useElectricShape<SubmissionRow>(
     "submissions",
-    // TODO: filter by current user ID from session
+    userId ? `"submitter_id" = '${userId}'` : undefined,
   )
 
   return (

@@ -15,7 +15,7 @@ export interface QuestionConfig {
 
 /**
  * Q11-Q21: STI Risk Assessment (max 18)
- * Q22-Q36: Maternal Health Assessment (max 21, females only)
+ * Q22-Q36: Maternal Health Assessment (max 22, females only)
  * Q37-Q43: Community Well-being (max 9)
  *
  * Q1-Q10 and Q44-Q45 are demographic/not scored.

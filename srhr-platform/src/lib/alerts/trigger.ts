@@ -10,7 +10,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, inArray } from "drizzle-orm"
+import { inArray } from "drizzle-orm"
 
 interface HighRiskAlertPayload {
   submissionId: string

@@ -1,3 +1,5 @@
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 import { getAccessCodes, generateAccessCode, revokeAccessCode } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
+export const dynamic = "force-dynamic"
 
 export default async function AccessCodesPage() {
   const codes = await getAccessCodes()
@@ -25,8 +29,8 @@ export default async function AccessCodesPage() {
         <form
           action={async () => {
             "use server"
-            // TODO: get actual admin user ID from session
-            await generateAccessCode("00000000-0000-0000-0000-000000000000")
+            const s = await auth.api.getSession({ headers: await headers() })
+            await generateAccessCode(s?.user?.id ?? "")
           }}
         >
           <Button type="submit">Generate Code</Button>

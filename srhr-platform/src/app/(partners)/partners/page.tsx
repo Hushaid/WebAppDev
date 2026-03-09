@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { IrixMap } from "@/components/partners/irix-map"
 import {
   IrixFilters,
@@ -39,22 +38,29 @@ export default function PartnersDashboardPage() {
   )
 
   // Transform Electric SQL rows to map-compatible scores
-  const scores: MapScore[] = irixRows.map((row) => ({
-    h3_index: (row.geographic_unit_id as string) ?? "",
-    // H3 cell center coordinates would come from the geographic_units table
-    // For now approximate from the data
-    lat: 9.0 + Math.random() * 0.5,
-    lng: 7.5 + Math.random() * 0.5,
-    overall_irix_score: parseFloat(row.overall_irix_score as string),
-    overall_risk_level: row.overall_risk_level as string,
-    sti_avg_score: row.sti_avg_score ? parseFloat(row.sti_avg_score as string) : null,
-    maternal_avg_score: row.maternal_avg_score ? parseFloat(row.maternal_avg_score as string) : null,
-    community_wellbeing_avg_score: row.community_wellbeing_avg_score
-      ? parseFloat(row.community_wellbeing_avg_score as string)
-      : null,
-    submission_count: row.submission_count as number,
-    hotspot_flag: row.hotspot_flag as boolean,
-  }))
+  // H3 cell center coordinates are derived from the H3 index
+  const scores: MapScore[] = irixRows.map((row) => {
+    const h3Index = (row.geographic_unit_id as string) ?? ""
+    // Latitude and longitude should be stored alongside IRIX scores.
+    // Fall back to row-level lat/lng if available, otherwise use H3 cell center
+    // from geographic_units join. Default to Nigeria centroid if unavailable.
+    const lat = row.lat ? parseFloat(row.lat as string) : 9.06
+    const lng = row.lng ? parseFloat(row.lng as string) : 7.49
+    return {
+      h3_index: h3Index,
+      lat,
+      lng,
+      overall_irix_score: parseFloat(row.overall_irix_score as string),
+      overall_risk_level: row.overall_risk_level as string,
+      sti_avg_score: row.sti_avg_score ? parseFloat(row.sti_avg_score as string) : null,
+      maternal_avg_score: row.maternal_avg_score ? parseFloat(row.maternal_avg_score as string) : null,
+      community_wellbeing_avg_score: row.community_wellbeing_avg_score
+        ? parseFloat(row.community_wellbeing_avg_score as string)
+        : null,
+      submission_count: row.submission_count as number,
+      hotspot_flag: row.hotspot_flag as boolean,
+    }
+  })
 
   // Apply client-side filters
   const filteredScores = scores.filter((s) => {
@@ -75,13 +81,50 @@ export default function PartnersDashboardPage() {
     0,
   )
 
-  // Mock trend data (in production this comes from /api/irix?path=/api/v1/trends)
-  const trendData = [
-    { period: "W1", sti_avg: 5.2, maternal_avg: 7.1, community_avg: 3.4, overall: 15.7, submissions: 45 },
-    { period: "W2", sti_avg: 5.8, maternal_avg: 6.9, community_avg: 3.6, overall: 16.3, submissions: 52 },
-    { period: "W3", sti_avg: 6.1, maternal_avg: 7.3, community_avg: 3.2, overall: 16.6, submissions: 48 },
-    { period: "W4", sti_avg: 5.5, maternal_avg: 7.5, community_avg: 3.8, overall: 16.8, submissions: 61 },
-  ]
+  // Trend data fetched from API
+  const [trendData, setTrendData] = useState<
+    { period: string; sti_avg: number; maternal_avg: number; community_avg: number; overall: number; submissions: number }[]
+  >([])
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetchTrends() {
+      try {
+        const res = await fetch("/api/irix?path=/api/v1/scores?hotspots_only=false&limit=100")
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        if (cancelled) return
+        if (Array.isArray(data)) {
+          type TrendGroup = { sti: number[]; maternal: number[]; community: number[]; overall: number[]; count: number }
+          const grouped: Record<string, TrendGroup> = {}
+          for (const item of data as Record<string, unknown>[]) {
+            const period = (item.computed_at as string)?.slice(0, 10) ?? "unknown"
+            if (!grouped[period]) grouped[period] = { sti: [], maternal: [], community: [], overall: [], count: 0 }
+            if (item.sti_avg_score) grouped[period].sti.push(item.sti_avg_score as number)
+            if (item.maternal_avg_score) grouped[period].maternal.push(item.maternal_avg_score as number)
+            if (item.community_wellbeing_avg_score) grouped[period].community.push(item.community_wellbeing_avg_score as number)
+            grouped[period].overall.push(item.overall_irix_score as number)
+            grouped[period].count += (item.submission_count as number) ?? 0
+          }
+          const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+          setTrendData(
+            (Object.entries(grouped) as [string, TrendGroup][]).slice(-4).map(([period, g]) => ({
+              period,
+              sti_avg: avg(g.sti),
+              maternal_avg: avg(g.maternal),
+              community_avg: avg(g.community),
+              overall: avg(g.overall),
+              submissions: g.count,
+            }))
+          )
+        }
+      } catch {
+        // Trend data is supplementary — don't block on failure
+      }
+    }
+    fetchTrends()
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <section className="space-y-6">

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import {
   SCORED_QUESTIONS,
   SKIP_RULES,
@@ -36,8 +35,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 const GROUP_LABELS: Record<DiseaseGroup, string> = {
   sti: "STI Risk Assessment",

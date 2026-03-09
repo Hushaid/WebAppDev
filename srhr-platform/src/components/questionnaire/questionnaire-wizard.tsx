@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { QuestionCard } from "./question-card"
@@ -104,15 +104,12 @@ export function QuestionnaireWizard({
   const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0
   const isLast = currentIndex === totalQuestions - 1
 
-  const handleChange = useCallback(
-    (value: string) => {
-      setResponses((prev) => ({
-        ...prev,
-        [currentQuestion.id]: value,
-      }))
-    },
-    [currentQuestion?.id],
-  )
+  function handleChange(value: string) {
+    setResponses((prev) => ({
+      ...prev,
+      [currentQuestion.id]: value,
+    }))
+  }
 
   function handleNext() {
     if (isLast) {
