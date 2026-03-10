@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
 import Link from "next/link"
 
 interface RiskData {
@@ -119,7 +120,7 @@ export default function FieldWorkerResultPage() {
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-4 text-sm">
-            <dt className="text-muted-foreground">STI Risk</dt>
+            <dt className="text-muted-foreground">Infection Risk</dt>
             <dd className="text-end">
               <Badge variant={riskVariant(risk.stiRiskLevel)}>
                 {risk.stiRiskLevel} ({risk.stiScore})
@@ -148,9 +149,11 @@ export default function FieldWorkerResultPage() {
         </CardContent>
       </Card>
 
+      <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
+
       <Card>
         <CardHeader>
-          <CardTitle>Nearest Facilities for Referral</CardTitle>
+          <CardTitle>Nearest facilities for referral</CardTitle>
           <CardDescription>
             {loading
               ? "Loading nearby facilities..."
@@ -186,6 +189,8 @@ export default function FieldWorkerResultPage() {
           </CardContent>
         )}
       </Card>
+
+      <EmergencyContacts />
 
       <nav className="flex gap-3">
         <Button asChild>

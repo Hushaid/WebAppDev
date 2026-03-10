@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
 import Link from "next/link"
 
 interface Facility {
@@ -51,13 +52,11 @@ export default function PersonalResultPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load risk result from sessionStorage (set by questionnaire wizard)
     const stored = sessionStorage.getItem("lastRiskResult")
     if (stored) {
       setRisk(JSON.parse(stored))
     }
 
-    // Fetch nearest facilities using GPS if available
     async function loadFacilities() {
       try {
         const gpsStored = sessionStorage.getItem("lastGps")
@@ -144,9 +143,11 @@ export default function PersonalResultPage() {
         </CardContent>
       </Card>
 
+      <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
+
       <Card>
         <CardHeader>
-          <CardTitle>Recommended Facilities</CardTitle>
+          <CardTitle>Recommended facilities</CardTitle>
           <CardDescription>
             {loading
               ? "Finding health facilities near you..."
@@ -179,6 +180,8 @@ export default function PersonalResultPage() {
           </CardContent>
         )}
       </Card>
+
+      <EmergencyContacts />
 
       <nav>
         <Link href="/personal/questionnaire">
