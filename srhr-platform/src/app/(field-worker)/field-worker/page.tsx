@@ -135,7 +135,7 @@ export default function FieldWorkerDashboardPage() {
               <Button>New assessment</Button>
             </Link>
             <Link href="/field-worker/history">
-              <Button variant="outline">View All History</Button>
+              <Button variant="outline">View all history</Button>
             </Link>
           </nav>
         </>

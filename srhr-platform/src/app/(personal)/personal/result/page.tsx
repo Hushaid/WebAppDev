@@ -87,7 +87,7 @@ export default function PersonalResultPage() {
           <p className="text-muted-foreground">No results found. Complete a health assessment first to see your results here.</p>
         </header>
         <Link href="/personal/questionnaire">
-          <Button>Take Assessment</Button>
+          <Button>Take assessment</Button>
         </Link>
       </section>
     )
@@ -182,7 +182,7 @@ export default function PersonalResultPage() {
 
       <nav>
         <Link href="/personal/questionnaire">
-          <Button variant="outline">Take Another Assessment</Button>
+          <Button variant="outline">Take another assessment</Button>
         </Link>
       </nav>
     </section>

@@ -147,7 +147,7 @@ export default function PartnerPreferencesPage() {
       </Card>
 
       <div className="flex items-center gap-3">
-        <Button onClick={handleSave}>Save Preferences</Button>
+        <Button onClick={handleSave}>Save preferences</Button>
         {saved && (
           <p className="text-sm text-green-600">Preferences saved.</p>
         )}

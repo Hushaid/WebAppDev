@@ -122,7 +122,7 @@ function ThresholdEditor({
         </Table>
 
         <footer className="flex items-center gap-3">
-          <Button onClick={handleSave}>Save Thresholds</Button>
+          <Button onClick={handleSave}>Save thresholds</Button>
           {saved && (
             <span className="text-sm text-green-600">
               Thresholds saved successfully

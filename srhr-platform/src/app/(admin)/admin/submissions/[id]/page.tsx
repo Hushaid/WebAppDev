@@ -47,7 +47,7 @@ export default async function SubmissionDetailPage(props: {
           </p>
         </hgroup>
         <Link href="/admin/submissions">
-          <Button variant="outline">Back to Submissions</Button>
+          <Button variant="outline">Back to submissions</Button>
         </Link>
       </header>
 

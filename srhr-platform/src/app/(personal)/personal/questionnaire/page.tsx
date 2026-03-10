@@ -150,7 +150,7 @@ export default function PersonalQuestionnairePage() {
               </p>
             )}
             <Link href="/personal/result">
-              <Button variant="outline">View Your Last Results</Button>
+              <Button variant="outline">View your last results</Button>
             </Link>
           </CardContent>
         </Card>

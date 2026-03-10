@@ -54,7 +54,7 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
           </p>
         </hgroup>
         <Link href="/field-worker/history">
-          <Button variant="outline">Back to History</Button>
+          <Button variant="outline">Back to history</Button>
         </Link>
       </header>
 

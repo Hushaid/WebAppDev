@@ -85,7 +85,7 @@ export default function FieldWorkerResultPage() {
           <p className="text-muted-foreground">No result data found. Please complete an assessment first.</p>
         </header>
         <Button asChild>
-          <Link href="/field-worker/questionnaire">New Assessment</Link>
+          <Link href="/field-worker/questionnaire">New assessment</Link>
         </Button>
       </section>
     )
@@ -189,10 +189,10 @@ export default function FieldWorkerResultPage() {
 
       <nav className="flex gap-3">
         <Button asChild>
-          <Link href="/field-worker/questionnaire">New Assessment</Link>
+          <Link href="/field-worker/questionnaire">New assessment</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/field-worker/history">View History</Link>
+          <Link href="/field-worker/history">View history</Link>
         </Button>
       </nav>
     </section>

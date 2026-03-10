@@ -50,11 +50,11 @@ export default function PersonalHomePage() {
         </CardHeader>
         <CardContent className="flex gap-3">
           <Button asChild>
-            <Link href="/personal/questionnaire">Take Assessment</Link>
+            <Link href="/personal/questionnaire">Take assessment</Link>
           </Button>
           {mySubmissions.length > 0 && (
             <Button variant="outline" asChild>
-              <Link href="/personal/result">View Last Result</Link>
+              <Link href="/personal/result">View last result</Link>
             </Button>
           )}
         </CardContent>
