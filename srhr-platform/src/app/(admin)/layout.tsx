@@ -1,4 +1,9 @@
+import type { Metadata } from "next"
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
+
+export const metadata: Metadata = {
+  title: "Admin",
+}
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import {

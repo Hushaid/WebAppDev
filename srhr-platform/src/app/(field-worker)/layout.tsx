@@ -1,7 +1,12 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { OnlineIndicator } from "@/components/online-indicator"
 import { SignOutButton } from "@/components/sign-out-button"
+
+export const metadata: Metadata = {
+  title: "Field worker",
+}
 
 export default function FieldWorkerLayout({
   children,

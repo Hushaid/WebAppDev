@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Geist_Mono, Nunito_Sans } from "next/font/google"
 
 import "./globals.css"
@@ -6,6 +7,18 @@ import { Providers } from "@/components/providers"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ServiceWorkerRegister } from "@/components/sw-register"
 import { cn } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: {
+    default: "Hushaid",
+    template: "%s — Hushaid",
+  },
+  description:
+    "Community health risk platform for sexual and reproductive health.",
+  icons: {
+    icon: "/hushaid-mark.svg",
+  },
+}
 
 const nunitoSans = Nunito_Sans({variable:'--font-sans'})
 

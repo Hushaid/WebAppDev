@@ -1,6 +1,11 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { SignOutButton } from "@/components/sign-out-button"
+
+export const metadata: Metadata = {
+  title: "Personal",
+}
 
 export default function PersonalLayout({
   children,
