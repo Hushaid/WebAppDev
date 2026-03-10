@@ -160,7 +160,7 @@ export default function SettingsPage() {
           </p>
 
           <ThresholdEditor
-            title="STI Risk Thresholds"
+            title="Infection Risk Thresholds"
             description="Questions Q11–Q21. Maximum possible score: 18."
             thresholds={STI_THRESHOLDS}
             maxPossible={18}
@@ -237,7 +237,7 @@ export default function SettingsPage() {
               <dl className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    GPS Capture
+                    Location capture
                   </dt>
                   <dd>Enabled (optional, high accuracy, 10s timeout)</dd>
                 </div>

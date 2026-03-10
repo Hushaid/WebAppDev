@@ -80,7 +80,7 @@ export default async function SubmissionDetailPage(props: {
             </div>
             <div>
               <dt className="text-sm font-medium text-muted-foreground">
-                GPS Location
+                Location
               </dt>
               <dd>
                 {submission.gpsLat
@@ -119,7 +119,7 @@ export default async function SubmissionDetailPage(props: {
           <CardContent>
             <dl className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-lg border p-3">
-                <dt className="text-sm text-muted-foreground">STI Risk</dt>
+                <dt className="text-sm text-muted-foreground">Infection Risk</dt>
                 <dd className="flex items-center justify-between">
                   <span className="text-2xl font-bold">
                     {classification.stiScore}

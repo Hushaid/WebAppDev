@@ -145,7 +145,7 @@ export default function PersonalRegisterPage() {
               <h3 className="font-medium">How your data is used</h3>
               <p className="text-muted-foreground">
                 Your responses are anonymised and encrypted. Personal contact
-                information is stored separately with AES-256 encryption and is
+                information is stored separately with strong encryption and is
                 only accessible to authorised administrators.
               </p>
             </article>

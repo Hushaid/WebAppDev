@@ -25,14 +25,14 @@ const LOW_RISK_STEPS = [
 
 const MEDIUM_RISK_STEPS = [
   "Visit a health facility within the next 2 days for a check-up and screening. Tell the health worker all the symptoms you have been experiencing, even if they seem small.",
-  "Ask to be tested for HIV and other infections such as syphilis and gonorrhoea on the same visit. Many infections can be fully treated with the right medication.",
+  "Ask to be tested for HIV (Human Immunodeficiency Virus) and other infections such as syphilis and gonorrhoea on the same visit. Many infections can be fully treated with the right medication.",
   "If you are pregnant and have not started antenatal care, or have missed visits, go to the nearest health facility this week.",
   "Your sexual partner should also be screened and treated. Contact tracing is important to stop the spread of infection.",
 ]
 
 const HIGH_RISK_STEPS = [
   "Go to a health facility TODAY. Do not wait. Your answers suggest you may have a serious infection or pregnancy complication that needs urgent attention.",
-  "If you cannot get to a health facility because roads are flooded or you have no transport — call NEMA Emergency on 080022556362 now and ask for emergency health support. Tell them your community name.",
+  "If you cannot get to a health facility because roads are flooded or you have no transport — call the National Emergency Management Agency (NEMA) on 080022556362 now and ask for emergency health support. Tell them your community name.",
   "If a health worker has been notified about your situation, they will call ahead to the health facility so that staff are ready to receive you on arrival. Do not be afraid — the health workers are there to help you.",
   "After this emergency visit, the health worker will follow up with you to make sure you are recovering well and to remove any barriers that may stop you from returning for follow-up care. Please keep your phone on and available.",
 ]
@@ -108,7 +108,7 @@ export function HealthSteps({ riskLevel }: HealthStepsProps) {
 
 const EMERGENCY_CONTACTS = [
   {
-    name: "WARIF Helpline",
+    name: "WARIF (Women at Risk International Foundation) Helpline",
     description: "Sexual violence support",
     number: "0800-9210-0009",
     tel: "tel:080092100009",
@@ -122,14 +122,14 @@ const EMERGENCY_CONTACTS = [
     availability: "Free \u00b7 24 hours",
   },
   {
-    name: "NEMA Emergency",
-    description: "National disaster & flood response",
+    name: "NEMA (National Emergency Management Agency)",
+    description: "Disaster & flood response",
     number: "080022556362",
     tel: "tel:080022556362",
     availability: "Free \u00b7 24 hours",
   },
   {
-    name: "NCC Consumer Helpline",
+    name: "NCC (Nigerian Communications Commission) Helpline",
     description: "Telecoms complaints & support",
     number: "767",
     tel: "tel:767",

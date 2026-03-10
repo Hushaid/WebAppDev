@@ -76,7 +76,7 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
             </div>
             <div>
               <dt className="text-sm font-medium text-muted-foreground">
-                GPS Location
+                Location
               </dt>
               <dd>
                 {submission.gpsLat

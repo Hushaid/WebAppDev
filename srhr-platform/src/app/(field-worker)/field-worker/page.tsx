@@ -117,7 +117,7 @@ export default function FieldWorkerDashboardPage() {
                       </hgroup>
                       <span className="flex items-center gap-2">
                         {sub.gps_lat ? (
-                          <Badge variant="secondary">GPS</Badge>
+                          <Badge variant="secondary">Location captured</Badge>
                         ) : null}
                         <Badge variant="outline">
                           {(sub.submitter_type as string).replace("_", " ")}

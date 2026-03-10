@@ -69,7 +69,7 @@ export function IrixTrendChart({
               dataKey="sti_avg"
               stroke="#ef4444"
               strokeWidth={1.5}
-              name="STI Avg"
+              name="Infection Avg"
               dot={false}
               strokeDasharray="5 5"
             />

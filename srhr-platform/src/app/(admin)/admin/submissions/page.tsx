@@ -44,7 +44,7 @@ export default async function SubmissionsPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>GPS</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Submitted</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>

@@ -63,7 +63,7 @@ export function CellDetail({ cell, onClose }: CellDetailProps) {
 
           {cell.sti_avg_score !== null && (
             <>
-              <dt className="text-muted-foreground">STI Avg</dt>
+              <dt className="text-muted-foreground">Infection Avg</dt>
               <dd className="text-end font-mono">{cell.sti_avg_score.toFixed(2)}</dd>
             </>
           )}

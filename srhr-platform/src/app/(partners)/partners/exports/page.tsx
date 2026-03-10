@@ -104,7 +104,7 @@ export default function PartnersExportsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="sti">STI Risk</SelectItem>
+                  <SelectItem value="sti">Infection Risk</SelectItem>
                   <SelectItem value="maternal_health">Maternal Health</SelectItem>
                   <SelectItem value="community_wellbeing">Community Well-being</SelectItem>
                 </SelectContent>

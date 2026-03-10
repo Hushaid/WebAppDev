@@ -85,9 +85,9 @@ export default function MfaSetupPage() {
         <CardHeader>
           <CardTitle>Two-Factor Authentication Required</CardTitle>
           <CardDescription>
-            Your role requires two-factor authentication (2FA) for security.
-            Set up 2FA using an authenticator app like Google Authenticator or
-            Authy.
+            Your role requires two-factor authentication for extra security.
+            You will need an authenticator app like Google Authenticator or
+            Authy on your phone to complete this setup.
           </CardDescription>
         </CardHeader>
         <CardContent>

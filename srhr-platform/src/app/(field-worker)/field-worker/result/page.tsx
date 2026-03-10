@@ -175,7 +175,7 @@ export default function FieldWorkerResultPage() {
                     <p className="text-sm text-muted-foreground">
                       {f.type}
                       {f.ward ? ` · ${f.ward}` : ""}
-                      {f.lga ? `, ${f.lga} LGA` : ""}
+                      {f.lga ? `, ${f.lga}` : ""}
                     </p>
                   </hgroup>
                   {f.distance_km !== undefined && (

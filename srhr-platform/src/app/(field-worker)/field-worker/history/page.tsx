@@ -45,7 +45,7 @@ export default function FieldWorkerHistoryPage() {
               <TableHead>Date</TableHead>
               <TableHead>Reference</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>GPS</TableHead>
+              <TableHead>Location</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

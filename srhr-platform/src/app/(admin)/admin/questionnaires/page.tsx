@@ -37,7 +37,7 @@ import {
 import { Button } from "@/components/ui/button"
 
 const GROUP_LABELS: Record<DiseaseGroup, string> = {
-  sti: "STI Risk Assessment",
+  sti: "Infection Risk Assessment",
   maternal_health: "Maternal Health Assessment",
   community_wellbeing: "Community Well-being",
 }
