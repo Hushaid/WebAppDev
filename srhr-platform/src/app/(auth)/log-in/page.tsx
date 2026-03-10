@@ -69,9 +69,6 @@ export default function LogInPage() {
         <form id="log-in-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <p className="text-xs text-muted-foreground">
-              The email address you used to create your account.
-            </p>
             <Input
               id="email"
               name="email"
@@ -92,9 +89,6 @@ export default function LogInPage() {
                 {showPassword ? "Hide password" : "Show password"}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Enter your account password.
-            </p>
             <Input
               id="password"
               name="password"

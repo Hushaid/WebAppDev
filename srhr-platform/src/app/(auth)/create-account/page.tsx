@@ -158,9 +158,6 @@ export default function CreateAccountPage() {
                 {showPassword ? "Hide password" : "Show password"}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Must be at least 8 characters.
-            </p>
             <Input
               id="password"
               name="password"
@@ -170,6 +167,9 @@ export default function CreateAccountPage() {
               maxLength={128}
               autoComplete="new-password"
             />
+            <p className="text-xs text-muted-foreground">
+              Must be at least 8 characters.
+            </p>
           </fieldset>
           <fieldset className="space-y-2">
             <div className="flex items-center justify-between">
@@ -183,9 +183,6 @@ export default function CreateAccountPage() {
                 {showConfirmPassword ? "Hide password" : "Show password"}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Re-enter your password to confirm.
-            </p>
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -195,6 +192,9 @@ export default function CreateAccountPage() {
               maxLength={128}
               autoComplete="new-password"
             />
+            <p className="text-xs text-muted-foreground">
+              Re-enter your password to confirm.
+            </p>
           </fieldset>
           {error && (
             <output className="block rounded-md bg-destructive/10 p-3 text-sm text-destructive" role="alert">
