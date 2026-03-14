@@ -1,9 +1,8 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { fieldWorkerCodes, users } from "@/lib/db/schema"
+import { fieldWorkerCodes, users, accounts } from "@/lib/db/schema"
 import { eq, and } from "drizzle-orm"
-import { auth } from "@/lib/auth"
 
 export async function validateAccessCode(code: string) {
   const [found] = await db
@@ -48,26 +47,40 @@ export async function registerFieldWorker(data: {
     return { success: false as const, error: "Access code is no longer valid." }
   }
 
-  // 2. Create the user via Better Auth server-side API
-  const result = await auth.api.signUpEmail({
-    body: {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-    },
-  })
+  // 2. Check if email already exists
+  const [existingUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, data.email.toLowerCase()))
+    .limit(1)
 
-  if (!result?.user?.id) {
-    return { success: false as const, error: "Registration failed. Please try again." }
+  if (existingUser) {
+    return { success: false as const, error: "An account with this email already exists." }
   }
 
-  const userId = result.user.id
+  // 3. Create user directly in DB (bypass Better Auth's email verification flow)
+  const { hashPassword } = await import("better-auth/crypto")
+  const hashedPassword = await hashPassword(data.password)
+  const userId = crypto.randomUUID()
 
-  // 3. Set role to field_worker and auto-verify email (access code proves legitimacy)
-  await db
-    .update(users)
-    .set({ role: "field_worker", emailVerified: true, updatedAt: new Date() })
-    .where(eq(users.id, userId))
+  await db.insert(users).values({
+    id: userId,
+    email: data.email.toLowerCase(),
+    name: data.name,
+    role: "field_worker",
+    emailVerified: true, // Access code proves legitimacy — no email verification needed
+    status: "active",
+    mfaEnabled: false,
+    failedLoginAttempts: 0,
+  })
+
+  await db.insert(accounts).values({
+    id: crypto.randomUUID(),
+    userId,
+    accountId: userId,
+    providerId: "credential",
+    password: hashedPassword,
+  })
 
   // 4. Redeem the access code
   await db
