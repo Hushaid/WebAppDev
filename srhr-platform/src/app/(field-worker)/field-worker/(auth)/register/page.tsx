@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,13 +16,12 @@ import {
 import { validateAccessCode, registerFieldWorker } from "./actions"
 
 export default function FieldWorkerRegisterPage() {
+  const router = useRouter()
   const [step, setStep] = useState<"code" | "details">("code")
   const [accessCode, setAccessCode] = useState("")
   const [codeId, setCodeId] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [verificationSent, setVerificationSent] = useState(false)
-  const [submittedEmail, setSubmittedEmail] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleCodeSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -72,39 +72,9 @@ export default function FieldWorkerRegisterPage() {
       return
     }
 
-    setVerificationSent(true)
-    setSubmittedEmail(email)
-    setLoading(false)
-  }
-
-  if (verificationSent) {
-    return (
-      <section className="mx-auto max-w-md space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Check your inbox</CardTitle>
-            <CardDescription>
-              We sent a verification link to{" "}
-              <strong>{submittedEmail}</strong>. Please open the email and click
-              the link to activate your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              The link expires in 1 hour. If you do not see the email, check your
-              spam or junk folder.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" asChild className="w-full">
-              <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noopener noreferrer">
-                Open email app
-              </a>
-            </Button>
-          </CardFooter>
-        </Card>
-      </section>
-    )
+    // Field workers are auto-verified (access code proves legitimacy)
+    // Redirect to login so they can sign in with their new credentials
+    router.push("/field-worker/log-in?registered=true")
   }
 
   return (
@@ -180,7 +150,7 @@ export default function FieldWorkerRegisterPage() {
               <fieldset className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <p className="text-xs text-muted-foreground">
-                  We will send a verification link to this address.
+                  You will use this email to log in.
                 </p>
                 <Input
                   id="email"

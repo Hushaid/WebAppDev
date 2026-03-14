@@ -63,10 +63,10 @@ export async function registerFieldWorker(data: {
 
   const userId = result.user.id
 
-  // 3. Set role to field_worker (input: false means client can't set it)
+  // 3. Set role to field_worker and auto-verify email (access code proves legitimacy)
   await db
     .update(users)
-    .set({ role: "field_worker", updatedAt: new Date() })
+    .set({ role: "field_worker", emailVerified: true, updatedAt: new Date() })
     .where(eq(users.id, userId))
 
   // 4. Redeem the access code

@@ -23,6 +23,7 @@ interface LoginFormProps {
   registerHref?: string
   registerLabel?: string
   forgotPasswordHref?: string | false
+  successMessage?: string
 }
 
 export function LoginForm({
@@ -32,6 +33,7 @@ export function LoginForm({
   registerHref,
   registerLabel = "Create account",
   forgotPasswordHref = "/forgot-password",
+  successMessage,
 }: LoginFormProps) {
   const router = useRouter()
   const [error, setError] = useState("")
@@ -86,6 +88,14 @@ export function LoginForm({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
+        {successMessage && (
+          <output
+            className="mb-4 block rounded-md bg-green-50 p-3 text-sm text-green-800 dark:bg-green-950 dark:text-green-200"
+            role="status"
+          >
+            {successMessage}
+          </output>
+        )}
         <form id="log-in-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
             <Label htmlFor="email">Email</Label>
