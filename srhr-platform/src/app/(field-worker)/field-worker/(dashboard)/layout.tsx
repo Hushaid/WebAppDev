@@ -14,7 +14,6 @@ export default function FieldWorkerDashboardLayout({
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <nav className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2 sm:gap-6">
-            <FieldWorkerNav />
             <Link href="/field-worker">
               <Image
                 src="/hushaid-logo.svg"
@@ -25,6 +24,7 @@ export default function FieldWorkerDashboardLayout({
                 className="w-[120px] h-auto"
               />
             </Link>
+            <FieldWorkerNav />
           </div>
           <div className="flex items-center gap-3">
             <OnlineIndicator />
