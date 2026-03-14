@@ -9,6 +9,38 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 const emailFrom = process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
 
+const baseUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "http://localhost:3000"
+
+const staticOrigins = [
+  baseUrl,
+  "http://srhr.localhost",
+  "http://srhr.localhost:80",
+  "http://srhr.localhost:1355",
+  "http://localhost:3000",
+  "http://localhost:1355",
+].filter((origin, i, arr) => origin && arr.indexOf(origin) === i)
+
+async function getTrustedOrigins(request?: Request) {
+  const origins = [...staticOrigins]
+  if (!request) return origins
+  try {
+    const origin = request.headers.get("origin") || request.headers.get("referer")
+    if (origin) {
+      const url = new URL(origin)
+      const o = url.origin
+      if (
+        (o.startsWith("http://srhr.localhost") || o.startsWith("http://localhost")) &&
+        !origins.includes(o)
+      ) {
+        origins.push(o)
+      }
+    }
+  } catch {
+    // ignore invalid URLs
+  }
+  return origins
+}
+
 function capitalizeWords(str: string): string {
   return str
     .trim()
@@ -17,6 +49,7 @@ function capitalizeWords(str: string): string {
 }
 
 export const auth = betterAuth({
+  trustedOrigins: getTrustedOrigins,
   advanced: {
     database: {
       generateId: "uuid",
