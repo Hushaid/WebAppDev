@@ -23,20 +23,17 @@ export interface QuestionnaireCompleteData {
 }
 
 export const DEMOGRAPHIC_QUESTIONS: DemographicQuestion[] = [
-  { id: "Q1", text: "What is your full name?", type: "text" },
   {
-    id: "Q2",
-    text: "What is your age group?",
-    type: "select",
+    id: "Q1",
+    text: "This survey will help understand your healthcare needs and ensure your community has supplies like medicine, delivery packs, sanitary pads, contraceptives and free treatment during flooding. Your answers are private. Can we start?",
+    type: "radio",
     options: [
-      { label: "Under 18", value: "under_18" },
-      { label: "18-24", value: "18_24" },
-      { label: "25-34", value: "25_34" },
-      { label: "35-44", value: "35_44" },
-      { label: "45-54", value: "45_54" },
-      { label: "55+", value: "55_plus" },
+      { label: "Yes", value: "yes" },
+      { label: "No", value: "no" },
     ],
+    required: true,
   },
+  { id: "Q2", text: "What is the name of your state and community?", type: "text" },
   {
     id: "Q3",
     text: "What is your sex?",
@@ -49,60 +46,78 @@ export const DEMOGRAPHIC_QUESTIONS: DemographicQuestion[] = [
   },
   {
     id: "Q4",
-    text: "What is your marital status?",
-    type: "select",
+    text: "Where do you live?",
+    type: "radio",
     options: [
-      { label: "Single", value: "single" },
-      { label: "Married", value: "married" },
-      { label: "Divorced/Separated", value: "divorced" },
-      { label: "Widowed", value: "widowed" },
+      { label: "With family", value: "family" },
+      { label: "Alone", value: "alone" },
+      { label: "In a camp (IDP)", value: "idp_camp" },
+      { label: "Other", value: "other" },
     ],
   },
-  { id: "Q5", text: "What is your community/ward?", type: "text" },
-  { id: "Q6", text: "What local government area (LGA) do you live in?", type: "text" },
-  { id: "Q7", text: "What state do you live in?", type: "text" },
+  {
+    id: "Q5",
+    text: "What is your age group?",
+    type: "radio",
+    options: [
+      { label: "15–24 years", value: "15_24" },
+      { label: "25–34 years", value: "25_34" },
+      { label: "35 years or older", value: "35_plus" },
+    ],
+  },
+  { id: "Q6", text: "What is your occupation?", type: "text" },
+  {
+    id: "Q7",
+    text: "What is your annual range of income?",
+    type: "radio",
+    options: [
+      { label: "₦10,000 – ₦20,000", value: "10k_20k" },
+      { label: "₦20,000 – ₦30,000", value: "20k_30k" },
+      { label: "₦30,000 – ₦40,000", value: "30k_40k" },
+      { label: "₦40,000 – ₦50,000", value: "40k_50k" },
+    ],
+  },
   {
     id: "Q8",
-    text: "What is your highest level of education?",
-    type: "select",
+    text: "What type of living condition do you have?",
+    type: "radio",
     options: [
-      { label: "None", value: "none" },
-      { label: "Primary", value: "primary" },
-      { label: "Secondary", value: "secondary" },
-      { label: "Tertiary", value: "tertiary" },
+      { label: "Hut", value: "hut" },
+      { label: "Bungalow", value: "bungalow" },
+      { label: "Homeless", value: "homeless" },
+      { label: "IDP camp", value: "idp_camp" },
     ],
   },
   {
     id: "Q9",
-    text: "What is your occupation?",
-    type: "text",
+    text: "What is your family size?",
+    type: "radio",
+    options: [
+      { label: "2–4", value: "2_4" },
+      { label: "5–7", value: "5_7" },
+      { label: "8–10", value: "8_10" },
+    ],
   },
   {
     id: "Q10",
-    text: "How many people live in your household?",
-    type: "select",
-    options: [
-      { label: "1-3", value: "1_3" },
-      { label: "4-6", value: "4_6" },
-      { label: "7-10", value: "7_10" },
-      { label: "More than 10", value: "more_10" },
-    ],
+    text: "Do you have any disability? If yes, please state.",
+    type: "text",
   },
 ]
 
 export const CLOSING_QUESTIONS: DemographicQuestion[] = [
   {
     id: "Q44",
-    text: "Would you like to be referred to a health facility?",
+    text: "Please provide your phone or WhatsApp number so that relief teams can reach you with supplies or emergency health support during the floods. (Optional)",
+    type: "text",
+  },
+  {
+    id: "Q45",
+    text: "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?",
     type: "radio",
     options: [
       { label: "Yes", value: "yes" },
       { label: "No", value: "no" },
     ],
-  },
-  {
-    id: "Q45",
-    text: "Any additional comments or concerns?",
-    type: "text",
   },
 ]

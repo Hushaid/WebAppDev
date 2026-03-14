@@ -41,8 +41,9 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
     diseaseGroup: "sti",
     maxScore: 2,
     options: [
-      { label: "0-4 weeks", value: "0_4_weeks", score: 1 },
-      { label: ">4 weeks", value: "more_4_weeks", score: 2 },
+      { label: "Less than 1 week", value: "less_1_week", score: 1 },
+      { label: "1–4 weeks", value: "1_4_weeks", score: 1 },
+      { label: "More than 4 weeks", value: "more_4_weeks", score: 2 },
     ],
   },
   {
@@ -159,7 +160,12 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
     text: "How many months pregnant are you?",
     diseaseGroup: "maternal_health",
     maxScore: 0,
-    options: [],
+    options: [
+      { label: "Early (1–3 months)", value: "early", score: 0 },
+      { label: "Middle (4–6 months)", value: "middle", score: 0 },
+      { label: "Late (7 months+)", value: "late", score: 0 },
+      { label: "Not sure", value: "not_sure", score: 0 },
+    ],
   },
   {
     id: "Q24",
@@ -167,8 +173,9 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
     diseaseGroup: "maternal_health",
     maxScore: 2,
     options: [
-      { label: "Within first 3 months", value: "within_3_months", score: 0 },
-      { label: ">3 months", value: "more_3_months", score: 1 },
+      { label: "In the last month", value: "last_month", score: 0 },
+      { label: "1–3 months ago", value: "1_3_months", score: 0 },
+      { label: "Over 3 months ago", value: "more_3_months", score: 1 },
       { label: "Never", value: "never", score: 2 },
     ],
   },

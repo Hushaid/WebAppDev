@@ -13,6 +13,8 @@ export const healthFacilities = pgTable("health_facilities", {
   name: text("name").notNull(),
   type: text("type").notNull(),
   address: text("address"),
+  ward: text("ward"),
+  lga: text("lga"),
   gpsLat: numeric("gps_lat"),
   gpsLng: numeric("gps_lng"),
   servicesOffered: jsonb("services_offered"),

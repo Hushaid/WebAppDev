@@ -79,30 +79,29 @@ async function seed() {
   // Seed super admin
   await seedSuperAdmin()
 
-  // 1. Upsert v1 questionnaire
-  const [questionnaire] = await db
-    .insert(questionnaires)
-    .values({
-      version: 1,
-      status: "published",
-      publishedAt: new Date(),
-    })
-    .onConflictDoNothing()
-    .returning()
-
+  // 1. Get or create v1 questionnaire
   let questionnaireId: string
 
-  if (questionnaire) {
-    questionnaireId = questionnaire.id
-    console.log(`Created questionnaire v1: ${questionnaireId}`)
-  } else {
-    // Already exists — fetch it
-    const [existing] = await db
-      .select()
-      .from(questionnaires)
-      .limit(1)
+  const [existing] = await db
+    .select()
+    .from(questionnaires)
+    .where(eq(questionnaires.version, 1))
+    .limit(1)
+
+  if (existing) {
     questionnaireId = existing.id
     console.log(`Questionnaire v1 already exists: ${questionnaireId}`)
+  } else {
+    const [created] = await db
+      .insert(questionnaires)
+      .values({
+        version: 1,
+        status: "published",
+        publishedAt: new Date(),
+      })
+      .returning()
+    questionnaireId = created.id
+    console.log(`Created questionnaire v1: ${questionnaireId}`)
   }
 
   // 2. Real question texts from the Hushaid Risk Assessment Survey
@@ -147,11 +146,24 @@ async function seed() {
     Q43: "Are warnings sent ahead of time before flooding occurs in your area?",
   }
 
+  const demographicTexts: Record<string, string> = {
+    Q1: "Consent — This survey will help understand your healthcare needs and ensure your community has supplies like medicine, delivery packs, sanitary pads, contraceptives and free treatment during flooding. Your answers are private. Can we start?",
+    Q2: "What is the name of your state and community?",
+    Q3: "What is your sex?",
+    Q4: "Where do you live?",
+    Q5: "What is your age group?",
+    Q6: "What is your occupation?",
+    Q7: "What is your annual range of income?",
+    Q8: "What type of living condition do you have?",
+    Q9: "What is your family size?",
+    Q10: "Do you have any disability? If yes, please state.",
+  }
+
   const allQuestions = [
     // Demographic (unscored) Q1-Q10
     ...Array.from({ length: 10 }, (_, i) => ({
       questionNumber: `Q${i + 1}`,
-      text: `Demographic question ${i + 1}`,
+      text: demographicTexts[`Q${i + 1}`] ?? `Demographic question ${i + 1}`,
       type: "single_choice" as const,
       scoreWeight: 0,
       diseaseGroup: null,
@@ -160,15 +172,15 @@ async function seed() {
     // Scored questions from config with real question texts
     ...SCORED_QUESTIONS.map((q, idx) => ({
       questionNumber: q.id,
-      text: questionTexts[q.id] ?? `${q.id} — Health assessment question`,
+      text: questionTexts[q.id] ?? q.text,
       type: "single_choice" as const,
       scoreWeight: q.maxScore,
       diseaseGroup: q.diseaseGroup as "sti" | "maternal_health" | "community_wellbeing",
       sortOrder: 11 + idx,
     })),
     // Unscored Q44-Q45
-    { questionNumber: "Q44", text: "Is there anything else you would like to share about your health or your community's health?", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 44 },
-    { questionNumber: "Q45", text: "Do you confirm that you have answered these questions honestly and give consent for your anonymised responses to be used for community health assessment?", type: "yes_no" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 45 },
+    { questionNumber: "Q44", text: "Please provide your phone or WhatsApp number so that relief teams can reach you with supplies or emergency health support during the floods.", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 44 },
+    { questionNumber: "Q45", text: "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?", type: "yes_no" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 45 },
   ]
 
   let insertedCount = 0

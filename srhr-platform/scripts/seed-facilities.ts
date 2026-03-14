@@ -1,5 +1,18 @@
-import { db } from "../src/lib/db"
+import { config } from "dotenv"
+config({ path: ".env.local" })
+
+import { drizzle } from "drizzle-orm/postgres-js"
+import postgres from "postgres"
 import { healthFacilities } from "../src/lib/db/schema"
+
+const DATABASE_URL = process.env.DATABASE_URL
+if (!DATABASE_URL) {
+  console.error("DATABASE_URL is required")
+  process.exit(1)
+}
+
+const client = postgres(DATABASE_URL)
+const db = drizzle(client)
 
 const facilities = [
   { name: "PHC Karu", type: "Primary Health Centre", ward: "Karu", lga: "Karu", gpsLat: "9.0094", gpsLng: "7.6615" },
@@ -30,7 +43,7 @@ async function seed() {
   }
 
   console.log(`Seeded ${facilities.length} health facilities.`)
-  process.exit(0)
+  await client.end()
 }
 
 seed().catch((err) => {

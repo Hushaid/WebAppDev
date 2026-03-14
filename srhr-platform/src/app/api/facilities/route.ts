@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
       name: healthFacilities.name,
       type: healthFacilities.type,
       address: healthFacilities.address,
+      ward: healthFacilities.ward,
+      lga: healthFacilities.lga,
       gpsLat: healthFacilities.gpsLat,
       gpsLng: healthFacilities.gpsLng,
       distance: sql<number>`(
