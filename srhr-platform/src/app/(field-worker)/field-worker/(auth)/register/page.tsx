@@ -22,6 +22,7 @@ export default function FieldWorkerRegisterPage() {
   const [loading, setLoading] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleCodeSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -190,19 +191,29 @@ export default function FieldWorkerRegisterPage() {
                 />
               </fieldset>
               <fieldset className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters.
-                </p>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide password" : "Show password"}
+                  </button>
+                </div>
                 <Input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   minLength={8}
                   maxLength={128}
                   autoComplete="new-password"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 8 characters.
+                </p>
               </fieldset>
               {error && (
                 <output className="block text-sm text-destructive">{error}</output>
