@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useSession } from "@/lib/auth/client"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
@@ -9,7 +10,6 @@ import { captureGps } from "@/lib/utils/geo"
 import { addPendingSubmission } from "@/lib/offline/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 
 export default function PersonalQuestionnairePage() {
   const router = useRouter()
@@ -127,7 +127,7 @@ export default function PersonalQuestionnairePage() {
 
   if (checking) {
     return (
-      <section className="space-y-6">
+      <section className="mx-auto max-w-md space-y-6">
         <header>
           <h1 className="text-2xl font-bold">Health Assessment</h1>
           <p className="text-muted-foreground">Checking availability...</p>
@@ -142,7 +142,7 @@ export default function PersonalQuestionnairePage() {
       : null
 
     return (
-      <section className="space-y-6">
+      <section className="mx-auto max-w-md space-y-6">
         <header>
           <h1 className="text-2xl font-bold">Health Assessment</h1>
         </header>
@@ -173,9 +173,16 @@ export default function PersonalQuestionnairePage() {
   }
 
   return (
-    <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Health Assessment</h1>
+    <section className="mx-auto max-w-md space-y-6">
+      <header className="space-y-1">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Health Assessment</h1>
+          <Link href="/personal">
+            <Button variant="ghost" size="sm">
+              Close
+            </Button>
+          </Link>
+        </div>
         <p className="text-muted-foreground">
           {submitting
             ? "Submitting your answers..."

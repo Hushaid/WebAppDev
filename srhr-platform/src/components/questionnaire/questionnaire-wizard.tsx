@@ -184,7 +184,7 @@ export function QuestionnaireWizard({
 
   if (consentDeclined && safeIndex > 0) {
     return (
-      <section className="mx-auto max-w-xl space-y-6">
+      <section className="space-y-6">
         <div className="rounded-lg border p-6 text-center space-y-4">
           <h3 className="text-lg font-semibold">Survey Ended</h3>
           <p className="text-muted-foreground">
@@ -204,7 +204,7 @@ export function QuestionnaireWizard({
   }
 
   return (
-    <section className="mx-auto max-w-xl space-y-6">
+    <section className="space-y-6">
       <header className="space-y-2">
         <Progress value={progress} className="h-2" />
         <p className="text-sm text-muted-foreground">
