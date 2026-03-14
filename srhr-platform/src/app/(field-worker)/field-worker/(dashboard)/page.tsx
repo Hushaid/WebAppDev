@@ -105,31 +105,33 @@ export default function FieldWorkerDashboardPage() {
             <CardContent>
               <ul className="space-y-2">
                 {submissions.slice(0, 5).map((sub) => (
-                  <li
-                    key={sub.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <hgroup>
-                      <p className="text-sm font-medium">
-                        <code className="text-xs">
-                          {sub.id.slice(0, 8)}...
-                        </code>
-                      </p>
-                      <time
-                        dateTime={sub.created_at}
-                        className="text-xs text-muted-foreground"
-                      >
-                        {new Date(sub.created_at).toLocaleString()}
-                      </time>
-                    </hgroup>
-                    <span className="flex items-center gap-2">
-                      {sub.gps_lat ? (
-                        <Badge variant="secondary">Location captured</Badge>
-                      ) : null}
-                      <Badge variant="outline">
-                        {sub.submitter_type.replace("_", " ")}
-                      </Badge>
-                    </span>
+                  <li key={sub.id}>
+                    <Link
+                      href={`/field-worker/history/${sub.id}`}
+                      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    >
+                      <hgroup>
+                        <p className="text-sm font-medium">
+                          <code className="text-xs">
+                            {sub.id.slice(0, 8)}...
+                          </code>
+                        </p>
+                        <time
+                          dateTime={sub.created_at}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {new Date(sub.created_at).toLocaleString()}
+                        </time>
+                      </hgroup>
+                      <span className="flex items-center gap-2">
+                        {sub.gps_lat ? (
+                          <Badge variant="secondary">Location captured</Badge>
+                        ) : null}
+                        <Badge variant="outline">
+                          {sub.submitter_type.replace("_", " ")}
+                        </Badge>
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>
