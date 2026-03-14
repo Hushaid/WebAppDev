@@ -28,6 +28,7 @@ export default function MfaSetupPage() {
   const { data: session } = useSession()
   const [step, setStep] = useState<"intro" | "qr" | "verify">("intro")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [totpUri, setTotpUri] = useState("")
   const [secret, setSecret] = useState("")
   const [code, setCode] = useState("")
@@ -94,19 +95,29 @@ export default function MfaSetupPage() {
         <CardContent>
           <form onSubmit={handleEnable} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="mfa-password">Confirm your password</Label>
-              <p className="text-xs text-muted-foreground">
-                Enter your account password to enable two-factor authentication.
-              </p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="mfa-password">Confirm your password</Label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "Hide password" : "Show password"}
+                </button>
+              </div>
               <Input
                 id="mfa-password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
                 autoFocus
               />
+              <p className="text-xs text-muted-foreground">
+                Enter your account password to enable two-factor authentication.
+              </p>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={loading || !password} className="w-full">
