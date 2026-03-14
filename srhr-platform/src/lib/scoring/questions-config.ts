@@ -210,6 +210,7 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
     diseaseGroup: "maternal_health",
     maxScore: 1,
     options: [
+      { label: "Never been pregnant", value: "never_pregnant", score: 0 },
       { label: ">18 years", value: "over_18", score: 0 },
       { label: "<18 years or >35 years", value: "under_18_or_over_35", score: 1 },
     ],
@@ -220,6 +221,7 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
     diseaseGroup: "maternal_health",
     maxScore: 1,
     options: [
+      { label: "No children", value: "no_children", score: 0 },
       { label: ">2 years or I have only one child", value: "over_2_years", score: 0 },
       { label: "<2 years", value: "under_2_years", score: 1 },
     ],
@@ -251,6 +253,7 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
     diseaseGroup: "maternal_health",
     maxScore: 1,
     options: [
+      { label: "No previous deliveries", value: "no_deliveries", score: 0 },
       { label: "At health centre", value: "health_centre", score: 0 },
       { label: "At home", value: "home", score: 1 },
       { label: "Traditional birth attendant", value: "traditional", score: 1 },
@@ -414,9 +417,29 @@ export const SKIP_RULES: SkipRule[] = [
     skipTargets: ["Q16"],
   },
   {
+    // Not using prevention → skip "which method" question
+    questionId: "Q20",
+    skipWhen: ["no", "want_but_no_access"],
+    skipTargets: ["Q21"],
+  },
+  {
+    // Not pregnant → skip current-pregnancy-specific questions only
+    // Q26-Q28 are about pregnancy history and still apply
     questionId: "Q22",
     skipWhen: ["no", "not_sure"],
-    skipTargets: ["Q23", "Q24", "Q25", "Q26", "Q27", "Q28", "Q29", "Q30"],
+    skipTargets: ["Q23", "Q24", "Q25", "Q29", "Q30"],
+  },
+  {
+    // Never been pregnant → skip child spacing, delivery plan, previous deliveries, miscarriage questions
+    questionId: "Q27",
+    skipWhen: ["never_pregnant"],
+    skipTargets: ["Q28", "Q29", "Q30", "Q31", "Q32", "Q33"],
+  },
+  {
+    // No miscarriage → skip "how many miscarriages" question
+    questionId: "Q32",
+    skipWhen: ["no"],
+    skipTargets: ["Q33"],
   },
 ]
 

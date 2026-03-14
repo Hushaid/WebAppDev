@@ -111,9 +111,11 @@ export function QuestionnaireWizard({
   }, [sex, responses])
 
   const totalQuestions = visibleQuestions.length
-  const currentQuestion = visibleQuestions[currentIndex]
-  const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0
-  const isLast = currentIndex === totalQuestions - 1
+  // Clamp index if the list shrank due to skip logic changes
+  const safeIndex = Math.min(currentIndex, totalQuestions - 1)
+  const currentQuestion = visibleQuestions[safeIndex]
+  const progress = totalQuestions > 0 ? ((safeIndex + 1) / totalQuestions) * 100 : 0
+  const isLast = safeIndex === totalQuestions - 1
 
   function handleChange(value: string) {
     setResponses((prev) => ({
@@ -134,7 +136,7 @@ export function QuestionnaireWizard({
     setCurrentIndex((i) => Math.max(i - 1, 0))
   }
 
-  const canAdvance = !!responses[visibleQuestions[currentIndex]?.id]
+  const canAdvance = !!responses[visibleQuestions[safeIndex]?.id]
 
   const handleEnterKey = useCallback(
     (e: KeyboardEvent) => {
@@ -145,7 +147,7 @@ export function QuestionnaireWizard({
       if (canAdvance) handleNext()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canAdvance, currentIndex, isLast, totalQuestions],
+    [canAdvance, safeIndex, isLast, totalQuestions],
   )
 
   useEffect(() => {
@@ -182,7 +184,7 @@ export function QuestionnaireWizard({
       <header className="space-y-2">
         <Progress value={progress} className="h-2" />
         <p className="text-sm text-muted-foreground">
-          Question {currentIndex + 1} of {totalQuestions}
+          Question {safeIndex + 1} of {totalQuestions}
         </p>
       </header>
 
@@ -201,7 +203,7 @@ export function QuestionnaireWizard({
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={currentIndex === 0}
+          disabled={safeIndex === 0}
         >
           Back
         </Button>
