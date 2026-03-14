@@ -4,6 +4,7 @@ import { twoFactor } from "better-auth/plugins"
 import { Resend } from "resend"
 import { db } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
+import { auditLog } from "@/lib/db/schema"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -152,6 +153,15 @@ export const auth = betterAuth({
             },
           }
         },
+        async after(user) {
+          db.insert(auditLog).values({
+            actorId: user.id,
+            action: "register",
+            entityType: "user",
+            entityId: user.id,
+            metadata: { method: "email" },
+          }).catch(console.error)
+        },
       },
       update: {
         async before(user) {
@@ -161,6 +171,20 @@ export const auth = betterAuth({
               ...(user.name ? { name: capitalizeWords(user.name) } : {}),
             },
           }
+        },
+      },
+    },
+    session: {
+      create: {
+        async after(session) {
+          db.insert(auditLog).values({
+            actorId: session.userId,
+            action: "login",
+            entityType: "session",
+            entityId: session.id,
+            ipAddress: session.ipAddress ?? undefined,
+            metadata: { userAgent: session.userAgent ?? null },
+          }).catch(console.error)
         },
       },
     },

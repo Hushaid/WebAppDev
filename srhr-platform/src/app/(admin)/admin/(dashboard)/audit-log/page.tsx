@@ -13,15 +13,21 @@ import {
 
 function actionBadge(action: string) {
   if (action.includes("delete") || action.includes("revoke")) {
-    return <Badge variant="destructive">{action}</Badge>
+    return <Badge variant="destructive">{action.replace(/_/g, " ")}</Badge>
   }
-  if (action.includes("create") || action.includes("generate")) {
-    return <Badge variant="default">{action}</Badge>
+  if (action.includes("create") || action.includes("generate") || action === "register") {
+    return <Badge variant="default">{action.replace(/_/g, " ")}</Badge>
   }
-  if (action.includes("pii")) {
+  if (action === "login") {
     return <Badge variant="secondary">{action}</Badge>
   }
-  return <Badge variant="outline">{action}</Badge>
+  if (action.includes("pii")) {
+    return <Badge variant="secondary">{action.replace(/_/g, " ")}</Badge>
+  }
+  if (action.includes("update")) {
+    return <Badge variant="outline">{action.replace(/_/g, " ")}</Badge>
+  }
+  return <Badge variant="outline">{action.replace(/_/g, " ")}</Badge>
 }
 
 export default async function AuditLogPage() {

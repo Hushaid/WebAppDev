@@ -3,6 +3,7 @@
 import { db } from "@/lib/db"
 import { fieldWorkerCodes, users, accounts } from "@/lib/db/schema"
 import { eq, and } from "drizzle-orm"
+import { logAudit } from "@/lib/audit"
 
 export async function validateAccessCode(code: string) {
   const [found] = await db
@@ -91,6 +92,15 @@ export async function registerFieldWorker(data: {
       usedAt: new Date(),
     })
     .where(eq(fieldWorkerCodes.id, data.codeId))
+
+  // 5. Audit log
+  logAudit({
+    actorId: userId,
+    action: "register",
+    entityType: "user",
+    entityId: userId,
+    metadata: { role: "field_worker", accessCodeId: data.codeId },
+  }).catch(console.error)
 
   return { success: true as const, userId }
 }

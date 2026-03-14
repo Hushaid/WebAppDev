@@ -17,6 +17,7 @@ import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 import { triggerHighRiskAlert } from "@/lib/alerts/trigger"
 import { submissionSchema } from "@/lib/utils/validators"
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+import { logAudit } from "@/lib/audit"
 
 /** Dedup window: reject submissions from same submitter within 2 minutes */
 const DEDUP_WINDOW_MS = 2 * 60 * 1000
@@ -196,7 +197,21 @@ export async function POST(request: NextRequest) {
       })
       .returning()
 
-    // 8. Trigger high-risk alert (non-blocking)
+    // 8. Audit log (non-blocking)
+    logAudit({
+      actorId: body.submitterId,
+      action: "create",
+      entityType: "submission",
+      entityId: submission.id,
+      metadata: {
+        submitterType: body.submitterType,
+        overallRiskLevel: risk.overallRiskLevel,
+        hasGps: !!(body.gpsLat && body.gpsLng),
+      },
+      ipAddress: ip,
+    }).catch(console.error)
+
+    // 9. Trigger high-risk alert (non-blocking)
     if (risk.overallRiskLevel === "high") {
       triggerHighRiskAlert({
         submissionId: submission.id,

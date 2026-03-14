@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { Resend } from "resend"
+import { logAudit } from "@/lib/audit"
 
 type UserRole =
   | "personal_user"
@@ -32,19 +33,41 @@ export async function getUsers() {
 }
 
 export async function updateUserRole(userId: string, role: UserRole) {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+
   await db
     .update(users)
     .set({ role, updatedAt: new Date() })
     .where(eq(users.id, userId))
 
+  logAudit({
+    actorId: session?.user?.id,
+    action: "update_role",
+    entityType: "user",
+    entityId: userId,
+    metadata: { newRole: role },
+  }).catch(console.error)
+
   revalidatePath("/admin/users")
 }
 
 export async function updateUserStatus(userId: string, status: UserStatus) {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+
   await db
     .update(users)
     .set({ status, updatedAt: new Date() })
     .where(eq(users.id, userId))
+
+  logAudit({
+    actorId: session?.user?.id,
+    action: "update_status",
+    entityType: "user",
+    entityId: userId,
+    metadata: { newStatus: status },
+  }).catch(console.error)
 
   revalidatePath("/admin/users")
 }
@@ -135,6 +158,14 @@ export async function createUser(data: {
       `,
     })
   }
+
+  logAudit({
+    actorId: session?.user?.id,
+    action: "create",
+    entityType: "user",
+    entityId: id,
+    metadata: { role: data.role, email: data.email.toLowerCase().trim() },
+  }).catch(console.error)
 
   revalidatePath("/admin/users")
   return { success: true as const }
