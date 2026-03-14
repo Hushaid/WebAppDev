@@ -394,10 +394,14 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
 
 /**
  * Skip logic rules:
- * - Males skip Q22-Q36 entirely
- * - Q11 = "No symptom" → skip Q12, Q13
- * - Q15 = "No" → skip Q16
- * - Q22 = "No" or "Not sure" → skip Q23-Q30
+ * - Males skip Q22-Q36 entirely (gender-based, handled in wizard)
+ * - Q1  = "No" (consent declined) → survey ends (handled in wizard UI)
+ * - Q11 = "No symptom" → skip Q12, Q13 (no symptoms to describe)
+ * - Q15 = "No" (no sexual partner) → skip Q16, Q19 (condom use & partner health)
+ * - Q20 = "No" / "want_but_no_access" → skip Q21 (no method to specify)
+ * - Q22 = "No" / "Not sure" → skip Q23, Q24, Q25, Q29, Q30 (current-pregnancy only)
+ * - Q27 = "Never been pregnant" → skip Q28-Q33 (no pregnancy/delivery/miscarriage history)
+ * - Q32 = "No" (no miscarriage) → skip Q33 (how many miscarriages)
  */
 export interface SkipRule {
   questionId: string
@@ -412,9 +416,10 @@ export const SKIP_RULES: SkipRule[] = [
     skipTargets: ["Q12", "Q13"],
   },
   {
+    // No sexual partner → skip condom use and partner health questions
     questionId: "Q15",
     skipWhen: ["no"],
-    skipTargets: ["Q16"],
+    skipTargets: ["Q16", "Q19"],
   },
   {
     // Not using prevention → skip "which method" question

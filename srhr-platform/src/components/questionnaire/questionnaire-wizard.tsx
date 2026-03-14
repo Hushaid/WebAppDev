@@ -175,8 +175,32 @@ export function QuestionnaireWizard({
     })
   }
 
+  // Consent declined — stop the survey
+  const consentDeclined = responses["Q1"] === "no"
+
   if (!currentQuestion) {
     return <p className="text-muted-foreground">Loading questionnaire...</p>
+  }
+
+  if (consentDeclined && safeIndex > 0) {
+    return (
+      <section className="mx-auto max-w-xl space-y-6">
+        <div className="rounded-lg border p-6 text-center space-y-4">
+          <h3 className="text-lg font-semibold">Survey Ended</h3>
+          <p className="text-muted-foreground">
+            Thank you for your time. Since consent was not given, the survey
+            cannot continue. Your privacy is respected and no data has been
+            collected.
+          </p>
+          <Button variant="outline" onClick={() => {
+            setResponses({})
+            setCurrentIndex(0)
+          }}>
+            Start Over
+          </Button>
+        </div>
+      </section>
+    )
   }
 
   return (
