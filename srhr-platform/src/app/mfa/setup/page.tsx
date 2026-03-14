@@ -27,32 +27,33 @@ export default function MfaSetupPage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [step, setStep] = useState<"intro" | "qr" | "verify">("intro")
+  const [password, setPassword] = useState("")
   const [totpUri, setTotpUri] = useState("")
   const [secret, setSecret] = useState("")
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleEnable() {
+  async function handleEnable(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setLoading(true)
     setError("")
     try {
       const result = await authClient.twoFactor.enable({
-        password: "", // Better Auth may handle this differently
+        password,
       })
 
       if (result.data) {
         setTotpUri(result.data.totpURI ?? "")
-        // Extract secret from the TOTP URI (otpauth://totp/...?secret=XXX&...)
         const uri = result.data.totpURI ?? ""
         const secretMatch = uri.match(/secret=([A-Z2-7]+)/i)
         setSecret(secretMatch?.[1] ?? "")
         setStep("qr")
       } else {
-        setError("Failed to enable 2FA. Please try again.")
+        setError("Failed to enable 2FA. Please check your password and try again.")
       }
     } catch {
-      setError("Failed to enable 2FA. Please try again.")
+      setError("Failed to enable 2FA. Please check your password and try again.")
     } finally {
       setLoading(false)
     }
@@ -91,10 +92,27 @@ export default function MfaSetupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={handleEnable} disabled={loading} className="w-full">
-            {loading ? "Setting up..." : "Set up 2FA"}
-          </Button>
-          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+          <form onSubmit={handleEnable} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mfa-password">Confirm your password</Label>
+              <p className="text-xs text-muted-foreground">
+                Enter your account password to enable two-factor authentication.
+              </p>
+              <Input
+                id="mfa-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                autoFocus
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" disabled={loading || !password} className="w-full">
+              {loading ? "Setting up..." : "Set up 2FA"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     )
@@ -126,9 +144,26 @@ export default function MfaSetupPage() {
           {secret && (
             <div>
               <Label>Manual Entry Key</Label>
-              <output className="mt-1 block rounded border bg-muted p-2 text-center font-mono text-sm tracking-widest">
-                {secret}
-              </output>
+              <div className="mt-1 flex items-center gap-2 rounded border bg-muted p-2">
+                <output className="min-w-0 flex-1 break-all font-mono text-xs tracking-widest">
+                  {secret}
+                </output>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(secret)
+                  }}
+                  aria-label="Copy secret key"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </Button>
+              </div>
             </div>
           )}
 
