@@ -128,8 +128,8 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
           Edit
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {question.questionNumber}
             {question.diseaseGroup && (
@@ -138,7 +138,7 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="flex-1 space-y-5 overflow-y-auto pr-1">
           {/* Question text */}
           <div className="space-y-2">
             <Label htmlFor="question-text">Question Text</Label>
@@ -266,7 +266,7 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
