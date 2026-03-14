@@ -1,24 +1,14 @@
-"use client"
+export const dynamic = "force-dynamic"
 
-import {
-  SCORED_QUESTIONS,
-  SKIP_RULES,
-  MATERNAL_QUESTIONS,
-  type QuestionConfig,
-  type DiseaseGroup,
-} from "@/lib/scoring/questions-config"
-import {
-  DEMOGRAPHIC_QUESTIONS,
-  CLOSING_QUESTIONS,
-} from "@/components/questionnaire/types"
+import { getQuestionnaireWithQuestions } from "./actions"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -27,14 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { QuestionEditDialog } from "./question-edit-dialog"
+
+type DiseaseGroup = "sti" | "maternal_health" | "community_wellbeing"
 
 const GROUP_LABELS: Record<DiseaseGroup, string> = {
   sti: "Infection Risk Assessment",
@@ -48,128 +33,55 @@ const GROUP_RANGES: Record<DiseaseGroup, string> = {
   community_wellbeing: "Q37–Q43",
 }
 
-function getSkipRulesForQuestion(questionId: string) {
-  return SKIP_RULES.filter((r) => r.questionId === questionId)
-}
+export default async function QuestionnairesPage() {
+  const data = await getQuestionnaireWithQuestions()
 
-function getMaxScoreForGroup(group: DiseaseGroup) {
-  return SCORED_QUESTIONS.filter((q) => q.diseaseGroup === group).reduce(
-    (sum, q) => sum + q.maxScore,
-    0,
+  if (!data) {
+    return (
+      <section className="space-y-6">
+        <header>
+          <h1 className="text-2xl font-bold">Questionnaire Management</h1>
+          <p className="text-muted-foreground">
+            No published questionnaire found. Run the seed script to create one.
+          </p>
+        </header>
+      </section>
+    )
+  }
+
+  const { questions } = data
+
+  // Split questions by type
+  const scoredQuestions = questions.filter((q) => q.diseaseGroup !== null)
+  const demographicQuestions = questions.filter(
+    (q) => q.diseaseGroup === null && q.questionNumber.startsWith("Q") && parseInt(q.questionNumber.slice(1)) <= 10,
   )
-}
-
-function QuestionEditDialog({ question }: { question: QuestionConfig }) {
-  const skipRules = getSkipRulesForQuestion(question.id)
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          View Details
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
-            {question.id} — {GROUP_LABELS[question.diseaseGroup]}
-          </DialogTitle>
-        </DialogHeader>
-        <dl className="space-y-4">
-          <div>
-            <dt className="text-sm font-medium text-muted-foreground">
-              Disease Group
-            </dt>
-            <dd>
-              <Badge variant="outline">{question.diseaseGroup}</Badge>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-muted-foreground">
-              Max Score
-            </dt>
-            <dd className="text-lg font-semibold">{question.maxScore}</dd>
-          </div>
-
-          {question.options.length > 0 && (
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground mb-2">
-                Options & Scores
-              </dt>
-              <dd>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Option</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead className="text-right">Score</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {question.options.map((opt) => (
-                      <TableRow key={opt.value}>
-                        <TableCell>{opt.label}</TableCell>
-                        <TableCell>
-                          <code className="text-xs">{opt.value}</code>
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {opt.score}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </dd>
-            </div>
-          )}
-
-          {skipRules.length > 0 && (
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground mb-2">
-                Skip Logic
-              </dt>
-              <dd className="space-y-2">
-                {skipRules.map((rule) => (
-                  <p key={rule.questionId} className="text-sm">
-                    When answer is{" "}
-                    <strong>{rule.skipWhen.join(" or ")}</strong> → skip{" "}
-                    <strong>{rule.skipTargets.join(", ")}</strong>
-                  </p>
-                ))}
-              </dd>
-            </div>
-          )}
-
-          {question.diseaseGroup === "maternal_health" && (
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Gender Condition
-              </dt>
-              <dd className="text-sm">
-                <Badge>Females only</Badge> — males skip all maternal health
-                questions
-              </dd>
-            </div>
-          )}
-        </dl>
-      </DialogContent>
-    </Dialog>
+  const otherQuestions = questions.filter(
+    (q) =>
+      q.diseaseGroup === null &&
+      !demographicQuestions.includes(q) &&
+      (q.questionNumber.startsWith("Q") || q.questionNumber.startsWith("PS")),
   )
-}
 
-export default function QuestionnairesPage() {
   const groups: DiseaseGroup[] = ["sti", "maternal_health", "community_wellbeing"]
+
+  // Compute stats
+  const totalQuestions = questions.length
+  const skipRuleCount = scoredQuestions.filter(
+    (q) => q.conditionalLogic && typeof q.conditionalLogic === "object" && "skipTargets" in (q.conditionalLogic as Record<string, unknown>),
+  ).length
+  const maternalCount = scoredQuestions.filter(
+    (q) => q.diseaseGroup === "maternal_health",
+  ).length
 
   return (
     <section className="min-w-0 space-y-6">
-      <header className="flex items-center justify-between">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Questionnaire Management</h1>
-          <p className="text-muted-foreground">
-            View and manage scored questions, options, weights, and conditional
-            skip logic.
-          </p>
-        </hgroup>
+      <header>
+        <h1 className="text-2xl font-bold">Questionnaire Management</h1>
+        <p className="text-muted-foreground">
+          Edit scored questions, options, weights, and conditional skip logic.
+          Changes affect future submissions.
+        </p>
       </header>
 
       {/* Summary cards */}
@@ -181,15 +93,10 @@ export default function QuestionnairesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {DEMOGRAPHIC_QUESTIONS.length +
-                SCORED_QUESTIONS.length +
-                CLOSING_QUESTIONS.length}
-            </p>
+            <p className="text-3xl font-bold">{totalQuestions}</p>
             <p className="text-xs text-muted-foreground">
-              {DEMOGRAPHIC_QUESTIONS.length} demographic +{" "}
-              {SCORED_QUESTIONS.length} scored +{" "}
-              {CLOSING_QUESTIONS.length} closing
+              {demographicQuestions.length} demographic + {scoredQuestions.length}{" "}
+              scored + {otherQuestions.length} other
             </p>
           </CardContent>
         </Card>
@@ -200,7 +107,7 @@ export default function QuestionnairesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{SKIP_RULES.length}</p>
+            <p className="text-3xl font-bold">{skipRuleCount}</p>
             <p className="text-xs text-muted-foreground">
               + gender-based maternal skip
             </p>
@@ -213,7 +120,7 @@ export default function QuestionnairesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{MATERNAL_QUESTIONS.length}</p>
+            <p className="text-3xl font-bold">{maternalCount}</p>
             <p className="text-xs text-muted-foreground">Females only</p>
           </CardContent>
         </Card>
@@ -222,10 +129,13 @@ export default function QuestionnairesPage() {
       {/* Scored questions by group */}
       <Accordion type="multiple" defaultValue={groups}>
         {groups.map((group) => {
-          const questions = SCORED_QUESTIONS.filter(
+          const groupQuestions = scoredQuestions.filter(
             (q) => q.diseaseGroup === group,
           )
-          const maxScore = getMaxScoreForGroup(group)
+          const maxScore = groupQuestions.reduce(
+            (sum, q) => sum + q.scoreWeight,
+            0,
+          )
 
           return (
             <AccordionItem key={group} value={group}>
@@ -238,57 +148,68 @@ export default function QuestionnairesPage() {
               </AccordionTrigger>
               <AccordionContent>
                 <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-20">ID</TableHead>
-                      <TableHead>Options</TableHead>
-                      <TableHead className="w-24 text-right">
-                        Max Score
-                      </TableHead>
-                      <TableHead className="w-28 text-right">
-                        Skip Logic
-                      </TableHead>
-                      <TableHead className="w-28 text-right">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {questions.map((q) => {
-                      const skipRules = getSkipRulesForQuestion(q.id)
-                      return (
-                        <TableRow key={q.id}>
-                          <TableCell className="font-mono font-semibold">
-                            {q.id}
-                          </TableCell>
-                          <TableCell className="max-w-[200px] truncate">
-                            <span className="text-sm text-muted-foreground">
-                              {q.options.length > 0
-                                ? q.options.map((o) => o.label).join(" · ")
-                                : "Free text"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right font-mono">
-                            {q.maxScore}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {skipRules.length > 0 ? (
-                              <Badge variant="secondary">
-                                Skips {skipRules.flatMap((r) => r.skipTargets).join(", ")}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <QuestionEditDialog question={q} />
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-16">ID</TableHead>
+                        <TableHead>Options</TableHead>
+                        <TableHead className="w-24 text-right">
+                          Max Score
+                        </TableHead>
+                        <TableHead className="w-28 text-right">
+                          Skip Logic
+                        </TableHead>
+                        <TableHead className="w-20 text-right">
+                          Actions
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {groupQuestions.map((q) => {
+                        const opts = (q.options ?? []) as {
+                          label: string
+                          value: string
+                          score: number
+                        }[]
+                        const skipLogic = q.conditionalLogic as {
+                          skipWhen: string[]
+                          skipTargets: string[]
+                        } | null
+                        return (
+                          <TableRow key={q.id}>
+                            <TableCell className="font-mono font-semibold">
+                              {q.questionNumber}
+                            </TableCell>
+                            <TableCell className="max-w-[200px] truncate">
+                              <span className="text-sm text-muted-foreground">
+                                {opts.length > 0
+                                  ? opts.map((o) => o.label).join(" · ")
+                                  : "Free text"}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              {q.scoreWeight}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {skipLogic?.skipTargets ? (
+                                <Badge variant="secondary" className="text-xs">
+                                  Skips{" "}
+                                  {skipLogic.skipTargets.join(", ")}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  —
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <QuestionEditDialog question={q} />
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -296,7 +217,7 @@ export default function QuestionnairesPage() {
         })}
       </Accordion>
 
-      {/* Non-scored questions reference */}
+      {/* Non-scored questions */}
       <Accordion type="single" collapsible>
         <AccordionItem value="demographic">
           <AccordionTrigger className="text-lg font-semibold">
@@ -307,63 +228,69 @@ export default function QuestionnairesPage() {
           </AccordionTrigger>
           <AccordionContent>
             <div className="overflow-x-auto">
-            <Table className="table-fixed w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">ID</TableHead>
-                  <TableHead>Question Text</TableHead>
-                  <TableHead className="w-20">Type</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {DEMOGRAPHIC_QUESTIONS.map((q) => (
-                  <TableRow key={q.id}>
-                    <TableCell className="font-mono font-semibold">
-                      {q.id}
-                    </TableCell>
-                    <TableCell className="whitespace-normal break-words">{q.text}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{q.type}</Badge>
-                    </TableCell>
+              <Table className="table-fixed w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">ID</TableHead>
+                    <TableHead>Question Text</TableHead>
+                    <TableHead className="w-20">Type</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {demographicQuestions.map((q) => (
+                    <TableRow key={q.id}>
+                      <TableCell className="font-mono font-semibold">
+                        {q.questionNumber}
+                      </TableCell>
+                      <TableCell className="whitespace-normal break-words">
+                        {q.text}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{q.type}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="closing">
+        <AccordionItem value="other">
           <AccordionTrigger className="text-lg font-semibold">
             <span className="flex flex-wrap items-center gap-2">
-              Closing Questions (Not Scored)
-              <Badge variant="secondary">Q44–Q45</Badge>
+              Other Questions (Not Scored)
+              <Badge variant="secondary">
+                Q44–Q45, PS1–PS5
+              </Badge>
             </span>
           </AccordionTrigger>
           <AccordionContent>
             <div className="overflow-x-auto">
-            <Table className="table-fixed w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">ID</TableHead>
-                  <TableHead>Question Text</TableHead>
-                  <TableHead className="w-20">Type</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {CLOSING_QUESTIONS.map((q) => (
-                  <TableRow key={q.id}>
-                    <TableCell className="font-mono font-semibold">
-                      {q.id}
-                    </TableCell>
-                    <TableCell className="whitespace-normal break-words">{q.text}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{q.type}</Badge>
-                    </TableCell>
+              <Table className="table-fixed w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">ID</TableHead>
+                    <TableHead>Question Text</TableHead>
+                    <TableHead className="w-20">Type</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {otherQuestions.map((q) => (
+                    <TableRow key={q.id}>
+                      <TableCell className="font-mono font-semibold">
+                        {q.questionNumber}
+                      </TableCell>
+                      <TableCell className="whitespace-normal break-words">
+                        {q.text}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{q.type}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </AccordionContent>
         </AccordionItem>

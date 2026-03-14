@@ -14,6 +14,7 @@ import {
   type QuestionResponse,
 } from "@/lib/scoring/engine"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
+import { loadScoringConfigFromDB } from "@/lib/scoring/load-config"
 import { triggerHighRiskAlert } from "@/lib/alerts/trigger"
 import { submissionSchema } from "@/lib/utils/validators"
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit"
@@ -174,12 +175,14 @@ export async function POST(request: NextRequest) {
       await db.insert(questionResponses).values(questionResponseValues)
     }
 
-    // 6. Compute risk classification
+    // 6. Compute risk classification (use DB config if available, fall back to static)
+    const dbConfig = await loadScoringConfigFromDB()
+    const configQuestions = dbConfig?.questions ?? SCORED_QUESTIONS
     const scoredResponses: QuestionResponse[] = Object.entries(body.responses)
-      .filter(([qId]) => SCORED_QUESTIONS.some((q) => q.id === qId))
+      .filter(([qId]) => configQuestions.some((q) => q.id === qId))
       .map(([questionId, value]) => ({ questionId, value }))
 
-    const risk = computeRisk(scoredResponses, body.sex)
+    const risk = computeRisk(scoredResponses, body.sex, dbConfig ?? undefined)
 
     // 7. Store risk classification
     const [classification] = await db

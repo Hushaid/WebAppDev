@@ -14,7 +14,7 @@ import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
 import { eq, and } from "drizzle-orm"
 import { questionnaires, questions, users, accounts } from "./schema"
-import { SCORED_QUESTIONS } from "../scoring/questions-config"
+import { SCORED_QUESTIONS, SKIP_RULES } from "../scoring/questions-config"
 
 const DATABASE_URL = process.env.DATABASE_URL
 if (!DATABASE_URL) {
@@ -170,14 +170,21 @@ async function seed() {
       sortOrder: i + 1,
     })),
     // Scored questions from config with real question texts
-    ...SCORED_QUESTIONS.map((q, idx) => ({
-      questionNumber: q.id,
-      text: questionTexts[q.id] ?? q.text,
-      type: "single_choice" as const,
-      scoreWeight: q.maxScore,
-      diseaseGroup: q.diseaseGroup as "sti" | "maternal_health" | "community_wellbeing",
-      sortOrder: 11 + idx,
-    })),
+    ...SCORED_QUESTIONS.map((q, idx) => {
+      const skipRule = SKIP_RULES.find((r) => r.questionId === q.id)
+      return {
+        questionNumber: q.id,
+        text: questionTexts[q.id] ?? q.text,
+        type: "single_choice" as const,
+        scoreWeight: q.maxScore,
+        diseaseGroup: q.diseaseGroup as "sti" | "maternal_health" | "community_wellbeing",
+        options: q.options,
+        conditionalLogic: skipRule
+          ? { skipWhen: skipRule.skipWhen, skipTargets: skipRule.skipTargets }
+          : null,
+        sortOrder: 11 + idx,
+      }
+    }),
     // Unscored Q44-Q45
     { questionNumber: "Q44", text: "Please provide your phone or WhatsApp number so that relief teams can reach you with supplies or emergency health support during the floods.", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 44 },
     { questionNumber: "Q45", text: "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?", type: "yes_no" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 45 },
@@ -206,11 +213,15 @@ async function seed() {
         .limit(1)
 
       if (existing) {
-        // Update the text if it changed
-        if (existing.text !== q.text) {
+        // Update text, options, and conditionalLogic
+        const updates: Record<string, unknown> = {}
+        if (existing.text !== q.text) updates.text = q.text
+        if ("options" in q && q.options) updates.options = q.options
+        if ("conditionalLogic" in q) updates.conditionalLogic = q.conditionalLogic
+        if (Object.keys(updates).length > 0) {
           await db
             .update(questions)
-            .set({ text: q.text, updatedAt: new Date() })
+            .set({ ...updates, updatedAt: new Date() })
             .where(eq(questions.id, existing.id))
           updatedCount++
         }
@@ -224,6 +235,8 @@ async function seed() {
             type: q.type,
             scoreWeight: q.scoreWeight,
             diseaseGroup: q.diseaseGroup,
+            options: "options" in q ? q.options : undefined,
+            conditionalLogic: "conditionalLogic" in q ? q.conditionalLogic : undefined,
             sortOrder: q.sortOrder,
           })
         insertedCount++

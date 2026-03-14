@@ -31,7 +31,11 @@ export const questions = pgTable("questions", {
   type: questionTypeEnum("type").notNull(),
   scoreWeight: integer("score_weight").default(0).notNull(),
   diseaseGroup: diseaseGroupEnum("disease_group"),
-  conditionalLogic: jsonb("conditional_logic"),
+  options: jsonb("options").$type<{ label: string; value: string; score: number }[]>(),
+  conditionalLogic: jsonb("conditional_logic").$type<{
+    skipWhen: string[]
+    skipTargets: string[]
+  } | null>(),
   sortOrder: integer("sort_order").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

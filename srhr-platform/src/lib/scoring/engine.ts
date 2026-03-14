@@ -30,26 +30,37 @@ export interface RiskResult {
   responseScores: Record<string, number>
 }
 
+export interface ScoringConfig {
+  questions: QuestionConfig[]
+  skipRules: { questionId: string; skipWhen: string[]; skipTargets: string[] }[]
+  maternalQuestionIds: string[]
+}
+
 /**
  * Pure function: computes risk classification from questionnaire responses.
- * Runs on both client and server.
+ * Accepts optional config override (loaded from DB). Falls back to static config.
  */
 export function computeRisk(
   responses: QuestionResponse[],
   sex: "male" | "female",
+  config?: ScoringConfig,
 ): RiskResult {
+  const scoredQuestions = config?.questions ?? SCORED_QUESTIONS
+  const skipRules = config?.skipRules ?? SKIP_RULES
+  const maternalQuestionIds = config?.maternalQuestionIds ?? MATERNAL_QUESTIONS
+
   const responseMap = new Map(responses.map((r) => [r.questionId, r.value]))
   const skippedQuestions = new Set<string>()
 
   // Apply gender-based skip: males skip maternal health questions
   if (sex === "male") {
-    for (const qId of MATERNAL_QUESTIONS) {
+    for (const qId of maternalQuestionIds) {
       skippedQuestions.add(qId)
     }
   }
 
   // Apply conditional skip rules
-  for (const rule of SKIP_RULES) {
+  for (const rule of skipRules) {
     const responseValue = responseMap.get(rule.questionId)
     if (responseValue && rule.skipWhen.includes(responseValue)) {
       for (const target of rule.skipTargets) {
@@ -64,7 +75,7 @@ export function computeRisk(
   let maternalScore = 0
   let communityWellbeingScore = 0
 
-  for (const question of SCORED_QUESTIONS) {
+  for (const question of scoredQuestions) {
     if (skippedQuestions.has(question.id)) {
       responseScores[question.id] = 0
       continue
