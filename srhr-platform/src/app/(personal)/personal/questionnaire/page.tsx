@@ -72,6 +72,13 @@ export default function PersonalQuestionnairePage() {
       return
     }
 
+    // Always store the client-computed risk result so the result page works
+    // even if the API fails or is slow
+    sessionStorage.setItem(
+      "lastRiskResult",
+      JSON.stringify(data.riskResult),
+    )
+
     // Submit to API
     try {
       const res = await fetch("/api/submissions", {
@@ -90,11 +97,18 @@ export default function PersonalQuestionnairePage() {
 
       if (res.ok) {
         const result = await res.json()
-        sessionStorage.setItem(
-          "lastRiskResult",
-          JSON.stringify(data.riskResult),
-        )
         sessionStorage.setItem("lastSubmissionId", result.submissionId)
+      } else {
+        // API error — queue for offline retry so data is not lost
+        await addPendingSubmission({
+          submitterId: session.user.id,
+          submitterType: data.submitterType,
+          questionnaireVersionId: "v1",
+          sex: data.sex,
+          responses: data.responses,
+          gpsLat,
+          gpsLng,
+        })
       }
     } catch {
       await addPendingSubmission({

@@ -44,6 +44,12 @@ export default function FieldWorkerQuestionnairePage() {
       clientSubmissionId: crypto.randomUUID(),
     }
 
+    // Always store the client-computed risk result so the result page works
+    sessionStorage.setItem(
+      "lastRiskResult",
+      JSON.stringify(data.riskResult),
+    )
+
     // Try online submission first, fall back to offline queue
     try {
       const res = await fetch("/api/submissions", {
@@ -54,10 +60,6 @@ export default function FieldWorkerQuestionnairePage() {
 
       if (res.ok) {
         const result = await res.json()
-        sessionStorage.setItem(
-          "lastRiskResult",
-          JSON.stringify(data.riskResult),
-        )
         sessionStorage.setItem("lastSubmissionId", result.submissionId)
       } else {
         // Server error — queue for later
@@ -66,10 +68,6 @@ export default function FieldWorkerQuestionnairePage() {
     } catch {
       // Network error — queue for offline sync
       await addPendingSubmission(payload)
-      sessionStorage.setItem(
-        "lastRiskResult",
-        JSON.stringify(data.riskResult),
-      )
     }
 
     router.push("/field-worker/result")
