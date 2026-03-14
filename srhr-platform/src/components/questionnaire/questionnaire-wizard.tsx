@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { QuestionCard } from "./question-card"
@@ -123,6 +123,25 @@ export function QuestionnaireWizard({
     setCurrentIndex((i) => Math.max(i - 1, 0))
   }
 
+  const canAdvance = !!responses[visibleQuestions[currentIndex]?.id]
+
+  const handleEnterKey = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return
+      const tag = (e.target as HTMLElement)?.tagName
+      // Let text inputs handle Enter via their own onKeyDown
+      if (tag === "INPUT" || tag === "TEXTAREA") return
+      if (canAdvance) handleNext()
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canAdvance, currentIndex, isLast, totalQuestions],
+  )
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleEnterKey)
+    return () => window.removeEventListener("keydown", handleEnterKey)
+  }, [handleEnterKey])
+
   function handleSubmit() {
     if (!sex) return
 
@@ -164,6 +183,7 @@ export function QuestionnaireWizard({
         options={currentQuestion.options}
         value={responses[currentQuestion.id] ?? ""}
         onChange={handleChange}
+        onNext={handleNext}
       />
 
       <nav className="flex justify-between">

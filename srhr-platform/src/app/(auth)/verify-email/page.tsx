@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { toast } from "sonner"
 import { authClient } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 import {
@@ -34,6 +35,7 @@ export default function VerifyEmailPage() {
         )
         if (res.ok || res.redirected) {
           setStatus("success")
+          toast.success("Email verified. Welcome!")
         } else {
           setStatus("error")
           setErrorMessage("This verification link has expired or is invalid. Please request a new one.")
@@ -66,13 +68,12 @@ export default function VerifyEmailPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Email verified</CardTitle>
           <CardDescription>
-            Your email address has been confirmed. You can now log in and start
-            using the platform.
+            Your email address has been confirmed. You are now signed in.
           </CardDescription>
         </CardHeader>
         <CardFooter>
           <Button asChild className="w-full">
-            <Link href="/log-in">Continue to log in</Link>
+            <Link href="/personal">Continue to dashboard</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -102,7 +103,7 @@ function ResendVerification() {
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
 
-  async function handleResend(e: React.FormEvent) {
+  async function handleResend(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSending(true)
     try {

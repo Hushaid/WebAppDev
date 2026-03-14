@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Providers } from "@/components/providers"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ServiceWorkerRegister } from "@/components/sw-register"
+import { ToastTriggers } from "@/components/toast-triggers"
+import { Toaster } from "sonner"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -43,6 +45,8 @@ export default function RootLayout({
           <Providers>
             <TooltipProvider>{children}</TooltipProvider>
             <ServiceWorkerRegister />
+            <ToastTriggers />
+            <Toaster richColors position="top-center" />
           </Providers>
         </ThemeProvider>
       </body>

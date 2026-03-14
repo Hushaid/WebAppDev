@@ -24,6 +24,7 @@ interface QuestionCardProps {
   options?: Option[]
   value: string
   onChange: (value: string) => void
+  onNext?: () => void
 }
 
 export function QuestionCard({
@@ -33,6 +34,7 @@ export function QuestionCard({
   options,
   value,
   onChange,
+  onNext,
 }: QuestionCardProps) {
   return (
     <Card>
@@ -47,7 +49,12 @@ export function QuestionCard({
             id={questionId}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Your answer"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && value.trim() && onNext) {
+                e.preventDefault()
+                onNext()
+              }
+            }}
           />
         )}
 

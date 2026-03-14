@@ -100,7 +100,9 @@ export default function CreateAccountPage() {
         </CardContent>
         <CardFooter>
           <Button variant="outline" asChild className="w-full">
-            <Link href="/log-in">Go to log in</Link>
+            <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noopener noreferrer">
+              Open email app
+            </a>
           </Button>
         </CardFooter>
       </Card>

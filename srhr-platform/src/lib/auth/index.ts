@@ -116,6 +116,11 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
+      // Extract token from the API URL and build a link to our verify-email page
+      const parsedUrl = new URL(url)
+      const token = parsedUrl.searchParams.get("token") ?? ""
+      const verifyPageUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`
+
       await resend.emails.send({
         from: emailFrom,
         to: user.email,
@@ -125,7 +130,7 @@ export const auth = betterAuth({
             <h2 style="color: #1e293b;">Welcome to Hushaid</h2>
             <p>Hi ${user.name || "there"},</p>
             <p>Thank you for creating an account on Hushaid. Please verify your email address to get started.</p>
-            <a href="${url}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+            <a href="${verifyPageUrl}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
               Verify Email Address
             </a>
             <p style="color: #64748b; font-size: 14px;">This link expires in 1 hour. If you didn't create this account, you can safely ignore this email.</p>
