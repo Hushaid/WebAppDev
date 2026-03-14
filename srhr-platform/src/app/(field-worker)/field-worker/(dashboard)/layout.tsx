@@ -10,7 +10,7 @@ export default function FieldWorkerDashboardLayout({
 }) {
   return (
     <section className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <nav className="flex h-14 items-center justify-between px-4">
           <Link href="/field-worker/questionnaire">
             <Image
