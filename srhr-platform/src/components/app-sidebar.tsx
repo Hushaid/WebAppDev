@@ -32,6 +32,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { signOut } from "@/lib/auth/client"
+import { useRouter } from "next/navigation"
 
 const navItems = [
   {
@@ -68,6 +69,7 @@ const navItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <Sidebar {...props}>
@@ -115,11 +117,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => signOut()}
+              onClick={async () => {
+                await signOut()
+                router.push("/admin/log-in")
+                router.refresh()
+              }}
               className="text-muted-foreground"
             >
               <LogOut className="size-4" />
-              <span>Sign Out</span>
+              <span>Log Out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

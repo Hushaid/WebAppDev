@@ -17,7 +17,7 @@ export function SignOutButton({ variant = "ghost" }: { variant?: "ghost" | "outl
   return (
     <Button variant={variant} size="sm" onClick={handleSignOut}>
       <LogOut className="mr-1.5 size-4" />
-      Sign Out
+      Log Out
     </Button>
   )
 }
