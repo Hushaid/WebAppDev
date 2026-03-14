@@ -1,8 +1,14 @@
 /**
  * Database seed script — inserts the v1 questionnaire and all scored questions.
  *
- * Usage: DATABASE_URL=... bunx tsx src/lib/db/seed.ts
+ * Usage: bun run db:seed
+ *
+ * Env (from .env.local): DATABASE_URL, ADMIN_SEED_EMAIL (or ADMIN_EMAIL),
+ * ADMIN_SEED_PASSWORD, ADMIN_SEED_NAME (or ADMIN_NAME)
  */
+
+import { config } from "dotenv"
+config({ path: ".env.local" })
 
 import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
@@ -20,10 +26,11 @@ const client = postgres(DATABASE_URL)
 const db = drizzle(client)
 
 async function seedSuperAdmin() {
-  const email = "kerebipreye@gmail.com"
+  const email = process.env.ADMIN_SEED_EMAIL ?? process.env.ADMIN_EMAIL
   const password = process.env.ADMIN_SEED_PASSWORD
-  if (!password) {
-    console.warn("ADMIN_SEED_PASSWORD not set — skipping super admin seed")
+  const name = process.env.ADMIN_SEED_NAME ?? process.env.ADMIN_NAME ?? "Super Admin"
+  if (!email || !password) {
+    console.warn("ADMIN_SEED_EMAIL (or ADMIN_EMAIL) and ADMIN_SEED_PASSWORD must be set — skipping super admin seed")
     return
   }
 
@@ -47,7 +54,7 @@ async function seedSuperAdmin() {
   await db.insert(users).values({
     id,
     email,
-    name: "Elvis Kerebi",
+    name,
     role: "super_admin",
     emailVerified: true,
     status: "active",
@@ -63,7 +70,7 @@ async function seedSuperAdmin() {
     password: hashedPassword,
   })
 
-  console.log("Super admin seeded: kerebipreye@gmail.com")
+  console.log(`Super admin seeded: ${name} (${email})`)
 }
 
 async function seed() {
