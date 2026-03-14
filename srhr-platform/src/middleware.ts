@@ -74,8 +74,7 @@ export async function middleware(request: NextRequest) {
   const allowedRoles = protectedRoutes[matchedRoute]
   const user = session.user as {
     role?: string
-    mfaEnabled?: boolean
-    twoFactorVerified?: boolean
+    twoFactorEnabled?: boolean
   }
   const userRole = user.role
 
@@ -86,7 +85,7 @@ export async function middleware(request: NextRequest) {
 
   // Enforce MFA for admin and partner roles
   if (MFA_REQUIRED_ROLES.includes(userRole)) {
-    if (!user.mfaEnabled) {
+    if (!user.twoFactorEnabled) {
       // Redirect to MFA setup page if MFA not yet enabled
       return NextResponse.redirect(new URL("/mfa/setup", request.url))
     }

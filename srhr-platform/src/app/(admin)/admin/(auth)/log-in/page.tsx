@@ -6,6 +6,7 @@ export default function AdminLogInPage() {
       title="Admin Log In"
       description="Sign in to the Hushaid admin panel."
       redirectTo="/admin"
+      forgotPasswordHref={false}
     />
   )
 }

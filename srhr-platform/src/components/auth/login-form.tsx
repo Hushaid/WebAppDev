@@ -22,7 +22,7 @@ interface LoginFormProps {
   redirectTo: string
   registerHref?: string
   registerLabel?: string
-  forgotPasswordHref?: string
+  forgotPasswordHref?: string | false
 }
 
 export function LoginForm({
@@ -47,7 +47,7 @@ export function LoginForm({
     const email = (formData.get("email") as string).trim().toLowerCase()
     const password = formData.get("password") as string
 
-    const { error: authError } = await signIn.email({
+    const { data, error: authError } = await signIn.email({
       email,
       password,
     })
@@ -66,6 +66,12 @@ export function LoginForm({
         setError(msg)
       }
       setLoading(false)
+      return
+    }
+
+    // If 2FA is enabled, redirect to TOTP verification instead of dashboard
+    if ((data as Record<string, unknown>)?.twoFactorRedirect) {
+      router.push("/mfa/verify")
       return
     }
 
@@ -110,12 +116,14 @@ export function LoginForm({
               required
               autoComplete="current-password"
             />
-            <Link
-              href={forgotPasswordHref}
-              className="inline-block text-xs text-muted-foreground hover:text-primary"
-            >
-              Forgot password?
-            </Link>
+            {forgotPasswordHref !== false && (
+              <Link
+                href={forgotPasswordHref}
+                className="inline-block text-xs text-muted-foreground hover:text-primary"
+              >
+                Forgot password?
+              </Link>
+            )}
           </fieldset>
           {error && (
             <output

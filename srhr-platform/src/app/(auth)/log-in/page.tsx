@@ -31,7 +31,7 @@ export default function LogInPage() {
     const email = (formData.get("email") as string).trim().toLowerCase()
     const password = formData.get("password") as string
 
-    const { error: authError } = await signIn.email({
+    const { data, error: authError } = await signIn.email({
       email,
       password,
     })
@@ -50,6 +50,12 @@ export default function LogInPage() {
         setError(msg)
       }
       setLoading(false)
+      return
+    }
+
+    // If 2FA is enabled, redirect to TOTP verification
+    if ((data as Record<string, unknown>)?.twoFactorRedirect) {
+      router.push("/mfa/verify")
       return
     }
 
