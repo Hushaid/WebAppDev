@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,16 +12,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { signUp } from "@/lib/auth/client"
-import { validateAccessCode, redeemAccessCode } from "./actions"
+import { validateAccessCode, registerFieldWorker } from "./actions"
 
 export default function FieldWorkerRegisterPage() {
-  const router = useRouter()
   const [step, setStep] = useState<"code" | "details">("code")
   const [accessCode, setAccessCode] = useState("")
   const [codeId, setCodeId] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState("")
 
   async function handleCodeSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -52,24 +51,59 @@ export default function FieldWorkerRegisterPage() {
     const email = (formData.get("email") as string).trim().toLowerCase()
     const password = formData.get("password") as string
 
-    const { data, error: authError } = await signUp.email({
-      name,
-      email,
-      password,
-    })
-
-    if (authError) {
-      setError(authError.message ?? "Registration failed.")
+    if (name.length < 2) {
+      setError("Please enter your full name (at least 2 characters).")
       setLoading(false)
       return
     }
 
-    // Redeem the access code for this user
-    if (data?.user?.id) {
-      await redeemAccessCode(codeId, data.user.id)
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.")
+      setLoading(false)
+      return
     }
 
-    router.push("/field-worker/questionnaire")
+    const result = await registerFieldWorker({ name, email, password, codeId })
+
+    if (!result.success) {
+      setError(result.error ?? "Registration failed.")
+      setLoading(false)
+      return
+    }
+
+    setVerificationSent(true)
+    setSubmittedEmail(email)
+    setLoading(false)
+  }
+
+  if (verificationSent) {
+    return (
+      <section className="mx-auto max-w-md space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Check your inbox</CardTitle>
+            <CardDescription>
+              We sent a verification link to{" "}
+              <strong>{submittedEmail}</strong>. Please open the email and click
+              the link to activate your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              The link expires in 1 hour. If you do not see the email, check your
+              spam or junk folder.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" asChild className="w-full">
+              <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noopener noreferrer">
+                Open email app
+              </a>
+            </Button>
+          </CardFooter>
+        </Card>
+      </section>
+    )
   }
 
   return (

@@ -11,17 +11,21 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { UserActions } from "./user-actions"
+import { CreateUserDialog } from "./create-user-dialog"
 
 export default async function UsersPage() {
   const allUsers = await getUsers()
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Users</h1>
-        <p className="text-muted-foreground">
-          Manage platform users, roles, and access.
-        </p>
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Users</h1>
+          <p className="text-muted-foreground">
+            Manage platform users, roles, and access.
+          </p>
+        </div>
+        <CreateUserDialog />
       </header>
 
       <div className="overflow-x-auto">

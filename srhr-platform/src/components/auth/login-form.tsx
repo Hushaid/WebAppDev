@@ -16,7 +16,23 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function LogInPage() {
+interface LoginFormProps {
+  title: string
+  description: string
+  redirectTo: string
+  registerHref?: string
+  registerLabel?: string
+  forgotPasswordHref?: string
+}
+
+export function LoginForm({
+  title,
+  description,
+  redirectTo,
+  registerHref,
+  registerLabel = "Create account",
+  forgotPasswordHref = "/forgot-password",
+}: LoginFormProps) {
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -53,17 +69,15 @@ export default function LogInPage() {
       return
     }
 
-    router.push("/")
+    router.push(redirectTo)
     router.refresh()
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Log In</CardTitle>
-        <CardDescription>
-          Sign in to your Hushaid account to continue.
-        </CardDescription>
+        <CardTitle className="text-2xl">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <form id="log-in-form" onSubmit={handleSubmit} className="space-y-4">
@@ -97,7 +111,7 @@ export default function LogInPage() {
               autoComplete="current-password"
             />
             <Link
-              href="/forgot-password"
+              href={forgotPasswordHref}
               className="inline-block text-xs text-muted-foreground hover:text-primary"
             >
               Forgot password?
@@ -122,26 +136,14 @@ export default function LogInPage() {
         >
           {loading ? "Logging in..." : "Log in"}
         </Button>
-        <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link href="/create-account" className="text-primary underline">
-            Create account
-          </Link>
-        </p>
-        <div className="flex flex-col items-center gap-1 border-t pt-4 text-xs text-muted-foreground">
-          <p>
-            Field worker?{" "}
-            <Link href="/field-worker/log-in" className="text-primary underline">
-              Log in here
+        {registerHref && (
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link href={registerHref} className="text-primary underline">
+              {registerLabel}
             </Link>
           </p>
-          <p>
-            Admin?{" "}
-            <Link href="/admin/log-in" className="text-primary underline">
-              Log in here
-            </Link>
-          </p>
-        </div>
+        )}
       </CardFooter>
     </Card>
   )

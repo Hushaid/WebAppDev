@@ -6,7 +6,8 @@
 
 import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
-import { questionnaires, questions } from "./schema"
+import { eq } from "drizzle-orm"
+import { questionnaires, questions, users, accounts } from "./schema"
 import { SCORED_QUESTIONS } from "../scoring/questions-config"
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -18,8 +19,58 @@ if (!DATABASE_URL) {
 const client = postgres(DATABASE_URL)
 const db = drizzle(client)
 
+async function seedSuperAdmin() {
+  const email = "kerebipreye@gmail.com"
+  const password = process.env.ADMIN_SEED_PASSWORD
+  if (!password) {
+    console.warn("ADMIN_SEED_PASSWORD not set — skipping super admin seed")
+    return
+  }
+
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+
+  if (existing) {
+    console.log("Super admin already exists — skipping")
+    return
+  }
+
+  // Hash password using the same algo Better Auth uses
+  const { hashPassword } = await import("better-auth/crypto")
+  const hashedPassword = await hashPassword(password)
+
+  const id = crypto.randomUUID()
+
+  await db.insert(users).values({
+    id,
+    email,
+    name: "Elvis Kerebi",
+    role: "super_admin",
+    emailVerified: true,
+    status: "active",
+    mfaEnabled: false,
+    failedLoginAttempts: 0,
+  })
+
+  await db.insert(accounts).values({
+    id: crypto.randomUUID(),
+    userId: id,
+    accountId: id,
+    providerId: "credential",
+    password: hashedPassword,
+  })
+
+  console.log("Super admin seeded: kerebipreye@gmail.com")
+}
+
 async function seed() {
   console.log("Seeding database...")
+
+  // Seed super admin
+  await seedSuperAdmin()
 
   // 1. Upsert v1 questionnaire
   const [questionnaire] = await db

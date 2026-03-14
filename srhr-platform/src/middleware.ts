@@ -10,10 +10,30 @@ const protectedRoutes: Record<string, string[]> = {
   "/partners": ["partner", "gis_analyst", "admin", "super_admin"],
 }
 
+/** Maps route prefixes to their role-specific login pages */
+const loginRoutes: Record<string, string> = {
+  "/admin": "/admin/log-in",
+  "/field-worker": "/field-worker/log-in",
+  "/partners": "/partners/log-in",
+  "/personal": "/log-in",
+}
+
 /** Roles that require MFA to access their routes */
 const MFA_REQUIRED_ROLES = ["admin", "super_admin", "partner", "gis_analyst"]
 
-const publicPaths = ["/log-in", "/create-account", "/api/auth", "/mfa"]
+const publicPaths = [
+  "/log-in",
+  "/create-account",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+  "/api/auth",
+  "/mfa",
+  "/admin/log-in",
+  "/field-worker/log-in",
+  "/field-worker/register",
+  "/partners/log-in",
+]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -43,8 +63,11 @@ export async function middleware(request: NextRequest) {
     },
   )
 
+  // Get the login URL for this route group
+  const loginUrl = loginRoutes[matchedRoute] ?? "/log-in"
+
   if (!session) {
-    return NextResponse.redirect(new URL("/log-in", request.url))
+    return NextResponse.redirect(new URL(loginUrl, request.url))
   }
 
   // Check role authorization
@@ -57,7 +80,8 @@ export async function middleware(request: NextRequest) {
   const userRole = user.role
 
   if (!userRole || !allowedRoles.includes(userRole)) {
-    return NextResponse.redirect(new URL("/log-in", request.url))
+    // Authenticated but wrong role — redirect to home for role-based routing
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
   // Enforce MFA for admin and partner roles
