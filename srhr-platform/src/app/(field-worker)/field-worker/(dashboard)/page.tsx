@@ -1,8 +1,7 @@
 "use client"
 
-import { useElectricShape } from "@/lib/electric/use-shape"
 import { useSession } from "@/lib/auth/client"
-import type { SubmissionRow } from "@/lib/electric/shapes"
+import { useSubmissions } from "@/lib/hooks/use-submissions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,21 +10,18 @@ import Link from "next/link"
 export default function FieldWorkerDashboardPage() {
   const { data: session } = useSession()
   const userId = session?.user?.id
-  const { data: submissions } = useElectricShape<SubmissionRow>(
-    "submissions",
-    userId ? `"submitter_id" = '${userId}'` : undefined,
-  )
+  const { data: submissions } = useSubmissions(userId)
 
   const today = new Date().toISOString().slice(0, 10)
   const todayCount = submissions.filter(
-    (s) => (s.created_at as string).slice(0, 10) === today,
+    (s) => s.created_at.slice(0, 10) === today,
   ).length
 
   const thisWeekStart = new Date()
   thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay())
   const weekStart = thisWeekStart.toISOString().slice(0, 10)
   const weekCount = submissions.filter(
-    (s) => (s.created_at as string).slice(0, 10) >= weekStart,
+    (s) => s.created_at.slice(0, 10) >= weekStart,
   ).length
 
   const withGps = submissions.filter((s) => s.gps_lat).length
@@ -108,24 +104,22 @@ export default function FieldWorkerDashboardPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {submissions.slice(-5).reverse().map((sub) => (
+                {submissions.slice(0, 5).map((sub) => (
                   <li
-                    key={sub.id as string}
+                    key={sub.id}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <hgroup>
                       <p className="text-sm font-medium">
                         <code className="text-xs">
-                          {(sub.id as string).slice(0, 8)}...
+                          {sub.id.slice(0, 8)}...
                         </code>
                       </p>
                       <time
-                        dateTime={sub.created_at as string}
+                        dateTime={sub.created_at}
                         className="text-xs text-muted-foreground"
                       >
-                        {new Date(
-                          sub.created_at as string,
-                        ).toLocaleString()}
+                        {new Date(sub.created_at).toLocaleString()}
                       </time>
                     </hgroup>
                     <span className="flex items-center gap-2">
@@ -133,7 +127,7 @@ export default function FieldWorkerDashboardPage() {
                         <Badge variant="secondary">Location captured</Badge>
                       ) : null}
                       <Badge variant="outline">
-                        {(sub.submitter_type as string).replace("_", " ")}
+                        {sub.submitter_type.replace("_", " ")}
                       </Badge>
                     </span>
                   </li>
