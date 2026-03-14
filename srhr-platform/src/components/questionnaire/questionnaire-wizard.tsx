@@ -80,7 +80,7 @@ export function QuestionnaireWizard({
 
       allQuestions.push({
         id: q.id,
-        text: `${q.id}: ${q.diseaseGroup.replace("_", " ")} assessment`,
+        text: q.text,
         type: "radio",
         options: q.options.map((o) => ({ label: o.label, value: o.value })),
       })
