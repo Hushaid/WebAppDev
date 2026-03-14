@@ -17,9 +17,10 @@ export function PartnersShell({ children }: { children: React.ReactNode }) {
             <Image
               src="/hushaid-logo.svg"
               alt="Hushaid"
-              width={120}
-              height={28}
+              width={137}
+              height={32}
               priority
+              className="w-[120px] h-auto"
             />
           </Link>
 

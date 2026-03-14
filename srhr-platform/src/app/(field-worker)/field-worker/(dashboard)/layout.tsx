@@ -16,9 +16,10 @@ export default function FieldWorkerDashboardLayout({
             <Image
               src="/hushaid-logo.svg"
               alt="Hushaid"
-              width={120}
-              height={28}
+              width={137}
+              height={32}
               priority
+              className="w-[120px] h-auto"
             />
           </Link>
           <div className="flex items-center gap-3">

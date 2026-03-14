@@ -11,9 +11,10 @@ export default function PartnersAuthLayout({
         <Image
           src="/hushaid-logo.svg"
           alt="Hushaid"
-          width={160}
-          height={38}
+          width={137}
+          height={32}
           priority
+          className="w-40 h-auto"
         />
       </figure>
       <article className="w-full max-w-md">{children}</article>

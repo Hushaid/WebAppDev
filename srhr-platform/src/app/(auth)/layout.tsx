@@ -2,7 +2,11 @@ import type { Metadata } from "next"
 import Image from "next/image"
 
 export const metadata: Metadata = {
-  title: "Account",
+  title: {
+    default: "Account",
+    template: "%s — Hushaid",
+  },
+  description: "Sign in or create your Hushaid account to access health assessments.",
 }
 
 export default function AuthLayout({
@@ -16,9 +20,10 @@ export default function AuthLayout({
         <Image
           src="/hushaid-logo.svg"
           alt="Hushaid"
-          width={160}
-          height={38}
+          width={137}
+          height={32}
           priority
+          className="w-40 h-auto"
         />
       </figure>
       <article className="w-full max-w-md">{children}</article>

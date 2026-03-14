@@ -78,8 +78,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <Image
             src="/hushaid-mark.svg"
             alt="Hushaid"
-            width={28}
-            height={28}
+            width={33}
+            height={32}
+            className="h-7 w-auto"
           />
           <strong className="text-lg">Hushaid</strong>
           <small className="text-xs text-muted-foreground">Admin</small>

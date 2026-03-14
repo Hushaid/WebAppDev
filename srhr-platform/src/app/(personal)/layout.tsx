@@ -4,7 +4,11 @@ import Link from "next/link"
 import { SignOutButton } from "@/components/sign-out-button"
 
 export const metadata: Metadata = {
-  title: "Personal",
+  title: {
+    default: "Health Assessment",
+    template: "%s — Hushaid",
+  },
+  description: "Take a confidential SRHR health risk assessment and get personalised recommendations for nearby health facilities.",
 }
 
 export default function PersonalLayout({
@@ -20,9 +24,10 @@ export default function PersonalLayout({
             <Image
               src="/hushaid-logo.svg"
               alt="Hushaid"
-              width={120}
-              height={28}
+              width={137}
+              height={32}
               priority
+              className="w-[120px] h-auto"
             />
           </Link>
           <SignOutButton />
