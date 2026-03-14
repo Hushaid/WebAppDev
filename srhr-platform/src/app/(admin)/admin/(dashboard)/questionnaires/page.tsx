@@ -161,7 +161,7 @@ export default function QuestionnairesPage() {
   const groups: DiseaseGroup[] = ["sti", "maternal_health", "community_wellbeing"]
 
   return (
-    <section className="space-y-6">
+    <section className="min-w-0 space-y-6">
       <header className="flex items-center justify-between">
         <hgroup>
           <h1 className="text-2xl font-bold">Questionnaire Management</h1>
@@ -230,13 +230,14 @@ export default function QuestionnairesPage() {
           return (
             <AccordionItem key={group} value={group}>
               <AccordionTrigger className="text-lg font-semibold">
-                <span className="flex items-center gap-3">
+                <span className="flex flex-wrap items-center gap-2">
                   {GROUP_LABELS[group]}
                   <Badge variant="secondary">{GROUP_RANGES[group]}</Badge>
                   <Badge variant="outline">Max: {maxScore}</Badge>
                 </span>
               </AccordionTrigger>
               <AccordionContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -261,7 +262,7 @@ export default function QuestionnairesPage() {
                           <TableCell className="font-mono font-semibold">
                             {q.id}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="max-w-[200px] truncate">
                             <span className="text-sm text-muted-foreground">
                               {q.options.length > 0
                                 ? q.options.map((o) => o.label).join(" · ")
@@ -288,6 +289,7 @@ export default function QuestionnairesPage() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               </AccordionContent>
             </AccordionItem>
           )
@@ -298,18 +300,19 @@ export default function QuestionnairesPage() {
       <Accordion type="single" collapsible>
         <AccordionItem value="demographic">
           <AccordionTrigger className="text-lg font-semibold">
-            <span className="flex items-center gap-3">
+            <span className="flex flex-wrap items-center gap-2">
               Demographic Questions (Not Scored)
               <Badge variant="secondary">Q1–Q10</Badge>
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">ID</TableHead>
+                  <TableHead className="w-16">ID</TableHead>
                   <TableHead>Question Text</TableHead>
-                  <TableHead className="w-24">Type</TableHead>
+                  <TableHead className="w-20">Type</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -318,7 +321,7 @@ export default function QuestionnairesPage() {
                     <TableCell className="font-mono font-semibold">
                       {q.id}
                     </TableCell>
-                    <TableCell>{q.text}</TableCell>
+                    <TableCell className="whitespace-normal break-words">{q.text}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{q.type}</Badge>
                     </TableCell>
@@ -326,23 +329,25 @@ export default function QuestionnairesPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="closing">
           <AccordionTrigger className="text-lg font-semibold">
-            <span className="flex items-center gap-3">
+            <span className="flex flex-wrap items-center gap-2">
               Closing Questions (Not Scored)
               <Badge variant="secondary">Q44–Q45</Badge>
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">ID</TableHead>
+                  <TableHead className="w-16">ID</TableHead>
                   <TableHead>Question Text</TableHead>
-                  <TableHead className="w-24">Type</TableHead>
+                  <TableHead className="w-20">Type</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -351,7 +356,7 @@ export default function QuestionnairesPage() {
                     <TableCell className="font-mono font-semibold">
                       {q.id}
                     </TableCell>
-                    <TableCell>{q.text}</TableCell>
+                    <TableCell className="whitespace-normal break-words">{q.text}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{q.type}</Badge>
                     </TableCell>
@@ -359,6 +364,7 @@ export default function QuestionnairesPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
