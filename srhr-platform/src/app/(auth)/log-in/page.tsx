@@ -128,7 +128,7 @@ export default function LogInPage() {
             Create account
           </Link>
         </p>
-        <div className="flex flex-col items-center gap-1 border-t pt-4 text-xs text-muted-foreground">
+        {/* <div className="flex flex-col items-center gap-1 border-t pt-4 text-xs text-muted-foreground">
           <p>
             Field worker?{" "}
             <Link href="/field-worker/log-in" className="text-primary underline">
@@ -141,7 +141,7 @@ export default function LogInPage() {
               Log in here
             </Link>
           </p>
-        </div>
+        </div> */}
       </CardFooter>
     </Card>
   )
