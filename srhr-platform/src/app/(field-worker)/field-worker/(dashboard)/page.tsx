@@ -11,7 +11,7 @@ import Link from "next/link"
 export default function FieldWorkerDashboardPage() {
   const { data: session } = useSession()
   const userId = session?.user?.id
-  const { data: submissions, isLoading } = useElectricShape<SubmissionRow>(
+  const { data: submissions } = useElectricShape<SubmissionRow>(
     "submissions",
     userId ? `"submitter_id" = '${userId}'` : undefined,
   )
@@ -45,8 +45,22 @@ export default function FieldWorkerDashboardPage() {
         </Link>
       </header>
 
-      {isLoading ? (
-        <p className="text-muted-foreground">Loading activity...</p>
+      {submissions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12h4"/><path d="M12 10v4"/></svg>
+            </div>
+            <h3 className="text-lg font-semibold">No assessments yet</h3>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+              You haven&apos;t conducted any health assessments. Start your first
+              one to help identify health risks in the community.
+            </p>
+            <Link href="/field-worker/questionnaire" className="mt-6 inline-block">
+              <Button>Start your first assessment</Button>
+            </Link>
+          </CardContent>
+        </Card>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -88,47 +102,45 @@ export default function FieldWorkerDashboardPage() {
           </div>
 
           {/* Recent submissions */}
-          {submissions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Recent Submissions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {submissions.slice(-5).reverse().map((sub) => (
-                    <li
-                      key={sub.id as string}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <hgroup>
-                        <p className="text-sm font-medium">
-                          <code className="text-xs">
-                            {(sub.id as string).slice(0, 8)}...
-                          </code>
-                        </p>
-                        <time
-                          dateTime={sub.created_at as string}
-                          className="text-xs text-muted-foreground"
-                        >
-                          {new Date(
-                            sub.created_at as string,
-                          ).toLocaleString()}
-                        </time>
-                      </hgroup>
-                      <span className="flex items-center gap-2">
-                        {sub.gps_lat ? (
-                          <Badge variant="secondary">Location captured</Badge>
-                        ) : null}
-                        <Badge variant="outline">
-                          {(sub.submitter_type as string).replace("_", " ")}
-                        </Badge>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Recent Submissions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {submissions.slice(-5).reverse().map((sub) => (
+                  <li
+                    key={sub.id as string}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <hgroup>
+                      <p className="text-sm font-medium">
+                        <code className="text-xs">
+                          {(sub.id as string).slice(0, 8)}...
+                        </code>
+                      </p>
+                      <time
+                        dateTime={sub.created_at as string}
+                        className="text-xs text-muted-foreground"
+                      >
+                        {new Date(
+                          sub.created_at as string,
+                        ).toLocaleString()}
+                      </time>
+                    </hgroup>
+                    <span className="flex items-center gap-2">
+                      {sub.gps_lat ? (
+                        <Badge variant="secondary">Location captured</Badge>
+                      ) : null}
+                      <Badge variant="outline">
+                        {(sub.submitter_type as string).replace("_", " ")}
+                      </Badge>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
 
           <nav className="flex gap-3">
             <Link href="/field-worker/questionnaire">

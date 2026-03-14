@@ -28,7 +28,7 @@ export default function FieldWorkerDashboardLayout({
           </div>
         </nav>
       </header>
-      <main className="flex-1 p-4">{children}</main>
+      <main className="mx-auto w-full max-w-4xl flex-1 p-4">{children}</main>
     </section>
   )
 }
