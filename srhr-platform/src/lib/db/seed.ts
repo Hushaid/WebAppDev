@@ -181,6 +181,12 @@ async function seed() {
     // Unscored Q44-Q45
     { questionNumber: "Q44", text: "Please provide your phone or WhatsApp number so that relief teams can reach you with supplies or emergency health support during the floods.", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 44 },
     { questionNumber: "Q45", text: "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?", type: "yes_no" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 45 },
+    // Post-survey feedback PS1-PS5
+    { questionNumber: "PS1", text: "How easy to understand were the questions asked?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 46 },
+    { questionNumber: "PS2", text: "How well did the words used to describe specific illnesses, symptoms, or body parts match what people actually call them in this community?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 47 },
+    { questionNumber: "PS3", text: "How well did the questions asked in this survey (and the options provided) reflect the reality in the area and health problems that actually worry you, your family and the community as a whole, the most?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 48 },
+    { questionNumber: "PS4", text: "Do you have any other suggestions to make this survey better or capture the community's health reality more accurately?", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 49 },
+    { questionNumber: "PS5", text: "Are there any health issues or local context that this survey missed entirely?", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 50 },
   ]
 
   let insertedCount = 0

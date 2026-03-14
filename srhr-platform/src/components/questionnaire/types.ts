@@ -121,3 +121,56 @@ export const CLOSING_QUESTIONS: DemographicQuestion[] = [
     ],
   },
 ]
+
+/**
+ * Post-survey feedback questions — asked after the main questionnaire
+ * to gauge respondent satisfaction and gather improvement suggestions.
+ */
+export const POST_SURVEY_QUESTIONS: DemographicQuestion[] = [
+  {
+    id: "PS1",
+    text: "How easy to understand were the questions asked?",
+    type: "radio",
+    options: [
+      { label: "Not easy", value: "1" },
+      { label: "Slightly easy", value: "2" },
+      { label: "Fairly easy", value: "3" },
+      { label: "Easy", value: "4" },
+      { label: "Very easy", value: "5" },
+    ],
+  },
+  {
+    id: "PS2",
+    text: "How well did the words used to describe specific illnesses, symptoms, or body parts match what people actually call them in this community?",
+    type: "radio",
+    options: [
+      { label: "Not well at all", value: "1" },
+      { label: "Slightly well", value: "2" },
+      { label: "Fairly well", value: "3" },
+      { label: "Well", value: "4" },
+      { label: "Very well", value: "5" },
+    ],
+  },
+  {
+    id: "PS3",
+    text: "How well did the questions asked in this survey (and the options provided) reflect the reality in the area and health problems that actually worry you, your family and the community as a whole, the most?",
+    type: "radio",
+    options: [
+      { label: "Not well at all", value: "1" },
+      { label: "Slightly well", value: "2" },
+      { label: "Fairly well", value: "3" },
+      { label: "Well", value: "4" },
+      { label: "Very well", value: "5" },
+    ],
+  },
+  {
+    id: "PS4",
+    text: "Do you have any other suggestions to make this survey better or capture the community's health reality more accurately?",
+    type: "text",
+  },
+  {
+    id: "PS5",
+    text: "Are there any health issues or local context that this survey missed entirely?",
+    type: "text",
+  },
+]

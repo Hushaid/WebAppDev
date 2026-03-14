@@ -7,6 +7,7 @@ import { QuestionCard } from "./question-card"
 import {
   DEMOGRAPHIC_QUESTIONS,
   CLOSING_QUESTIONS,
+  POST_SURVEY_QUESTIONS,
   type Sex,
   type SubmitterType,
   type QuestionnaireResponse,
@@ -88,6 +89,16 @@ export function QuestionnaireWizard({
 
     // Q44-Q45: closing
     for (const q of CLOSING_QUESTIONS) {
+      allQuestions.push({
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        options: q.options,
+      })
+    }
+
+    // PS1-PS5: post-survey feedback
+    for (const q of POST_SURVEY_QUESTIONS) {
       allQuestions.push({
         id: q.id,
         text: q.text,

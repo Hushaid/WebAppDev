@@ -153,14 +153,14 @@ export async function POST(request: NextRequest) {
     // 5. Insert individual question responses with scores
     const questionResponseValues = Object.entries(body.responses)
       .filter(([questionId]) => {
-        const config = SCORED_QUESTIONS.find((q) => q.id === questionId)
-        return config !== undefined
+        // Store all responses that have a matching question in the DB
+        return questionNumberToId[questionId] !== undefined
       })
       .map(([questionId, responseValue]) => {
-        const config = SCORED_QUESTIONS.find((q) => q.id === questionId)!
-        const option = config.options.find((o) => o.value === responseValue)
+        const config = SCORED_QUESTIONS.find((q) => q.id === questionId)
+        const option = config?.options.find((o) => o.value === responseValue)
         // Map question number (Q11, Q12...) to actual UUID
-        const resolvedQuestionId = questionNumberToId[questionId] ?? questionId
+        const resolvedQuestionId = questionNumberToId[questionId]
         return {
           submissionId: submission.id,
           questionId: resolvedQuestionId,
