@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "@/lib/auth/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,6 +48,8 @@ function riskVariant(level: string) {
 }
 
 export default function PersonalResultPage() {
+  const { data: session } = useSession()
+  const userName = session?.user?.name ?? ""
   const [risk, setRisk] = useState<RiskData | null>(null)
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,9 +88,14 @@ export default function PersonalResultPage() {
           <h1 className="text-2xl font-bold">Your Results</h1>
           <p className="text-muted-foreground">No results found. Complete a health assessment first to see your results here.</p>
         </header>
-        <Link href="/personal/questionnaire">
-          <Button>Take assessment</Button>
-        </Link>
+        <div className="flex gap-3">
+          <Button asChild>
+            <Link href="/personal/questionnaire">Take assessment</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/personal">Back to dashboard</Link>
+          </Button>
+        </div>
       </section>
     )
   }
@@ -95,7 +103,9 @@ export default function PersonalResultPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Your Results</h1>
+        <h1 className="text-2xl font-bold">
+          {userName ? `${userName}, here are your results` : "Your Results"}
+        </h1>
         <p className="text-muted-foreground">
           Based on your answers, here is your personalised health risk summary. This is not a medical diagnosis — please consult a healthcare provider for professional advice.
         </p>
@@ -183,10 +193,13 @@ export default function PersonalResultPage() {
 
       <EmergencyContacts />
 
-      <nav>
-        <Link href="/personal/questionnaire">
-          <Button variant="outline">Take another assessment</Button>
-        </Link>
+      <nav className="flex gap-3">
+        <Button variant="outline" asChild>
+          <Link href="/personal/questionnaire">Take another assessment</Link>
+        </Button>
+        <Button variant="ghost" asChild>
+          <Link href="/personal">Back to dashboard</Link>
+        </Button>
       </nav>
     </section>
   )

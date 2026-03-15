@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Image from "next/image"
-import Link from "next/link"
 import { SignOutButton } from "@/components/sign-out-button"
+import { PersonalNav } from "./personal/nav"
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +20,7 @@ export default function PersonalLayout({
     <section className="flex h-dvh flex-col overflow-hidden">
       <header className="shrink-0 border-b bg-background">
         <nav className="flex h-14 items-center justify-between px-4">
-          <Link href="/personal">
+          <div className="flex items-center gap-2 sm:gap-6">
             <Image
               src="/hushaid-logo.svg"
               alt="Hushaid"
@@ -29,14 +29,9 @@ export default function PersonalLayout({
               priority
               className="w-[120px] h-auto"
             />
-          </Link>
+            <PersonalNav />
+          </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/personal/settings"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Settings
-            </Link>
             <SignOutButton />
           </div>
         </nav>

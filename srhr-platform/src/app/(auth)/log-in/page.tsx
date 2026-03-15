@@ -59,7 +59,7 @@ export default function LogInPage() {
       return
     }
 
-    router.push("/")
+    router.push("/personal")
     router.refresh()
   }
 
