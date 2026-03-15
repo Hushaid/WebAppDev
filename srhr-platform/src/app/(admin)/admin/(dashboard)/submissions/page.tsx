@@ -51,24 +51,34 @@ export default async function SubmissionsPage() {
           </TableHeader>
           <TableBody>
             {submissions.map((sub) => (
-              <TableRow key={sub.id}>
+              <TableRow key={sub.id} className="cursor-pointer">
                 <TableCell>
-                  <code className="text-xs">{sub.id.slice(0, 8)}...</code>
-                </TableCell>
-                <TableCell>{submitterTypeBadge(sub.submitterType)}</TableCell>
-                <TableCell>
-                  {sub.gpsLat ? (
-                    <Badge variant="secondary">
-                      {parseFloat(sub.gpsLat).toFixed(4)}, {parseFloat(sub.gpsLng!).toFixed(4)}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <Link href={`/admin/submissions/${sub.id}`} className="block">
+                    <code className="text-xs">{sub.id.slice(0, 8)}...</code>
+                  </Link>
                 </TableCell>
                 <TableCell>
-                  <time dateTime={sub.createdAt.toISOString()}>
-                    {sub.createdAt.toLocaleDateString()}
-                  </time>
+                  <Link href={`/admin/submissions/${sub.id}`} className="block">
+                    {submitterTypeBadge(sub.submitterType)}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`/admin/submissions/${sub.id}`} className="block">
+                    {sub.gpsLat ? (
+                      <Badge variant="secondary">
+                        {parseFloat(sub.gpsLat).toFixed(4)}, {parseFloat(sub.gpsLng!).toFixed(4)}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`/admin/submissions/${sub.id}`} className="block">
+                    <time dateTime={sub.createdAt.toISOString()}>
+                      {sub.createdAt.toLocaleDateString()}
+                    </time>
+                  </Link>
                 </TableCell>
                 <TableCell className="text-right">
                   <Link href={`/admin/submissions/${sub.id}`}>
