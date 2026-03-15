@@ -16,7 +16,7 @@ import {
 } from "@/lib/scoring/engine"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 import { loadScoringConfigFromDB } from "@/lib/scoring/load-config"
-import { loadThresholdsFromDB } from "@/lib/scoring/thresholds"
+import { loadThresholdsFromDB } from "@/lib/scoring/thresholds-db"
 import { triggerHighRiskAlert } from "@/lib/alerts/trigger"
 import { submissionSchema } from "@/lib/utils/validators"
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit"
