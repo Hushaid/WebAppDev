@@ -95,11 +95,11 @@ export default function PartnersExportsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <fieldset className="flex flex-wrap items-end gap-4">
+          <fieldset className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-1">
               <Label>Disease Group</Label>
               <Select value={diseaseGroup} onValueChange={setDiseaseGroup}>
-                <SelectTrigger className="w-44">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -114,7 +114,7 @@ export default function PartnersExportsPage() {
             <div className="space-y-1">
               <Label>Risk Level</Label>
               <Select value={riskLevel} onValueChange={setRiskLevel}>
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -132,7 +132,7 @@ export default function PartnersExportsPage() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-40"
+                className="w-full"
               />
             </div>
 
@@ -142,7 +142,7 @@ export default function PartnersExportsPage() {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-40"
+                className="w-full"
               />
             </div>
           </fieldset>

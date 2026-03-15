@@ -2,18 +2,28 @@
 
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, sql } from "drizzle-orm"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { logAudit } from "@/lib/audit"
 
-export async function getPartnerAlerts() {
+const PAGE_SIZE = 10
+
+export async function getPartnerAlerts(page: number = 1) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
-  if (!session?.user?.id) return []
+  if (!session?.user?.id)
+    return { items: [], total: 0, page, pageSize: PAGE_SIZE, totalPages: 0 }
 
-  return db
+  const offset = (page - 1) * PAGE_SIZE
+
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(alerts)
+    .where(eq(alerts.recipientId, session.user.id))
+
+  const items = await db
     .select({
       id: alerts.id,
       type: alerts.type,
@@ -26,7 +36,16 @@ export async function getPartnerAlerts() {
     .from(alerts)
     .where(eq(alerts.recipientId, session.user.id))
     .orderBy(desc(alerts.createdAt))
-    .limit(100)
+    .limit(PAGE_SIZE)
+    .offset(offset)
+
+  return {
+    items,
+    total: countResult.count,
+    page,
+    pageSize: PAGE_SIZE,
+    totalPages: Math.ceil(countResult.count / PAGE_SIZE),
+  }
 }
 
 export async function updatePartnerAlertStatus(
