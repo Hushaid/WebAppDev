@@ -10,8 +10,8 @@ export default function FieldWorkerDashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <section className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <section className="flex h-dvh flex-col overflow-hidden">
+      <header className="shrink-0 border-b bg-background">
         <nav className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2 sm:gap-6">
             <Link href="/field-worker">
@@ -32,7 +32,9 @@ export default function FieldWorkerDashboardLayout({
           </div>
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-4xl flex-1 p-4">{children}</main>
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-4xl p-4">{children}</div>
+      </main>
     </section>
   )
 }

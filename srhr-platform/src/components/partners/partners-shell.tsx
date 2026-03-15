@@ -10,8 +10,8 @@ export function PartnersShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <section className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <section className="flex h-dvh flex-col overflow-hidden">
+      <header className="shrink-0 border-b bg-background">
         <nav className="flex h-14 items-center gap-6 px-4 sm:px-6">
           <Link href="/partners">
             <Image
@@ -134,7 +134,7 @@ export function PartnersShell({ children }: { children: React.ReactNode }) {
           </menu>
         )}
       </header>
-      <main className="flex-1 p-4 sm:p-6">{children}</main>
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
     </section>
   )
 }
