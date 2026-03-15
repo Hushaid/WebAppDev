@@ -93,6 +93,23 @@ export const auth = betterAuth({
       })
     },
     sendResetPassword: async ({ user, url }) => {
+      // Derive role-specific login URL for after password reset
+      const role = (user as Record<string, unknown>).role as string | undefined
+      const loginPathMap: Record<string, string> = {
+        admin: "/admin/log-in",
+        super_admin: "/admin/log-in",
+        field_worker: "/field-worker/log-in",
+        partner: "/partners/log-in",
+        gis_analyst: "/partners/log-in",
+      }
+      const loginPath = loginPathMap[role ?? ""] ?? "/log-in"
+
+      // Encode returnTo into the callbackURL so it survives Better Auth's redirect
+      const resetUrl = new URL(url)
+      const existingCallback = resetUrl.searchParams.get("callbackURL") || "/reset-password"
+      const callbackWithReturn = `${existingCallback}${existingCallback.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(loginPath)}`
+      resetUrl.searchParams.set("callbackURL", callbackWithReturn)
+
       await resend.emails.send({
         from: emailFrom,
         to: user.email,
@@ -102,7 +119,7 @@ export const auth = betterAuth({
             <h2 style="color: #1e293b;">Reset Your Password</h2>
             <p>Hi ${user.name || "there"},</p>
             <p>We received a request to reset your password for your Hushaid account.</p>
-            <a href="${url}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+            <a href="${resetUrl.toString()}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
               Reset Password
             </a>
             <p style="color: #64748b; font-size: 14px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>

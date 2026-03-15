@@ -32,9 +32,16 @@ export function LoginForm({
   redirectTo,
   registerHref,
   registerLabel = "Create account",
-  forgotPasswordHref = "/forgot-password",
+  forgotPasswordHref: forgotPasswordHrefProp = "/forgot-password",
   successMessage,
 }: LoginFormProps) {
+  // Derive the login path from redirectTo (e.g. "/admin" → "/admin/log-in")
+  // so forgot-password page can redirect back to the correct login
+  const loginPath = redirectTo === "/" ? "/log-in" : `${redirectTo.replace(/\/$/, "")}/log-in`
+  const forgotPasswordHref =
+    forgotPasswordHrefProp === false
+      ? false
+      : `${forgotPasswordHrefProp}?returnTo=${encodeURIComponent(loginPath)}`
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)

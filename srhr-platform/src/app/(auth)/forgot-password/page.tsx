@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +16,8 @@ import {
 } from "@/components/ui/card"
 
 export default function ForgotPasswordPage() {
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get("returnTo") || "/log-in"
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -48,7 +51,7 @@ export default function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Link href="/log-in" className="w-full">
+          <Link href={returnTo} className="w-full">
             <Button variant="outline" className="w-full">
               Back to log in
             </Button>
@@ -97,7 +100,7 @@ export default function ForgotPasswordPage() {
         </Button>
         <p className="text-sm text-muted-foreground">
           Remember your password?{" "}
-          <Link href="/log-in" className="text-primary underline">
+          <Link href={returnTo} className="text-primary underline">
             Log in
           </Link>
         </p>

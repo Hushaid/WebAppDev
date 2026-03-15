@@ -103,7 +103,7 @@ export default function LogInPage() {
               autoComplete="current-password"
             />
             <Link
-              href="/forgot-password"
+              href="/forgot-password?returnTo=%2Flog-in"
               className="inline-block text-xs text-muted-foreground hover:text-primary"
             >
               Forgot password?
