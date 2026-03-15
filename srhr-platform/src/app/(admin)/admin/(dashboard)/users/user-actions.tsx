@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,6 +33,7 @@ type UserStatus = "active" | "inactive" | "suspended"
 
 interface UserActionsProps {
   userId: string
+  userName: string
   currentRole: string
   currentStatus: string
   updateRole: (userId: string, role: UserRole) => Promise<void>
@@ -40,6 +42,7 @@ interface UserActionsProps {
 
 export function UserActions({
   userId,
+  userName,
   currentRole,
   currentStatus,
   updateRole,
@@ -47,11 +50,49 @@ export function UserActions({
 }: UserActionsProps) {
   const [roleOpen, setRoleOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState(currentRole)
+  const [isRolePending, startRoleTransition] = useTransition()
+  const [isStatusPending, startStatusTransition] = useTransition()
+
+  function handleSaveRole() {
+    if (selectedRole === currentRole) {
+      setRoleOpen(false)
+      return
+    }
+    startRoleTransition(async () => {
+      try {
+        await updateRole(userId, selectedRole as UserRole)
+        toast.success(`Role updated to ${selectedRole.replace(/_/g, " ")}`, {
+          description: userName,
+        })
+        setRoleOpen(false)
+      } catch {
+        toast.error("Failed to update role")
+      }
+    })
+  }
+
+  function handleToggleStatus() {
+    const newStatus: UserStatus = currentStatus === "active" ? "suspended" : "active"
+    startStatusTransition(async () => {
+      try {
+        await updateStatus(userId, newStatus)
+        toast.success(
+          newStatus === "suspended" ? "User suspended" : "User activated",
+          { description: userName },
+        )
+      } catch {
+        toast.error("Failed to update status")
+      }
+    })
+  }
 
   return (
     <menu className="flex items-center gap-2">
       <li>
-        <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
+        <Dialog open={roleOpen} onOpenChange={(open) => {
+          setRoleOpen(open)
+          if (open) setSelectedRole(currentRole)
+        }}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               Edit Role
@@ -61,7 +102,7 @@ export function UserActions({
             <DialogHeader>
               <DialogTitle>Change User Role</DialogTitle>
               <DialogDescription>
-                Select a new role for this user.
+                Select a new role for {userName}.
               </DialogDescription>
             </DialogHeader>
             <Select value={selectedRole} onValueChange={setSelectedRole}>
@@ -71,42 +112,31 @@ export function UserActions({
               <SelectContent>
                 {ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
-                    {role.replace("_", " ")}
+                    {role.replace(/_/g, " ")}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <DialogFooter>
-              <Button
-                onClick={async () => {
-                  await updateRole(userId, selectedRole as UserRole)
-                  setRoleOpen(false)
-                }}
-              >
-                Save
+              <Button variant="outline" onClick={() => setRoleOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveRole} disabled={isRolePending}>
+                {isRolePending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </li>
       <li>
-        {currentStatus === "active" ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => updateStatus(userId, "suspended")}
-          >
-            Suspend
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => updateStatus(userId, "active")}
-          >
-            Activate
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleToggleStatus}
+          disabled={isStatusPending}
+        >
+          {currentStatus === "active" ? "Suspend" : "Activate"}
+        </Button>
       </li>
     </menu>
   )

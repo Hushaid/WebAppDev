@@ -12,20 +12,22 @@ import {
 } from "@/components/ui/table"
 import { UserActions } from "./user-actions"
 import { CreateUserDialog } from "./create-user-dialog"
+import { AdminHeaderAction } from "@/components/admin-header-action"
 
 export default async function UsersPage() {
   const allUsers = await getUsers()
 
   return (
     <section className="space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Users</h1>
-          <p className="text-muted-foreground">
-            Manage platform users, roles, and access.
-          </p>
-        </div>
+      <AdminHeaderAction>
         <CreateUserDialog />
+      </AdminHeaderAction>
+
+      <header>
+        <h1 className="text-2xl font-bold">Users</h1>
+        <p className="text-muted-foreground">
+          Manage platform users, roles, and access.
+        </p>
       </header>
 
       <div className="overflow-x-auto">
@@ -53,7 +55,7 @@ export default async function UsersPage() {
                 <TableCell>{user.name ?? "—"}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">{user.role.replace("_", " ")}</Badge>
+                  <Badge variant="outline">{user.role.replace(/_/g, " ")}</Badge>
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -76,6 +78,7 @@ export default async function UsersPage() {
                 <TableCell>
                   <UserActions
                     userId={user.id}
+                    userName={user.name ?? user.email}
                     currentRole={user.role}
                     currentStatus={user.status}
                     updateRole={updateUserRole}
