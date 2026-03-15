@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { users, accounts } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -27,7 +27,7 @@ const roleLoginPaths: Record<string, string> = {
 }
 
 export async function getUsers() {
-  return db.select().from(users).orderBy(users.createdAt)
+  return db.select().from(users).orderBy(desc(users.createdAt))
 }
 
 export async function updateUserRole(userId: string, role: UserRole) {
