@@ -11,6 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { PaginationBar } from "@/components/pagination-bar"
+import { AlertActions } from "./alert-actions"
+
+/** Extract submission ID from alert message text */
+function extractSubmissionId(message: string | null): string | null {
+  if (!message) return null
+  const match = message.match(/Submission ID:\s*([0-9a-f-]+)/)
+  return match?.[1] ?? null
+}
 
 function typeBadge(type: string) {
   const labels: Record<string, string> = {
@@ -88,6 +96,7 @@ export default async function AlertsPage({
                     <TableHead className="w-[140px]">Recipient</TableHead>
                     <TableHead className="w-[90px]">Status</TableHead>
                     <TableHead className="w-[100px]">Created</TableHead>
+                    <TableHead className="w-[180px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -124,6 +133,13 @@ export default async function AlertsPage({
                         >
                           {alert.createdAt.toLocaleDateString()}
                         </time>
+                      </TableCell>
+                      <TableCell>
+                        <AlertActions
+                          alertId={alert.id}
+                          status={alert.status}
+                          submissionId={extractSubmissionId(alert.message)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

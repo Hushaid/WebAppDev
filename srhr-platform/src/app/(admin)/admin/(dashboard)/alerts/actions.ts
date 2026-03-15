@@ -4,6 +4,10 @@ import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
 import { eq, desc, sql } from "drizzle-orm"
+import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
+import { logAudit } from "@/lib/audit"
 
 const PAGE_SIZE = 10
 
@@ -46,11 +50,24 @@ export async function updateAlertStatus(
   alertId: string,
   status: "sent" | "opened" | "actioned" | "dismissed",
 ) {
-  const updateData: Record<string, unknown> = { status }
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+
+  const updateData: Record<string, unknown> = { status, updatedAt: new Date() }
 
   if (status === "sent") updateData.sentAt = new Date()
   if (status === "opened") updateData.openedAt = new Date()
   if (status === "actioned") updateData.actionedAt = new Date()
 
   await db.update(alerts).set(updateData).where(eq(alerts.id, alertId))
+
+  logAudit({
+    actorId: session?.user?.id,
+    action: `alert_${status}`,
+    entityType: "alert",
+    entityId: alertId,
+  }).catch(console.error)
+
+  revalidatePath("/admin/alerts")
+  revalidatePath("/partners/alerts")
 }

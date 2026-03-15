@@ -1,6 +1,6 @@
-"use client"
+export const dynamic = "force-dynamic"
 
-import { useEffect, useState } from "react"
+import { getPartnerAlerts } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -11,15 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PartnerAlertActions } from "./alert-actions"
 
-interface Alert {
-  id: string
-  type: string
-  risk_level: string
-  status: string
-  title: string
-  message: string | null
-  created_at: string
+/** Extract submission ID from alert message text */
+function extractSubmissionId(message: string | null): string | null {
+  if (!message) return null
+  const match = message.match(/Submission ID:\s*([0-9a-f-]+)/)
+  return match?.[1] ?? null
 }
 
 function typeBadge(type: string) {
@@ -42,6 +40,17 @@ function typeBadge(type: string) {
   )
 }
 
+function statusBadge(status: string) {
+  const variants: Record<string, "destructive" | "secondary" | "outline" | "default"> = {
+    pending: "secondary",
+    sent: "default",
+    opened: "outline",
+    actioned: "outline",
+    dismissed: "outline",
+  }
+  return <Badge variant={variants[status] ?? "outline"}>{status}</Badge>
+}
+
 function riskBadge(level: string) {
   const variants: Record<string, "destructive" | "secondary" | "default"> = {
     high: "destructive",
@@ -51,26 +60,13 @@ function riskBadge(level: string) {
   return <Badge variant={variants[level] ?? "default"}>{level}</Badge>
 }
 
-export default function PartnersAlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>([])
-  const [loading, setLoading] = useState(true)
+export default async function PartnersAlertsPage() {
+  const alertList = await getPartnerAlerts()
 
-  useEffect(() => {
-    async function fetchAlerts() {
-      try {
-        const res = await fetch("/api/alerts")
-        if (res.ok) {
-          setAlerts(await res.json())
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchAlerts()
-  }, [])
-
-  const pendingCount = alerts.filter((a) => a.status === "pending").length
-  const highRiskCount = alerts.filter((a) => a.risk_level === "high").length
+  const pendingCount = alertList.filter(
+    (a) => a.status === "pending" || a.status === "sent",
+  ).length
+  const highRiskCount = alertList.filter((a) => a.riskLevel === "high").length
 
   return (
     <section className="space-y-6">
@@ -91,7 +87,7 @@ export default function PartnersAlertsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{alerts.length}</p>
+            <p className="text-3xl font-bold">{alertList.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -116,50 +112,54 @@ export default function PartnersAlertsPage() {
         </Card>
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground">Loading alerts...</p>
-      ) : alerts.length === 0 ? (
+      {alertList.length === 0 ? (
         <p className="text-muted-foreground">No alerts yet.</p>
       ) : (
         <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Risk</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {alerts.map((alert) => (
-              <TableRow key={alert.id}>
-                <TableCell>{typeBadge(alert.type)}</TableCell>
-                <TableCell>{riskBadge(alert.risk_level)}</TableCell>
-                <TableCell>
-                  <p className="font-medium">{alert.title}</p>
-                  {alert.message && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {alert.message}
-                    </p>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{alert.status}</Badge>
-                </TableCell>
-                <TableCell>
-                  <time
-                    dateTime={alert.created_at}
-                    className="text-sm"
-                  >
-                    {new Date(alert.created_at).toLocaleDateString()}
-                  </time>
-                </TableCell>
+          <Table className="table-fixed w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Type</TableHead>
+                <TableHead className="w-[70px]">Risk</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="w-[90px]">Status</TableHead>
+                <TableHead className="w-[100px]">Date</TableHead>
+                <TableHead className="w-[180px]">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {alertList.map((alert) => (
+                <TableRow key={alert.id}>
+                  <TableCell>{typeBadge(alert.type)}</TableCell>
+                  <TableCell>{riskBadge(alert.riskLevel)}</TableCell>
+                  <TableCell className="whitespace-normal break-words">
+                    <p className="font-medium">{alert.title}</p>
+                    {alert.message && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {alert.message}
+                      </p>
+                    )}
+                  </TableCell>
+                  <TableCell>{statusBadge(alert.status)}</TableCell>
+                  <TableCell>
+                    <time
+                      dateTime={alert.createdAt.toISOString()}
+                      className="text-sm"
+                    >
+                      {alert.createdAt.toLocaleDateString()}
+                    </time>
+                  </TableCell>
+                  <TableCell>
+                    <PartnerAlertActions
+                      alertId={alert.id}
+                      status={alert.status}
+                      submissionId={extractSubmissionId(alert.message)}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </section>
