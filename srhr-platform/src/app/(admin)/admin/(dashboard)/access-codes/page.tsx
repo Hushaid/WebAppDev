@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { getAccessCodes, generateAccessCode, revokeAccessCode } from "./actions"
+import { getAccessCodes, generateAccessCode } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AdminHeaderAction } from "@/components/admin-header-action"
+import { CopyCodeButton } from "./copy-code-button"
+import { CodeActions } from "./code-actions"
 
 export const dynamic = "force-dynamic"
 
@@ -19,13 +22,7 @@ export default async function AccessCodesPage() {
 
   return (
     <section className="space-y-6">
-      <header className="flex items-center justify-between">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Access Codes</h1>
-          <p className="text-muted-foreground">
-            Generate and manage field worker access codes.
-          </p>
-        </hgroup>
+      <AdminHeaderAction>
         <form
           action={async () => {
             "use server"
@@ -35,6 +32,13 @@ export default async function AccessCodesPage() {
         >
           <Button type="submit">Generate code</Button>
         </form>
+      </AdminHeaderAction>
+
+      <header>
+        <h1 className="text-2xl font-bold">Access Codes</h1>
+        <p className="text-muted-foreground">
+          Generate and manage field worker access codes.
+        </p>
       </header>
 
       <div className="overflow-x-auto">
@@ -59,9 +63,7 @@ export default async function AccessCodesPage() {
             codes.map((code) => (
               <TableRow key={code.id}>
                 <TableCell>
-                  <code className="rounded bg-muted px-2 py-1 font-mono text-sm">
-                    {code.codeValue}
-                  </code>
+                  <CopyCodeButton code={code.codeValue} />
                 </TableCell>
                 <TableCell>
                   {code.revoked ? (
@@ -87,18 +89,12 @@ export default async function AccessCodesPage() {
                   )}
                 </TableCell>
                 <TableCell>
-                  {!code.revoked && !code.used && (
-                    <form
-                      action={async () => {
-                        "use server"
-                        await revokeAccessCode(code.id)
-                      }}
-                    >
-                      <Button variant="destructive" size="sm" type="submit">
-                        Revoke
-                      </Button>
-                    </form>
-                  )}
+                  <CodeActions
+                    codeId={code.id}
+                    codeValue={code.codeValue}
+                    used={code.used}
+                    revoked={code.revoked}
+                  />
                 </TableCell>
               </TableRow>
             ))

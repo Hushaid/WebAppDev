@@ -41,6 +41,20 @@ export async function revokeAccessCode(codeId: string) {
   revalidatePath("/admin/access-codes")
 }
 
+export async function deleteAccessCode(codeId: string) {
+  await db
+    .delete(fieldWorkerCodes)
+    .where(eq(fieldWorkerCodes.id, codeId))
+
+  logAudit({
+    action: "delete",
+    entityType: "access_code",
+    entityId: codeId,
+  }).catch(console.error)
+
+  revalidatePath("/admin/access-codes")
+}
+
 export async function getAccessCodes() {
   return db.select().from(fieldWorkerCodes).orderBy(fieldWorkerCodes.issuedAt)
 }
