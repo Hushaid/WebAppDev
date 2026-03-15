@@ -2,10 +2,12 @@
 
 import { db } from "@/lib/db"
 import { fieldWorkerCodes } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import crypto from "node:crypto"
 import { logAudit } from "@/lib/audit"
+
+const PAGE_SIZE = 10
 
 export async function generateAccessCode(issuedBy: string) {
   const code = crypto.randomBytes(4).toString("hex").toUpperCase()
@@ -55,6 +57,25 @@ export async function deleteAccessCode(codeId: string) {
   revalidatePath("/admin/access-codes")
 }
 
-export async function getAccessCodes() {
-  return db.select().from(fieldWorkerCodes).orderBy(fieldWorkerCodes.issuedAt)
+export async function getAccessCodes(page: number = 1) {
+  const offset = (page - 1) * PAGE_SIZE
+
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(fieldWorkerCodes)
+
+  const items = await db
+    .select()
+    .from(fieldWorkerCodes)
+    .orderBy(fieldWorkerCodes.issuedAt)
+    .limit(PAGE_SIZE)
+    .offset(offset)
+
+  return {
+    items,
+    total: countResult.count,
+    page,
+    pageSize: PAGE_SIZE,
+    totalPages: Math.ceil(countResult.count / PAGE_SIZE),
+  }
 }

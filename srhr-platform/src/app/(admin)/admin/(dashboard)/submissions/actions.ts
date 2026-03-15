@@ -9,10 +9,18 @@ import {
 } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
 import { auditLog } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, sql } from "drizzle-orm"
 
-export async function getSubmissions() {
-  return db
+const PAGE_SIZE = 10
+
+export async function getSubmissions(page: number = 1) {
+  const offset = (page - 1) * PAGE_SIZE
+
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(submissions)
+
+  const items = await db
     .select({
       id: submissions.id,
       submitterId: submissions.submitterId,
@@ -23,7 +31,16 @@ export async function getSubmissions() {
     })
     .from(submissions)
     .orderBy(desc(submissions.createdAt))
-    .limit(100)
+    .limit(PAGE_SIZE)
+    .offset(offset)
+
+  return {
+    items,
+    total: countResult.count,
+    page,
+    pageSize: PAGE_SIZE,
+    totalPages: Math.ceil(countResult.count / PAGE_SIZE),
+  }
 }
 
 export async function getSubmissionDetail(submissionId: string) {
