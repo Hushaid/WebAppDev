@@ -1,8 +1,7 @@
-"use client"
+export const dynamic = "force-dynamic"
 
-import { useRouter } from "next/navigation"
-import { useSession } from "@/lib/auth/client"
-import { useSubmissions } from "@/lib/hooks/use-submissions"
+import Link from "next/link"
+import { getFieldWorkerSubmissions } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -12,77 +11,109 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PaginationBar } from "@/components/pagination-bar"
 
-export default function FieldWorkerHistoryPage() {
-  const router = useRouter()
-  const { data: session } = useSession()
-  const userId = session?.user?.id
-  const { data: submissions, isLoading } = useSubmissions(userId)
+export default async function FieldWorkerHistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
+  const params = await searchParams
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
+  const { items: submissions, total, totalPages, pageSize } =
+    await getFieldWorkerSubmissions(page)
 
   return (
-    <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Assessment History</h1>
-        <p className="text-muted-foreground">
-          All the health assessments you have conducted.
-        </p>
-      </header>
+    <div className="-m-4 flex h-[calc(100%+32px)] flex-col">
+      <div className="flex-1 overflow-y-auto p-4">
+        <section className="space-y-6">
+          <header>
+            <h1 className="text-2xl font-bold">Assessment History</h1>
+            <p className="text-muted-foreground">
+              All the health assessments you have conducted.
+            </p>
+          </header>
 
-      {isLoading ? (
-        <p className="text-muted-foreground">Loading your assessments...</p>
-      ) : submissions.length === 0 ? (
-        <p className="text-muted-foreground">
-          You have not conducted any assessments yet. Start a new assessment to
-          see your history here.
-        </p>
-      ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Location</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {submissions.map((sub) => (
-                <TableRow
-                  key={sub.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() =>
-                    router.push(`/field-worker/history/${sub.id}`)
-                  }
-                >
-                  <TableCell>
-                    <time dateTime={sub.created_at}>
-                      {new Date(sub.created_at).toLocaleDateString()}
-                    </time>
-                  </TableCell>
-                  <TableCell>
-                    <code className="text-xs">
-                      {sub.id.slice(0, 8)}...
-                    </code>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {sub.submitter_type.replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {sub.gps_lat ? (
-                      <Badge variant="secondary">Captured</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </section>
+          {submissions.length === 0 ? (
+            <p className="text-muted-foreground">
+              You have not conducted any assessments yet. Start a new assessment
+              to see your history here.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Reference</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Location</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {submissions.map((sub) => (
+                    <TableRow
+                      key={sub.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                    >
+                      <TableCell>
+                        <Link
+                          href={`/field-worker/history/${sub.id}`}
+                          className="block"
+                        >
+                          <time dateTime={sub.createdAt.toISOString()}>
+                            {sub.createdAt.toLocaleDateString()}
+                          </time>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/field-worker/history/${sub.id}`}
+                          className="block"
+                        >
+                          <code className="text-xs">
+                            {sub.id.slice(0, 8)}...
+                          </code>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/field-worker/history/${sub.id}`}
+                          className="block"
+                        >
+                          <Badge variant="outline">
+                            {sub.submitterType.replace("_", " ")}
+                          </Badge>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/field-worker/history/${sub.id}`}
+                          className="block"
+                        >
+                          {sub.gpsLat ? (
+                            <Badge variant="secondary">Captured</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </section>
+      </div>
+
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        basePath="/field-worker/history"
+      />
+    </div>
   )
 }
