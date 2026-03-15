@@ -6,6 +6,7 @@ import { db } from "@/lib/db"
 import { submissions, questionResponses, questions } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
+import { reverseGeocode } from "@/lib/utils/reverse-geocode"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -30,6 +31,15 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
     .limit(1)
 
   if (!submission) notFound()
+
+  // Reverse geocode GPS coordinates
+  let locationName: string | null = null
+  if (submission.gpsLat && submission.gpsLng) {
+    locationName = await reverseGeocode(
+      parseFloat(submission.gpsLat),
+      parseFloat(submission.gpsLng),
+    )
+  }
 
   // Join responses with questions to get question_number for display
   const responses = await db
@@ -79,9 +89,18 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
                 Location
               </dt>
               <dd>
-                {submission.gpsLat
-                  ? `${parseFloat(submission.gpsLat).toFixed(6)}, ${parseFloat(submission.gpsLng!).toFixed(6)}`
-                  : "Not captured"}
+                {submission.gpsLat ? (
+                  <>
+                    {locationName && (
+                      <span className="block">{locationName}</span>
+                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {parseFloat(submission.gpsLat).toFixed(6)}, {parseFloat(submission.gpsLng!).toFixed(6)}
+                    </span>
+                  </>
+                ) : (
+                  "Not captured"
+                )}
               </dd>
             </div>
             <div>

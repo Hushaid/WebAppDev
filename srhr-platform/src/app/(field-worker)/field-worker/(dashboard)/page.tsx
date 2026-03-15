@@ -30,7 +30,11 @@ export default function FieldWorkerDashboardPage() {
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <hgroup>
-          <h1 className="text-2xl font-bold">Field Worker Dashboard</h1>
+          <h1 className="text-2xl font-bold">
+            {session?.user?.name
+              ? `Welcome, ${session.user.name}`
+              : "Field Worker Dashboard"}
+          </h1>
           <p className="text-muted-foreground">
             Your assessment activity at a glance. Each assessment you conduct helps identify
             health risks in the community.
