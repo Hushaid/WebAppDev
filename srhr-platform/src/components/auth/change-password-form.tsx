@@ -13,6 +13,9 @@ export function ChangePasswordForm() {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isPending, startTransition] = useTransition()
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -55,10 +58,19 @@ export function ChangePasswordForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="current-password">Current password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="current-password">Current password</Label>
+              <button
+                type="button"
+                onClick={() => setShowCurrent((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showCurrent ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <Input
               id="current-password"
-              type="password"
+              type={showCurrent ? "text" : "password"}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
@@ -66,10 +78,19 @@ export function ChangePasswordForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-password">New password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="new-password">New password</Label>
+              <button
+                type="button"
+                onClick={() => setShowNew((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showNew ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <Input
               id="new-password"
-              type="password"
+              type={showNew ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -78,10 +99,19 @@ export function ChangePasswordForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm new password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="confirm-password">Confirm new password</Label>
+              <button
+                type="button"
+                onClick={() => setShowConfirm((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showConfirm ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <Input
               id="confirm-password"
-              type="password"
+              type={showConfirm ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required

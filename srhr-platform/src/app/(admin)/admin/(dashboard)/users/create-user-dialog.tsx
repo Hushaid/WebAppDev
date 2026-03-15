@@ -41,6 +41,7 @@ export function CreateUserDialog({ callerRole }: { callerRole: string }) {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [role, setRole] = useState<UserRole>("partner")
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -113,11 +114,20 @@ export function CreateUserDialog({ callerRole }: { callerRole: string }) {
             />
           </fieldset>
           <fieldset className="space-y-2">
-            <Label htmlFor="cu-password">Temporary Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="cu-password">Temporary Password</Label>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <Input
               id="cu-password"
               name="password"
-              type="text"
+              type={showPassword ? "text" : "password"}
               required
               minLength={8}
               maxLength={128}

@@ -26,6 +26,8 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -109,11 +111,20 @@ export default function ResetPasswordPage() {
       <CardContent>
         <form id="reset-password-form" onSubmit={handleSubmit} className="space-y-4">
           <fieldset className="space-y-2">
-            <Label htmlFor="password">New password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">New password</Label>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               autoComplete="new-password"
               value={password}
@@ -121,11 +132,20 @@ export default function ResetPasswordPage() {
             />
           </fieldset>
           <fieldset className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm new password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="confirm-password">Confirm new password</Label>
+              <button
+                type="button"
+                onClick={() => setShowConfirm((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showConfirm ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <Input
               id="confirm-password"
               name="confirm-password"
-              type="password"
+              type={showConfirm ? "text" : "password"}
               required
               autoComplete="new-password"
               value={confirmPassword}
