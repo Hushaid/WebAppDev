@@ -6,7 +6,12 @@ import { db } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { auditLog } from "@/lib/db/schema"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazily instantiate Resend to avoid build-time errors when RESEND_API_KEY is not set
+let _resend: Resend | null = null
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
+  return _resend
+}
 
 const emailFrom = process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
 
@@ -71,7 +76,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     onExistingUserSignUp: async ({ user }) => {
       const baseUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-      await resend.emails.send({
+      await getResend().emails.send({
         from: emailFrom,
         to: user.email,
         subject: "Sign-up attempt on your Hushaid account",
@@ -110,7 +115,7 @@ export const auth = betterAuth({
       const callbackWithReturn = `${existingCallback}${existingCallback.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(loginPath)}`
       resetUrl.searchParams.set("callbackURL", callbackWithReturn)
 
-      await resend.emails.send({
+      await getResend().emails.send({
         from: emailFrom,
         to: user.email,
         subject: "Reset your Hushaid password",
@@ -139,7 +144,7 @@ export const auth = betterAuth({
       const token = parsedUrl.searchParams.get("token") ?? ""
       const verifyPageUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`
 
-      await resend.emails.send({
+      await getResend().emails.send({
         from: emailFrom,
         to: user.email,
         subject: "Verify your Hushaid account",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
   const searchParams = useSearchParams()
   const returnTo = searchParams.get("returnTo") || "/log-in"
   const [email, setEmail] = useState("")
@@ -106,5 +106,13 @@ export default function ForgotPasswordPage() {
         </p>
       </CardFooter>
     </Card>
+  )
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense>
+      <ForgotPasswordForm />
+    </Suspense>
   )
 }

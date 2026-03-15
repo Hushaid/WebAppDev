@@ -1,9 +1,10 @@
 "use client"
 
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { LoginForm } from "@/components/auth/login-form"
 
-export default function FieldWorkerLogInPage() {
+function FieldWorkerLoginContent() {
   const searchParams = useSearchParams()
   const justRegistered = searchParams.get("registered") === "true"
 
@@ -20,5 +21,13 @@ export default function FieldWorkerLogInPage() {
           : undefined
       }
     />
+  )
+}
+
+export default function FieldWorkerLogInPage() {
+  return (
+    <Suspense>
+      <FieldWorkerLoginContent />
+    </Suspense>
   )
 }

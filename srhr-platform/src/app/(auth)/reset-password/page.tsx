@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { authClient } from "@/lib/auth/client"
@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token") ?? ""
   const returnTo = searchParams.get("returnTo") || "/log-in"
@@ -179,5 +179,13 @@ export default function ResetPasswordPage() {
         </p>
       </CardFooter>
     </Card>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
