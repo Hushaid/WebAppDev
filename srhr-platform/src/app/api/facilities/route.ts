@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       lga: healthFacilities.lga,
       gpsLat: healthFacilities.gpsLat,
       gpsLng: healthFacilities.gpsLng,
-      distance: sql<number>`(
+      distance_km: sql<number>`(
         6371 * acos(
           cos(radians(${parseFloat(lat)})) *
           cos(radians(${healthFacilities.gpsLat}::double precision)) *

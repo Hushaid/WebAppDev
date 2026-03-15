@@ -82,14 +82,15 @@ export default async function FacilitiesPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Address</TableHead>
+                <TableHead>Ward</TableHead>
+                <TableHead>LGA</TableHead>
                 <TableHead>Coordinates</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {facilities.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No facilities registered yet. Import facility data to populate this list.
                   </TableCell>
                 </TableRow>
@@ -102,7 +103,8 @@ export default async function FacilitiesPage() {
                         {f.type}
                       </Badge>
                     </TableCell>
-                    <TableCell>{f.address ?? "—"}</TableCell>
+                    <TableCell>{f.ward ?? "—"}</TableCell>
+                    <TableCell>{f.lga ?? "—"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {f.gpsLat && f.gpsLng
                         ? `${f.gpsLat}, ${f.gpsLng}`
