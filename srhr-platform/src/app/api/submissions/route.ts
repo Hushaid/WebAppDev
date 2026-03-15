@@ -7,6 +7,7 @@ import {
   riskClassifications,
   questionnaires,
   questions,
+  platformSettings,
 } from "@/lib/db/schema"
 import { eq, and, gte, sql } from "drizzle-orm"
 import {
@@ -20,10 +21,43 @@ import { submissionSchema } from "@/lib/utils/validators"
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
 
-/** Dedup window: reject submissions from same submitter within 2 minutes */
-const DEDUP_WINDOW_MS = 2 * 60 * 1000
-/** GPS proximity threshold in degrees (~100m at equator) */
-const GPS_PROXIMITY_DEG = 0.001
+/** Default dedup values — overridden by platform_settings if configured */
+const DEFAULT_DEDUP_WINDOW_MS = 2 * 60 * 1000
+const DEFAULT_DEDUP_RADIUS_METERS = 100
+
+/** Convert meters to approximate degrees (~111,320m per degree at equator) */
+function metersToDegrees(meters: number) {
+  return meters / 111_320
+}
+
+async function getDedupConfig() {
+  try {
+    const rows = await db
+      .select()
+      .from(platformSettings)
+      .where(
+        sql`${platformSettings.key} IN ('dedup_radius_meters', 'dedup_window_minutes')`,
+      )
+
+    let radiusMeters = DEFAULT_DEDUP_RADIUS_METERS
+    let windowMs = DEFAULT_DEDUP_WINDOW_MS
+
+    for (const row of rows) {
+      if (row.key === "dedup_radius_meters") {
+        radiusMeters = parseInt(row.value, 10) || DEFAULT_DEDUP_RADIUS_METERS
+      } else if (row.key === "dedup_window_minutes") {
+        windowMs = (parseInt(row.value, 10) || 2) * 60 * 1000
+      }
+    }
+
+    return { proximityDeg: metersToDegrees(radiusMeters), windowMs }
+  } catch {
+    return {
+      proximityDeg: metersToDegrees(DEFAULT_DEDUP_RADIUS_METERS),
+      windowMs: DEFAULT_DEDUP_WINDOW_MS,
+    }
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,7 +114,8 @@ export async function POST(request: NextRequest) {
 
     // b) Same submitter + GPS proximity + time window dedup
     if (body.gpsLat && body.gpsLng) {
-      const windowStart = new Date(Date.now() - DEDUP_WINDOW_MS)
+      const dedup = await getDedupConfig()
+      const windowStart = new Date(Date.now() - dedup.windowMs)
       const lat = parseFloat(body.gpsLat)
       const lng = parseFloat(body.gpsLng)
 
@@ -91,15 +126,16 @@ export async function POST(request: NextRequest) {
           and(
             eq(submissions.submitterId, body.submitterId),
             gte(submissions.createdAt, windowStart),
-            sql`abs(${submissions.gpsLat}::double precision - ${lat}) < ${GPS_PROXIMITY_DEG}`,
-            sql`abs(${submissions.gpsLng}::double precision - ${lng}) < ${GPS_PROXIMITY_DEG}`,
+            sql`abs(${submissions.gpsLat}::double precision - ${lat}) < ${dedup.proximityDeg}`,
+            sql`abs(${submissions.gpsLng}::double precision - ${lng}) < ${dedup.proximityDeg}`,
           ),
         )
         .limit(1)
 
       if (nearbyRecent) {
+        const windowMinutes = Math.round(dedup.windowMs / 60000)
         return NextResponse.json(
-          { error: "Duplicate submission detected (same location within 2 minutes)" },
+          { error: `Duplicate submission detected (same location within ${windowMinutes} minutes)` },
           { status: 409 },
         )
       }

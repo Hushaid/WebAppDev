@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { notFound } from "next/navigation"
 import { getSubmissionDetail } from "../actions"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
+import { reverseGeocode } from "@/lib/utils/reverse-geocode"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -36,6 +37,15 @@ export default async function SubmissionDetailPage(props: {
   if (!detail) notFound()
 
   const { submission, responses, classification, submitter } = detail
+
+  // Reverse geocode the GPS coordinates
+  let locationName: string | null = null
+  if (submission.gpsLat && submission.gpsLng) {
+    locationName = await reverseGeocode(
+      parseFloat(submission.gpsLat),
+      parseFloat(submission.gpsLng),
+    )
+  }
 
   return (
     <section className="space-y-6">
@@ -83,9 +93,18 @@ export default async function SubmissionDetailPage(props: {
                 Location
               </dt>
               <dd>
-                {submission.gpsLat
-                  ? `${parseFloat(submission.gpsLat).toFixed(6)}, ${parseFloat(submission.gpsLng!).toFixed(6)}`
-                  : "Not captured"}
+                {submission.gpsLat ? (
+                  <>
+                    {locationName && (
+                      <span className="block">{locationName}</span>
+                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {parseFloat(submission.gpsLat).toFixed(6)}, {parseFloat(submission.gpsLng!).toFixed(6)}
+                    </span>
+                  </>
+                ) : (
+                  "Not captured"
+                )}
               </dd>
             </div>
             <div>
