@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import Papa from "papaparse"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,8 +35,7 @@ export default function PartnersExportsPage() {
 
       const res = await fetch(`/api/irix?${params}`)
       if (!res.ok) {
-        // Fall back to empty set if IRIX service unavailable
-        downloadCsv([], "irix-export.csv")
+        toast.error("Failed to fetch data. The IRIX service may be unavailable.")
         return
       }
 
@@ -56,7 +56,15 @@ export default function PartnersExportsPage() {
         }),
       )
 
+      if (cleanData.length === 0) {
+        toast.error("No data found matching your filters.")
+        return
+      }
+
       downloadCsv(cleanData, `irix-export-${new Date().toISOString().slice(0, 10)}.csv`)
+      toast.success(`Exported ${cleanData.length} records`)
+    } catch {
+      toast.error("Export failed. Please try again.")
     } finally {
       setExporting(false)
     }

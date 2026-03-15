@@ -8,10 +8,9 @@ import { updatePartnerAlertStatus } from "./actions"
 interface PartnerAlertActionsProps {
   alertId: string
   status: string
-  submissionId: string | null
 }
 
-export function PartnerAlertActions({ alertId, status, submissionId }: PartnerAlertActionsProps) {
+export function PartnerAlertActions({ alertId, status }: PartnerAlertActionsProps) {
   const [isPending, startTransition] = useTransition()
 
   if (status === "actioned" || status === "dismissed") return null
@@ -33,13 +32,6 @@ export function PartnerAlertActions({ alertId, status, submissionId }: PartnerAl
 
   return (
     <div className="flex items-center gap-1.5">
-      {submissionId && (
-        <a href={`/partners/alerts`}>
-          <Button variant="outline" size="sm" className="text-xs">
-            View
-          </Button>
-        </a>
-      )}
       <Button
         variant="default"
         size="sm"

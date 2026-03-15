@@ -14,13 +14,6 @@ import {
 import { PartnerAlertActions } from "./alert-actions"
 import { PaginationBar } from "@/components/pagination-bar"
 
-/** Extract submission ID from alert message text */
-function extractSubmissionId(message: string | null): string | null {
-  if (!message) return null
-  const match = message.match(/Submission ID:\s*([0-9a-f-]+)/)
-  return match?.[1] ?? null
-}
-
 function typeBadge(type: string) {
   const labels: Record<string, string> = {
     high_risk_individual: "High Risk",
@@ -163,7 +156,6 @@ export default async function PartnersAlertsPage({
                         <PartnerAlertActions
                           alertId={alert.id}
                           status={alert.status}
-                          submissionId={extractSubmissionId(alert.message)}
                         />
                       </TableCell>
                     </TableRow>

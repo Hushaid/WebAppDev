@@ -10,6 +10,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const prefs = await getPartnerPreferences(session.user.id)
-  return NextResponse.json(prefs)
+  try {
+    const prefs = await getPartnerPreferences(session.user.id)
+    return NextResponse.json(prefs)
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to load preferences" },
+      { status: 500 },
+    )
+  }
 }

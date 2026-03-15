@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "@/lib/auth/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IrixMap } from "@/components/partners/irix-map"
 import {
@@ -28,6 +29,8 @@ interface MapScore {
 }
 
 export default function PartnersDashboardPage() {
+  const { data: session } = useSession()
+  const userName = session?.user?.name ?? ""
   const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS)
   const [selectedCell, setSelectedCell] = useState<MapScore | null>(null)
   const [climateVisible, setClimateVisible] = useState(false)
@@ -66,6 +69,12 @@ export default function PartnersDashboardPage() {
   const filteredScores = scores.filter((s) => {
     if (filters.riskLevel !== "all" && s.overall_risk_level !== filters.riskLevel) {
       return false
+    }
+    // Disease group filter: only show cells where the selected group has a non-null score
+    if (filters.diseaseGroup !== "all") {
+      if (filters.diseaseGroup === "sti" && !s.sti_avg_score) return false
+      if (filters.diseaseGroup === "maternal_health" && !s.maternal_avg_score) return false
+      if (filters.diseaseGroup === "community_wellbeing" && !s.community_wellbeing_avg_score) return false
     }
     return true
   })
@@ -130,7 +139,9 @@ export default function PartnersDashboardPage() {
     <section className="space-y-6">
       <header>
         <hgroup>
-          <h1 className="text-2xl font-bold">Partners Dashboard</h1>
+          <h1 className="text-2xl font-bold">
+            {userName ? `Welcome, ${userName}` : "Partners Dashboard"}
+          </h1>
           <p className="text-muted-foreground">
             Community-level health risk data and analytics. All data is aggregated and de-identified — no personal information is shown.
           </p>
@@ -146,7 +157,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{totalCells}</p>
+            <p className="text-3xl font-bold">{isLoading ? "—" : totalCells}</p>
           </CardContent>
         </Card>
         <Card>
@@ -156,7 +167,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-600">{hotspotCount}</p>
+            <p className="text-3xl font-bold text-red-600">{isLoading ? "—" : hotspotCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -166,7 +177,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{highRiskCount}</p>
+            <p className="text-3xl font-bold">{isLoading ? "—" : highRiskCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -176,7 +187,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{totalSubmissions}</p>
+            <p className="text-3xl font-bold">{isLoading ? "—" : totalSubmissions}</p>
           </CardContent>
         </Card>
       </div>
