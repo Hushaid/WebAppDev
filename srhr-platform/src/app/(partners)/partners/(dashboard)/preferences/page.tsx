@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ChangePasswordForm } from "@/components/auth/change-password-form"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -152,6 +153,8 @@ export default function PartnerPreferencesPage() {
           <p className="text-sm text-green-600">Preferences saved.</p>
         )}
       </div>
+
+      <ChangePasswordForm />
     </section>
   )
 }

@@ -30,7 +30,15 @@ export default function PersonalLayout({
               className="w-[120px] h-auto"
             />
           </Link>
-          <SignOutButton />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/personal/settings"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Settings
+            </Link>
+            <SignOutButton />
+          </div>
         </nav>
       </header>
       <main className="flex-1 overflow-y-auto">

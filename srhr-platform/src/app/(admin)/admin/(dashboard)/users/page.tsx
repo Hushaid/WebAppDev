@@ -13,14 +13,19 @@ import {
 import { UserActions } from "./user-actions"
 import { CreateUserDialog } from "./create-user-dialog"
 import { AdminHeaderAction } from "@/components/admin-header-action"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 
 export default async function UsersPage() {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string } | undefined)?.role ?? "admin"
   const allUsers = await getUsers()
 
   return (
     <section className="space-y-6">
       <AdminHeaderAction>
-        <CreateUserDialog />
+        <CreateUserDialog callerRole={callerRole} />
       </AdminHeaderAction>
 
       <header>
@@ -81,6 +86,7 @@ export default async function UsersPage() {
                     userName={user.name ?? user.email}
                     currentRole={user.role}
                     currentStatus={user.status}
+                    callerRole={callerRole}
                     updateRole={updateUserRole}
                     updateStatus={updateUserStatus}
                   />

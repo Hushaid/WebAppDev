@@ -8,6 +8,7 @@ import {
   type ThresholdConfig,
   type RiskLevel,
 } from "@/lib/scoring/thresholds"
+import { ChangePasswordForm } from "@/components/auth/change-password-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -150,6 +151,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="thresholds">Risk Thresholds</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
 
         <TabsContent value="thresholds" className="space-y-6 mt-4">
@@ -262,6 +264,10 @@ export default function SettingsPage() {
               </dl>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="account" className="space-y-6 mt-4">
+          <ChangePasswordForm />
         </TabsContent>
       </Tabs>
     </section>

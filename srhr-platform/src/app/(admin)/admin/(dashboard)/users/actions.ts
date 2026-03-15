@@ -34,6 +34,12 @@ export async function updateUserRole(userId: string, role: UserRole) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
 
+  // Only super_admin can assign the super_admin role
+  const callerRole = (session?.user as { role?: string } | undefined)?.role
+  if (role === "super_admin" && callerRole !== "super_admin") {
+    throw new Error("Only a super admin can assign the super admin role.")
+  }
+
   await db
     .update(users)
     .set({ role, updatedAt: new Date() })
@@ -85,6 +91,11 @@ export async function createUser(data: {
   const callerRole = (session?.user as { role?: string } | undefined)?.role
   if (!callerRole || !["admin", "super_admin"].includes(callerRole)) {
     return { success: false as const, error: "Unauthorized." }
+  }
+
+  // Only super_admin can create another super_admin
+  if (data.role === "super_admin" && callerRole !== "super_admin") {
+    return { success: false as const, error: "Only a super admin can create super admin accounts." }
   }
 
   // 2. Check if user already exists

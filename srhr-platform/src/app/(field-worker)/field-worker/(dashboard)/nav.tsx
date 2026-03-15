@@ -18,6 +18,7 @@ const links = [
   { href: "/field-worker", label: "Dashboard" },
   { href: "/field-worker/questionnaire", label: "New Assessment" },
   { href: "/field-worker/history", label: "History" },
+  { href: "/field-worker/settings", label: "Settings" },
 ]
 
 export function FieldWorkerNav() {

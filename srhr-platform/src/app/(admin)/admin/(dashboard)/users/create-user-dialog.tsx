@@ -22,19 +22,25 @@ import {
 } from "@/components/ui/select"
 import { createUser } from "./actions"
 
-const CREATABLE_ROLES = [
+const BASE_ROLES = [
   { value: "admin", label: "Admin" },
   { value: "partner", label: "Partner" },
   { value: "field_worker", label: "Field Worker" },
 ] as const
 
-type CreatableRole = (typeof CREATABLE_ROLES)[number]["value"]
+const ALL_ROLES = [
+  ...BASE_ROLES,
+  { value: "super_admin", label: "Super Admin" },
+] as const
 
-export function CreateUserDialog() {
+type UserRole = "personal_user" | "field_worker" | "partner" | "admin" | "super_admin"
+
+export function CreateUserDialog({ callerRole }: { callerRole: string }) {
+  const CREATABLE_ROLES = callerRole === "super_admin" ? ALL_ROLES : BASE_ROLES
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [role, setRole] = useState<CreatableRole>("partner")
+  const [role, setRole] = useState<UserRole>("partner")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -125,7 +131,7 @@ export function CreateUserDialog() {
             <Label>Role</Label>
             <Select
               value={role}
-              onValueChange={(v) => setRole(v as CreatableRole)}
+              onValueChange={(v) => setRole(v as UserRole)}
             >
               <SelectTrigger>
                 <SelectValue />

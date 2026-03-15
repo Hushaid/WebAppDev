@@ -36,6 +36,7 @@ interface UserActionsProps {
   userName: string
   currentRole: string
   currentStatus: string
+  callerRole: string
   updateRole: (userId: string, role: UserRole) => Promise<void>
   updateStatus: (userId: string, status: UserStatus) => Promise<void>
 }
@@ -45,9 +46,14 @@ export function UserActions({
   userName,
   currentRole,
   currentStatus,
+  callerRole,
   updateRole,
   updateStatus,
 }: UserActionsProps) {
+  const availableRoles = callerRole === "super_admin"
+    ? ROLES
+    : ROLES.filter((r) => r !== "super_admin")
+
   const [roleOpen, setRoleOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState(currentRole)
   const [isRolePending, startRoleTransition] = useTransition()
@@ -110,7 +116,7 @@ export function UserActions({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ROLES.map((role) => (
+                {availableRoles.map((role) => (
                   <SelectItem key={role} value={role}>
                     {role.replace(/_/g, " ")}
                   </SelectItem>
