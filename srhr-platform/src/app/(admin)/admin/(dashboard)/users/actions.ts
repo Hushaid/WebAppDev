@@ -13,7 +13,6 @@ type UserRole =
   | "personal_user"
   | "field_worker"
   | "partner"
-  | "gis_analyst"
   | "admin"
   | "super_admin"
 
@@ -23,7 +22,6 @@ const roleLoginPaths: Record<string, string> = {
   admin: "/admin/log-in",
   super_admin: "/admin/log-in",
   partner: "/partners/log-in",
-  gis_analyst: "/partners/log-in",
   field_worker: "/field-worker/log-in",
   personal_user: "/log-in",
 }

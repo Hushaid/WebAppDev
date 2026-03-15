@@ -34,7 +34,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
     .select({ id: users.id, role: users.role })
     .from(users)
     .where(
-      inArray(users.role, ["partner", "gis_analyst", "admin", "super_admin"]),
+      inArray(users.role, ["partner", "admin", "super_admin"]),
     )
 
   if (recipients.length === 0) return
@@ -85,7 +85,7 @@ export async function triggerHotspotAlert(
     .select({ id: users.id })
     .from(users)
     .where(
-      inArray(users.role, ["partner", "gis_analyst", "admin", "super_admin"]),
+      inArray(users.role, ["partner", "admin", "super_admin"]),
     )
 
   if (recipients.length === 0) return

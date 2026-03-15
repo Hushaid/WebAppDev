@@ -23,7 +23,6 @@ const ROLES = [
   "personal_user",
   "field_worker",
   "partner",
-  "gis_analyst",
   "admin",
   "super_admin",
 ] as const

@@ -7,7 +7,7 @@ const protectedRoutes: Record<string, string[]> = {
   "/admin": ["admin", "super_admin"],
   "/field-worker": ["field_worker", "admin", "super_admin"],
   "/personal": ["personal_user", "admin", "super_admin"],
-  "/partners": ["partner", "gis_analyst", "admin", "super_admin"],
+  "/partners": ["partner", "admin", "super_admin"],
 }
 
 /** Maps route prefixes to their role-specific login pages */
@@ -19,7 +19,7 @@ const loginRoutes: Record<string, string> = {
 }
 
 /** Roles that require MFA to access their routes */
-const MFA_REQUIRED_ROLES = ["admin", "super_admin", "partner", "gis_analyst"]
+const MFA_REQUIRED_ROLES = ["admin", "super_admin", "partner"]
 
 const publicPaths = [
   "/log-in",

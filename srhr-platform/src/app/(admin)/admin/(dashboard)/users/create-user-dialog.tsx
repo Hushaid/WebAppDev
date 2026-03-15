@@ -25,7 +25,6 @@ import { createUser } from "./actions"
 const CREATABLE_ROLES = [
   { value: "admin", label: "Admin" },
   { value: "partner", label: "Partner" },
-  { value: "gis_analyst", label: "GIS Analyst" },
   { value: "field_worker", label: "Field Worker" },
 ] as const
 

@@ -10,7 +10,6 @@ const roleRoutes: Record<string, string> = {
   field_worker: "/field-worker",
   personal_user: "/personal/questionnaire",
   partner: "/partners",
-  gis_analyst: "/partners",
 }
 
 export default async function HomePage() {
