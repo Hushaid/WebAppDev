@@ -3,12 +3,18 @@
 import { db } from "@/lib/db"
 import { auditLog } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, desc, like, and } from "drizzle-orm"
+import { eq, desc, like, and, sql } from "drizzle-orm"
 
-export async function getAuditLogs(filters?: {
-  action?: string
-  entityType?: string
-}) {
+const PAGE_SIZE = 10
+
+export async function getAuditLogs(
+  page: number = 1,
+  filters?: {
+    action?: string
+    entityType?: string
+  },
+) {
+  const offset = (page - 1) * PAGE_SIZE
   const conditions = []
 
   if (filters?.action) {
@@ -18,7 +24,14 @@ export async function getAuditLogs(filters?: {
     conditions.push(eq(auditLog.entityType, filters.entityType))
   }
 
-  const logs = await db
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(auditLog)
+    .where(whereClause)
+
+  const items = await db
     .select({
       id: auditLog.id,
       action: auditLog.action,
@@ -33,9 +46,16 @@ export async function getAuditLogs(filters?: {
     })
     .from(auditLog)
     .leftJoin(users, eq(auditLog.actorId, users.id))
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(whereClause)
     .orderBy(desc(auditLog.createdAt))
-    .limit(200)
+    .limit(PAGE_SIZE)
+    .offset(offset)
 
-  return logs
+  return {
+    items,
+    total: countResult.count,
+    page,
+    pageSize: PAGE_SIZE,
+    totalPages: Math.ceil(countResult.count / PAGE_SIZE),
+  }
 }
