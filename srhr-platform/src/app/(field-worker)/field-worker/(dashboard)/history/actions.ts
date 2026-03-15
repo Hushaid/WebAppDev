@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { submissions } from "@/lib/db/schema"
-import { eq, and, desc, sql } from "drizzle-orm"
+import { eq, desc, sql } from "drizzle-orm"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 

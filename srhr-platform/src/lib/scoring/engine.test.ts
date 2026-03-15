@@ -34,7 +34,10 @@ describe("computeRisk", () => {
       expect(result.overallRiskLevel).toBe("low")
     })
 
-    it("computes max STI score = 18", () => {
+    it("computes max achievable STI score = 17", () => {
+      // Q20="yes" (score 0) allows Q21 to be answered (score 2)
+      // Q20="no" (score 1) would skip Q21, giving only 16
+      // Max achievable: 3+2+2+2+1+2+1+1+1+0+2 = 17
       const result = computeRisk(
         responses({
           Q11: "more_4_symptoms", // 3
@@ -46,12 +49,12 @@ describe("computeRisk", () => {
           Q17: "yes", // 1
           Q18: "yes", // 1
           Q19: "yes", // 1
-          Q20: "no", // 1
+          Q20: "yes", // 0 (allows Q21)
           Q21: "condom", // 2
         }),
         "male",
       )
-      expect(result.stiScore).toBe(18)
+      expect(result.stiScore).toBe(17)
       expect(result.stiRiskLevel).toBe("high")
     })
 
@@ -150,18 +153,22 @@ describe("computeRisk", () => {
       expect(result.responseScores["Q16"]).toBe(0)
     })
 
-    it("Q22=no skips Q23-Q30 for females", () => {
+    it("Q22=no skips current-pregnancy questions (Q23-Q25, Q29-Q30)", () => {
       const result = computeRisk(
         responses({
           Q22: "no",
           Q24: "never", // should be skipped
           Q25: "cultural", // should be skipped
-          Q26: "5_symptoms", // should be skipped
         }),
         "female",
       )
-      for (const qId of ["Q23", "Q24", "Q25", "Q26", "Q27", "Q28", "Q29", "Q30"]) {
+      // Q22=no skips current-pregnancy-specific questions only
+      // Q26-Q28 are pregnancy history questions and still apply
+      for (const qId of ["Q23", "Q24", "Q25", "Q29", "Q30"]) {
         expect(result.skippedQuestions).toContain(qId)
+      }
+      for (const qId of ["Q26", "Q27", "Q28"]) {
+        expect(result.skippedQuestions).not.toContain(qId)
       }
     })
 
