@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PaginationBar } from "@/components/pagination-bar"
 
 function typeBadge(type: string) {
   const labels: Record<string, string> = {
@@ -51,77 +52,95 @@ function riskBadge(level: string) {
   return <Badge variant={variants[level] ?? "default"}>{level}</Badge>
 }
 
-export default async function AlertsPage() {
-  const alertList = await getAlerts()
+export default async function AlertsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
+  const params = await searchParams
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
+  const { items: alertList, total, totalPages, pageSize } = await getAlerts(page)
 
   return (
-    <section className="space-y-6">
-      <header>
-        <hgroup>
-          <h1 className="text-2xl font-bold">Alerts</h1>
-          <p className="text-muted-foreground">
-            Monitor high-risk submissions, hotspot detections, and scheduled
-            summaries.
-          </p>
-        </hgroup>
-      </header>
+    <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
+      <div className="flex-1 overflow-y-auto p-6">
+        <section className="space-y-6">
+          <header>
+            <hgroup>
+              <h1 className="text-2xl font-bold">Alerts</h1>
+              <p className="text-muted-foreground">
+                Monitor high-risk submissions, hotspot detections, and scheduled
+                summaries.
+              </p>
+            </hgroup>
+          </header>
 
-      {alertList.length === 0 ? (
-        <p className="text-muted-foreground">No alerts yet.</p>
-      ) : (
-        <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Risk</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Recipient</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {alertList.map((alert) => (
-              <TableRow key={alert.id}>
-                <TableCell>{typeBadge(alert.type)}</TableCell>
-                <TableCell>{riskBadge(alert.riskLevel)}</TableCell>
-                <TableCell>
-                  <p className="font-medium">{alert.title}</p>
-                  {alert.message && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {alert.message}
-                    </p>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {alert.recipientName ? (
-                    <span className="text-sm">
-                      {alert.recipientName}
-                      <br />
-                      <span className="text-xs text-muted-foreground">
-                        {alert.recipientEmail}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-                <TableCell>{statusBadge(alert.status)}</TableCell>
-                <TableCell>
-                  <time
-                    dateTime={alert.createdAt.toISOString()}
-                    className="text-sm"
-                  >
-                    {alert.createdAt.toLocaleDateString()}
-                  </time>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </div>
-      )}
-    </section>
+          {alertList.length === 0 ? (
+            <p className="text-muted-foreground">No alerts yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table className="table-fixed w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Type</TableHead>
+                    <TableHead className="w-[70px]">Risk</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead className="w-[140px]">Recipient</TableHead>
+                    <TableHead className="w-[90px]">Status</TableHead>
+                    <TableHead className="w-[100px]">Created</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {alertList.map((alert) => (
+                    <TableRow key={alert.id}>
+                      <TableCell>{typeBadge(alert.type)}</TableCell>
+                      <TableCell>{riskBadge(alert.riskLevel)}</TableCell>
+                      <TableCell className="whitespace-normal break-words">
+                        <p className="font-medium">{alert.title}</p>
+                        {alert.message && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {alert.message}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {alert.recipientName ? (
+                          <span className="text-sm">
+                            {alert.recipientName}
+                            <br />
+                            <span className="text-xs text-muted-foreground">
+                              {alert.recipientEmail}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{statusBadge(alert.status)}</TableCell>
+                      <TableCell>
+                        <time
+                          dateTime={alert.createdAt.toISOString()}
+                          className="text-sm"
+                        >
+                          {alert.createdAt.toLocaleDateString()}
+                        </time>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </section>
+      </div>
+
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        basePath="/admin/alerts"
+      />
+    </div>
   )
 }

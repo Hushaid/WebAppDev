@@ -3,10 +3,18 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, sql } from "drizzle-orm"
 
-export async function getAlerts() {
-  return db
+const PAGE_SIZE = 10
+
+export async function getAlerts(page: number = 1) {
+  const offset = (page - 1) * PAGE_SIZE
+
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(alerts)
+
+  const items = await db
     .select({
       id: alerts.id,
       type: alerts.type,
@@ -22,7 +30,16 @@ export async function getAlerts() {
     .from(alerts)
     .leftJoin(users, eq(alerts.recipientId, users.id))
     .orderBy(desc(alerts.createdAt))
-    .limit(100)
+    .limit(PAGE_SIZE)
+    .offset(offset)
+
+  return {
+    items,
+    total: countResult.count,
+    page,
+    pageSize: PAGE_SIZE,
+    totalPages: Math.ceil(countResult.count / PAGE_SIZE),
+  }
 }
 
 export async function updateAlertStatus(
