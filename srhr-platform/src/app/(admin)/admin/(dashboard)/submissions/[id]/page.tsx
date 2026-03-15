@@ -1,6 +1,8 @@
 export const dynamic = "force-dynamic"
 
 import { notFound } from "next/navigation"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 import { getSubmissionDetail } from "../actions"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 import { reverseGeocode } from "@/lib/utils/reverse-geocode"
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { PiiDownload } from "./pii-download"
 
 function riskVariant(level: string) {
   switch (level) {
@@ -36,7 +39,24 @@ export default async function SubmissionDetailPage(props: {
 
   if (!detail) notFound()
 
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
   const { submission, responses, classification, submitter } = detail
+
+  // Extract PII contact responses (Q44 = phone/WhatsApp)
+  const piiQuestionIds = ["Q44"]
+  const piiLabels: Record<string, string> = {
+    Q44: "Phone / WhatsApp number",
+  }
+  const contactResponses = responses
+    .filter((r) => {
+      const qNum = r.questionNumber ?? r.questionId
+      return piiQuestionIds.includes(qNum)
+    })
+    .map((r) => ({
+      question: piiLabels[r.questionNumber ?? r.questionId] ?? r.questionNumber ?? r.questionId,
+      value: r.responseValue,
+    }))
 
   // Reverse geocode the GPS coordinates
   let locationName: string | null = null
@@ -51,7 +71,14 @@ export default async function SubmissionDetailPage(props: {
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <hgroup>
-          <h1 className="text-2xl font-bold">Submission Detail</h1>
+          <h1 className="text-2xl font-bold">
+            Submission Detail
+            {submission.flaggedForReview && (
+              <Badge variant="secondary" className="ml-3 text-orange-600 bg-orange-100">
+                Flagged for Review
+              </Badge>
+            )}
+          </h1>
           <p className="text-muted-foreground">
             <code className="text-xs">{submission.id}</code>
           </p>
@@ -120,6 +147,15 @@ export default async function SubmissionDetailPage(props: {
           </dl>
         </CardContent>
       </Card>
+
+      {/* PII access */}
+      {session?.user?.id && (
+        <PiiDownload
+          submissionId={submission.id}
+          actorId={session.user.id}
+          contactResponses={contactResponses}
+        />
+      )}
 
       {/* Risk classification */}
       {classification && (

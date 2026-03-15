@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useTransition } from "react"
+import { toast } from "sonner"
 import { ChangePasswordForm } from "@/components/auth/change-password-form"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { updatePartnerPreferences } from "@/app/(admin)/admin/(dashboard)/settings/actions"
 
 interface AlertPreferences {
   highRiskAlerts: boolean
@@ -32,20 +34,43 @@ export default function PartnerPreferencesPage() {
     monthlyReport: true,
     minimumRiskLevel: "medium",
   })
-  const [saved, setSaved] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    async function loadPrefs() {
+      try {
+        const res = await fetch("/api/partner-preferences")
+        if (res.ok) {
+          const data = await res.json()
+          setPrefs(data)
+        }
+      } finally {
+        setLoaded(true)
+      }
+    }
+    loadPrefs()
+  }, [])
 
   function updatePref<K extends keyof AlertPreferences>(
     key: K,
     value: AlertPreferences[K],
   ) {
     setPrefs((prev) => ({ ...prev, [key]: value }))
-    setSaved(false)
   }
 
   function handleSave() {
-    // TODO: persist to database
-    setSaved(true)
+    startTransition(async () => {
+      const result = await updatePartnerPreferences(prefs)
+      if (result.success) {
+        toast.success("Preferences saved")
+      } else {
+        toast.error(result.error)
+      }
+    })
   }
+
+  if (!loaded) return null
 
   return (
     <section className="mx-auto max-w-2xl space-y-6">
@@ -148,10 +173,9 @@ export default function PartnerPreferencesPage() {
       </Card>
 
       <div className="flex items-center gap-3">
-        <Button onClick={handleSave}>Save preferences</Button>
-        {saved && (
-          <p className="text-sm text-green-600">Preferences saved.</p>
-        )}
+        <Button onClick={handleSave} disabled={isPending}>
+          {isPending ? "Saving..." : "Save preferences"}
+        </Button>
       </div>
 
       <ChangePasswordForm />

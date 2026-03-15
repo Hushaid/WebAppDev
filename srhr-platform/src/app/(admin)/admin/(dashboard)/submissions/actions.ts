@@ -27,6 +27,7 @@ export async function getSubmissions(page: number = 1) {
       submitterType: submissions.submitterType,
       gpsLat: submissions.gpsLat,
       gpsLng: submissions.gpsLng,
+      flaggedForReview: submissions.flaggedForReview,
       createdAt: submissions.createdAt,
     })
     .from(submissions)

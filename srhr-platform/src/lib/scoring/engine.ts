@@ -10,6 +10,7 @@ import {
   MATERNAL_THRESHOLDS,
   COMMUNITY_WELLBEING_THRESHOLDS,
   type RiskLevel,
+  type ThresholdConfig,
 } from "./thresholds"
 
 export interface QuestionResponse {
@@ -34,6 +35,11 @@ export interface ScoringConfig {
   questions: QuestionConfig[]
   skipRules: { questionId: string; skipWhen: string[]; skipTargets: string[] }[]
   maternalQuestionIds: string[]
+  thresholds?: {
+    sti: ThresholdConfig
+    maternal: ThresholdConfig
+    communityWellbeing: ThresholdConfig
+  }
 }
 
 /**
@@ -104,16 +110,20 @@ export function computeRisk(
     }
   }
 
-  const stiRiskLevel = classifyRisk(stiScore, STI_THRESHOLDS)
+  const stiThresholds = config?.thresholds?.sti ?? STI_THRESHOLDS
+  const maternalThresholds = config?.thresholds?.maternal ?? MATERNAL_THRESHOLDS
+  const cwThresholds = config?.thresholds?.communityWellbeing ?? COMMUNITY_WELLBEING_THRESHOLDS
+
+  const stiRiskLevel = classifyRisk(stiScore, stiThresholds)
 
   const maternalRiskLevel =
     sex === "female"
-      ? classifyRisk(maternalScore, MATERNAL_THRESHOLDS)
+      ? classifyRisk(maternalScore, maternalThresholds)
       : null
 
   const communityWellbeingRiskLevel = classifyRisk(
     communityWellbeingScore,
-    COMMUNITY_WELLBEING_THRESHOLDS,
+    cwThresholds,
   )
 
   // Overall risk: worst-of logic — any High → overall High

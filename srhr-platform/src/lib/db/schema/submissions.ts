@@ -4,6 +4,7 @@ import {
   text,
   integer,
   numeric,
+  boolean,
   timestamp,
 } from "drizzle-orm/pg-core"
 import { submitterTypeEnum, riskLevelEnum } from "./enums"
@@ -24,6 +25,8 @@ export const submissions = pgTable("submissions", {
   gpsLat: numeric("gps_lat"),
   gpsLng: numeric("gps_lng"),
   clientSubmissionId: text("client_submission_id").unique(),
+  flaggedForReview: boolean("flagged_for_review").default(false).notNull(),
+  flaggedAt: timestamp("flagged_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })

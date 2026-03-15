@@ -2,7 +2,10 @@ export const dynamic = "force-dynamic"
 
 import { getQuestionnaireWithQuestions } from "./actions"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { Eye } from "lucide-react"
 import {
   Accordion,
   AccordionContent,
@@ -76,12 +79,20 @@ export default async function QuestionnairesPage() {
 
   return (
     <section className="min-w-0 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Questionnaire Management</h1>
-        <p className="text-muted-foreground">
-          Edit scored questions, options, weights, and conditional skip logic.
-          Changes affect future submissions.
-        </p>
+      <header className="flex items-center justify-between">
+        <hgroup>
+          <h1 className="text-2xl font-bold">Questionnaire Management</h1>
+          <p className="text-muted-foreground">
+            Edit scored questions, options, weights, and conditional skip logic.
+            Changes affect future submissions.
+          </p>
+        </hgroup>
+        <Link href="/admin/questionnaires/preview">
+          <Button variant="outline">
+            <Eye className="mr-2 h-4 w-4" />
+            Preview
+          </Button>
+        </Link>
       </header>
 
       {/* Summary cards */}

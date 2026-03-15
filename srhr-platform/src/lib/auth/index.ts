@@ -198,9 +198,13 @@ export const auth = betterAuth({
       },
     }),
   ],
+  rateLimit: {
+    window: 60,
+    max: 10,
+  },
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // 1 day
+    expiresIn: 60 * 30, // 30 minutes — session expires after 30 min of inactivity
+    updateAge: 60 * 5, // 5 minutes — refresh session on activity
   },
   user: {
     additionalFields: {

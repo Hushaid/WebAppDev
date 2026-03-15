@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { getSubmissions } from "./actions"
 import { Badge } from "@/components/ui/badge"
+import { Flag } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -63,7 +64,12 @@ export default async function SubmissionsPage({
                     <TableRow key={sub.id} className="cursor-pointer">
                       <TableCell>
                         <Link href={`/admin/submissions/${sub.id}`} className="block">
-                          <code className="text-xs">{sub.id.slice(0, 8)}...</code>
+                          <span className="flex items-center gap-1.5">
+                            <code className="text-xs">{sub.id.slice(0, 8)}...</code>
+                            {sub.flaggedForReview && (
+                              <Flag className="h-3.5 w-3.5 text-orange-500" aria-label="Flagged for review" />
+                            )}
+                          </span>
                         </Link>
                       </TableCell>
                       <TableCell>

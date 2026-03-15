@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
+import { Flag } from "lucide-react"
 import Link from "next/link"
 
 interface RiskData {
@@ -51,6 +53,8 @@ export default function FieldWorkerResultPage() {
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [flagged, setFlagged] = useState(false)
+  const [flagging, setFlagging] = useState(false)
 
   useEffect(() => {
     const stored = sessionStorage.getItem("lastRiskResult")
@@ -199,6 +203,41 @@ export default function FieldWorkerResultPage() {
         <Button variant="outline" asChild>
           <Link href="/field-worker/history">View history</Link>
         </Button>
+        {submissionId && !flagged && (
+          <Button
+            variant="outline"
+            disabled={flagging}
+            onClick={async () => {
+              setFlagging(true)
+              try {
+                const res = await fetch("/api/submissions/flag", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ submissionId }),
+                })
+                if (res.ok) {
+                  setFlagged(true)
+                  toast.success("Submission flagged for admin review")
+                } else {
+                  toast.error("Failed to flag submission")
+                }
+              } catch {
+                toast.error("Failed to flag submission")
+              } finally {
+                setFlagging(false)
+              }
+            }}
+          >
+            <Flag className="mr-2 h-4 w-4" />
+            Flag for review
+          </Button>
+        )}
+        {flagged && (
+          <Button variant="outline" disabled>
+            <Flag className="mr-2 h-4 w-4" />
+            Flagged
+          </Button>
+        )}
       </nav>
     </section>
   )

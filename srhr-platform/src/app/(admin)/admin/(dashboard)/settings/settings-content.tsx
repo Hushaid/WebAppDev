@@ -1,15 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import {
-  STI_THRESHOLDS,
-  MATERNAL_THRESHOLDS,
-  COMMUNITY_WELLBEING_THRESHOLDS,
-  type ThresholdConfig,
-  type RiskLevel,
-} from "@/lib/scoring/thresholds"
+import { useState, useTransition } from "react"
+import { toast } from "sonner"
+import type { ThresholdConfig, RiskLevel } from "@/lib/scoring/thresholds"
 import { ChangePasswordForm } from "@/components/auth/change-password-form"
 import { DedupSettings } from "./dedup-settings"
+import { updateThresholdSettings } from "./actions"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +31,7 @@ interface ThresholdEditorProps {
   description: string
   thresholds: ThresholdConfig
   maxPossible: number
+  category: "sti" | "maternal" | "communityWellbeing"
 }
 
 function ThresholdEditor({
@@ -42,9 +39,10 @@ function ThresholdEditor({
   description,
   thresholds,
   maxPossible,
+  category,
 }: ThresholdEditorProps) {
   const [values, setValues] = useState<ThresholdConfig>({ ...thresholds })
-  const [saved, setSaved] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function handleChange(
     level: RiskLevel,
@@ -59,12 +57,20 @@ function ThresholdEditor({
         ? [num, prev[level][1]]
         : [prev[level][0], num],
     }))
-    setSaved(false)
   }
 
   function handleSave() {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    startTransition(async () => {
+      const result = await updateThresholdSettings({
+        category,
+        thresholds: values,
+      })
+      if (result.success) {
+        toast.success("Thresholds saved")
+      } else {
+        toast.error(result.error)
+      }
+    })
   }
 
   const levels: RiskLevel[] = ["low", "medium", "high"]
@@ -121,13 +127,10 @@ function ThresholdEditor({
           </TableBody>
         </Table>
 
-        <footer className="flex items-center gap-3">
-          <Button onClick={handleSave}>Save thresholds</Button>
-          {saved && (
-            <span className="text-sm text-green-600">
-              Thresholds saved successfully
-            </span>
-          )}
+        <footer>
+          <Button onClick={handleSave} disabled={isPending}>
+            {isPending ? "Saving..." : "Save thresholds"}
+          </Button>
         </footer>
       </CardContent>
     </Card>
@@ -137,9 +140,14 @@ function ThresholdEditor({
 interface SettingsContentProps {
   dedupRadius: number
   dedupWindow: number
+  thresholds: {
+    sti: ThresholdConfig
+    maternal: ThresholdConfig
+    communityWellbeing: ThresholdConfig
+  }
 }
 
-export function SettingsContent({ dedupRadius, dedupWindow }: SettingsContentProps) {
+export function SettingsContent({ dedupRadius, dedupWindow, thresholds }: SettingsContentProps) {
   return (
     <section className="space-y-6">
       <header>
@@ -161,29 +169,32 @@ export function SettingsContent({ dedupRadius, dedupWindow }: SettingsContentPro
         <TabsContent value="thresholds" className="space-y-6 mt-4">
           <p className="text-sm text-muted-foreground">
             Define the score ranges that classify individual risk as Low,
-            Medium, or High for each assessment category. The scoring engine
-            uses these thresholds to classify submissions.
+            Medium, or High for each assessment category. Changes apply to
+            all new submissions immediately.
           </p>
 
           <ThresholdEditor
             title="Infection Risk Thresholds"
             description="Questions Q11–Q21. Maximum possible score: 18."
-            thresholds={STI_THRESHOLDS}
+            thresholds={thresholds.sti}
             maxPossible={18}
+            category="sti"
           />
 
           <ThresholdEditor
             title="Maternal Health Thresholds"
             description="Questions Q22–Q36 (females only). Maximum possible score: 22."
-            thresholds={MATERNAL_THRESHOLDS}
+            thresholds={thresholds.maternal}
             maxPossible={22}
+            category="maternal"
           />
 
           <ThresholdEditor
             title="Community Well-being Thresholds"
             description="Questions Q37–Q43. Maximum possible score: 9."
-            thresholds={COMMUNITY_WELLBEING_THRESHOLDS}
+            thresholds={thresholds.communityWellbeing}
             maxPossible={9}
+            category="communityWellbeing"
           />
 
           <Card>
@@ -260,15 +271,15 @@ export function SettingsContent({ dedupRadius, dedupWindow }: SettingsContentPro
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Real-time Sync
+                    Session Timeout
                   </dt>
-                  <dd>Electric SQL (PostgreSQL logical replication)</dd>
+                  <dd>30 minutes of inactivity</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Session Duration
+                    Rate Limiting
                   </dt>
-                  <dd>7 days</dd>
+                  <dd>10 requests per 60 seconds per IP</dd>
                 </div>
               </dl>
             </CardContent>
