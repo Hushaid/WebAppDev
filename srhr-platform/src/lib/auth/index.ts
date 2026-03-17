@@ -86,10 +86,10 @@ export const auth = betterAuth({
             <p>Hi ${user.name || "there"},</p>
             <p>We received a sign-up request using your email address (<strong>${user.email}</strong>), but you already have a Hushaid account.</p>
             <p>If this was you, you can log in to your existing account:</p>
-            <a href="${baseUrl}/log-in" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+            <a href="${baseUrl}/log-in" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
               Log In to Your Account
             </a>
-            <p>Forgot your password? <a href="${baseUrl}/forgot-password" style="color: #2563eb;">Reset it here</a>.</p>
+            <p>Forgot your password? <a href="${baseUrl}/forgot-password" style="color: #11973E;">Reset it here</a>.</p>
             <p style="color: #64748b; font-size: 14px;">If you didn't attempt to sign up, you can safely ignore this email. Your account is secure.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
             <p style="color: #94a3b8; font-size: 12px;">Hushaid &mdash; Confidential health assessments for Nigerian communities.</p>
@@ -124,7 +124,7 @@ export const auth = betterAuth({
             <h2 style="color: #1e293b;">Reset Your Password</h2>
             <p>Hi ${user.name || "there"},</p>
             <p>We received a request to reset your password for your Hushaid account.</p>
-            <a href="${resetUrl.toString()}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+            <a href="${resetUrl.toString()}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
               Reset Password
             </a>
             <p style="color: #64748b; font-size: 14px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
@@ -153,7 +153,7 @@ export const auth = betterAuth({
             <h2 style="color: #1e293b;">Welcome to Hushaid</h2>
             <p>Hi ${user.name || "there"},</p>
             <p>Thank you for creating an account on Hushaid. Please verify your email address to get started.</p>
-            <a href="${verifyPageUrl}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+            <a href="${verifyPageUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
               Verify Email Address
             </a>
             <p style="color: #64748b; font-size: 14px;">This link expires in 1 hour. If you didn't create this account, you can safely ignore this email.</p>
