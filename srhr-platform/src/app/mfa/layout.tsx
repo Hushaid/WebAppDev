@@ -17,7 +17,7 @@ export default function MfaLayout({
   return (
     <main className="flex min-h-svh flex-col items-center justify-center p-4">
       <Image
-        src="/hushaid-logo.svg"
+        src="/hushaid-full-logo-new.svg"
         alt="Hushaid"
         width={137}
         height={32}

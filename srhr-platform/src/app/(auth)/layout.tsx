@@ -18,7 +18,7 @@ export default function AuthLayout({
     <main className="flex min-h-svh flex-col items-center justify-center bg-muted/50 p-4">
       <figure className="mb-8">
         <Image
-          src="/hushaid-logo.svg"
+          src="/hushaid-full-logo-new.svg"
           alt="Hushaid"
           width={137}
           height={32}

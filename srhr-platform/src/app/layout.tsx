@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "AI-powered Sexual and Reproductive Health Rights (SRHR) community health risk assessment platform for flood-affected communities in Nigeria. Collect field data, score individual health risks, and generate actionable insights for humanitarian responders.",
   icons: {
     icon: [
-      { url: "/hushaid-mark.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/hushaid-logo-mark.svg", type: "image/svg+xml", sizes: "any" },
     ],
   },
 }

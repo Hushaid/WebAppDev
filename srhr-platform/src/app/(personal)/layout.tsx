@@ -22,7 +22,7 @@ export default function PersonalLayout({
         <nav className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2 sm:gap-6">
             <Image
-              src="/hushaid-logo.svg"
+              src="/hushaid-full-logo-new.svg"
               alt="Hushaid"
               width={137}
               height={32}

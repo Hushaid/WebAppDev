@@ -76,7 +76,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className="border-b px-6 py-4">
         <Link href="/admin" className="flex items-center gap-2">
           <Image
-            src="/hushaid-mark.svg"
+            src="/hushaid-logo-mark.svg"
             alt="Hushaid"
             width={33}
             height={32}
