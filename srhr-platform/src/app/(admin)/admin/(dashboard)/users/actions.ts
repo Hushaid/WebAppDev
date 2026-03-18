@@ -158,7 +158,7 @@ export async function createUser(data: {
             <li>Temporary password: ${data.password}</li>
           </ul>
           <p>Please change your password after your first login.</p>
-          <a href="${loginUrl}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
+          <a href="${loginUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0;">
             Log In to Your Account
           </a>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />

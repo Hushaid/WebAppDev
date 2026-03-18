@@ -115,7 +115,7 @@ export default function DataSourcesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl font-bold text-primary">
               {dataSources.length - activeCount}
             </p>
           </CardContent>

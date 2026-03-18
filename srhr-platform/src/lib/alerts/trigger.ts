@@ -118,7 +118,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
             <a href="${alertsUrl}" style="display: inline-block; background: #dc2626; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 4px 8px 0;">
               View Alerts
             </a>
-            <a href="${submissionUrl}" style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 0;">
+            <a href="${submissionUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 0;">
               View Submission
             </a>
 
