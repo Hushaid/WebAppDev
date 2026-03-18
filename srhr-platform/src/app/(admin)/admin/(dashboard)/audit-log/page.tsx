@@ -42,82 +42,82 @@ export default async function AuditLogPage({
 
   return (
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
-      <div className="flex-1 overflow-y-auto p-6">
-        <section className="space-y-6">
-          <header>
-            <hgroup>
-              <h1 className="text-2xl font-bold">Audit Log</h1>
-              <p className="text-muted-foreground">
-                Immutable record of all platform actions. This log cannot be edited
-                or deleted.
-              </p>
-            </hgroup>
-          </header>
+      {/* Fixed header area */}
+      <div className="shrink-0 border-b p-6 pb-4">
+        <header>
+          <hgroup>
+            <h1 className="text-2xl font-bold">Audit Log</h1>
+            <p className="text-muted-foreground">
+              Immutable record of all platform actions. This log cannot be edited
+              or deleted.
+            </p>
+          </hgroup>
+        </header>
+      </div>
 
-          {logs.length === 0 ? (
-            <p className="text-muted-foreground">No audit entries yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>Actor</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Entity</TableHead>
-                    <TableHead>IP Address</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell>
-                        <time
-                          dateTime={log.createdAt.toISOString()}
-                          className="text-sm"
-                        >
-                          {log.createdAt.toLocaleString()}
-                        </time>
-                      </TableCell>
-                      <TableCell>
-                        {log.actorName ? (
-                          <span className="text-sm">
-                            {log.actorName}
-                            <br />
-                            <span className="text-xs text-muted-foreground">
-                              {log.actorEmail}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">System</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{actionBadge(log.action)}</TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {log.entityType}
-                          {log.entityId && (
-                            <>
-                              <br />
-                              <code className="text-xs text-muted-foreground">
-                                {log.entityId.slice(0, 8)}...
-                              </code>
-                            </>
-                          )}
+      {/* Scrollable table area */}
+      <div className="min-h-0 flex-1 overflow-auto">
+        {logs.length === 0 ? (
+          <p className="p-6 text-muted-foreground">No audit entries yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Timestamp</TableHead>
+                <TableHead>Actor</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Entity</TableHead>
+                <TableHead>IP Address</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logs.map((log) => (
+                <TableRow key={log.id}>
+                  <TableCell>
+                    <time
+                      dateTime={log.createdAt.toISOString()}
+                      className="text-sm"
+                    >
+                      {log.createdAt.toLocaleString()}
+                    </time>
+                  </TableCell>
+                  <TableCell>
+                    {log.actorName ? (
+                      <span className="text-sm">
+                        {log.actorName}
+                        <br />
+                        <span className="text-xs text-muted-foreground">
+                          {log.actorEmail}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {log.ipAddress ?? "—"}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </section>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">System</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{actionBadge(log.action)}</TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {log.entityType}
+                      {log.entityId && (
+                        <>
+                          <br />
+                          <code className="text-xs text-muted-foreground">
+                            {log.entityId.slice(0, 8)}...
+                          </code>
+                        </>
+                      )}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">
+                      {log.ipAddress ?? "—"}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       <PaginationBar

@@ -123,8 +123,7 @@ export default function DataSourcesPage() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -160,7 +159,6 @@ export default function DataSourcesPage() {
               ))}
             </TableBody>
           </Table>
-          </div>
         </CardContent>
       </Card>
     </section>

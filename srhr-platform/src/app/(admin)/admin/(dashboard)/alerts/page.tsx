@@ -71,83 +71,83 @@ export default async function AlertsPage({
 
   return (
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
-      <div className="flex-1 overflow-y-auto p-6">
-        <section className="space-y-6">
-          <header>
-            <hgroup>
-              <h1 className="text-2xl font-bold">Alerts</h1>
-              <p className="text-muted-foreground">
-                Monitor high-risk submissions, hotspot detections, and scheduled
-                summaries.
-              </p>
-            </hgroup>
-          </header>
+      {/* Fixed header area */}
+      <div className="shrink-0 border-b p-6 pb-4">
+        <header>
+          <hgroup>
+            <h1 className="text-2xl font-bold">Alerts</h1>
+            <p className="text-muted-foreground">
+              Monitor high-risk submissions, hotspot detections, and scheduled
+              summaries.
+            </p>
+          </hgroup>
+        </header>
+      </div>
 
-          {alertList.length === 0 ? (
-            <p className="text-muted-foreground">No alerts yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table className="table-fixed w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Type</TableHead>
-                    <TableHead className="w-[70px]">Risk</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead className="w-[140px]">Recipient</TableHead>
-                    <TableHead className="w-[90px]">Status</TableHead>
-                    <TableHead className="w-[100px]">Created</TableHead>
-                    <TableHead className="w-[180px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {alertList.map((alert) => (
-                    <TableRow key={alert.id}>
-                      <TableCell>{typeBadge(alert.type)}</TableCell>
-                      <TableCell>{riskBadge(alert.riskLevel)}</TableCell>
-                      <TableCell className="whitespace-normal break-words">
-                        <p className="font-medium">{alert.title}</p>
-                        {alert.message && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {alert.message}
-                          </p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {alert.recipientName ? (
-                          <span className="text-sm">
-                            {alert.recipientName}
-                            <br />
-                            <span className="text-xs text-muted-foreground">
-                              {alert.recipientEmail}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{statusBadge(alert.status)}</TableCell>
-                      <TableCell>
-                        <time
-                          dateTime={alert.createdAt.toISOString()}
-                          className="text-sm"
-                        >
-                          {alert.createdAt.toLocaleDateString()}
-                        </time>
-                      </TableCell>
-                      <TableCell>
-                        <AlertActions
-                          alertId={alert.id}
-                          status={alert.status}
-                          submissionId={extractSubmissionId(alert.message)}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </section>
+      {/* Scrollable table area */}
+      <div className="min-h-0 flex-1 overflow-auto">
+        {alertList.length === 0 ? (
+          <p className="p-6 text-muted-foreground">No alerts yet.</p>
+        ) : (
+          <Table className="table-fixed w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Type</TableHead>
+                <TableHead className="w-[70px]">Risk</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="w-[140px]">Recipient</TableHead>
+                <TableHead className="w-[90px]">Status</TableHead>
+                <TableHead className="w-[100px]">Created</TableHead>
+                <TableHead className="w-[180px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {alertList.map((alert) => (
+                <TableRow key={alert.id}>
+                  <TableCell>{typeBadge(alert.type)}</TableCell>
+                  <TableCell>{riskBadge(alert.riskLevel)}</TableCell>
+                  <TableCell className="whitespace-normal break-words">
+                    <p className="font-medium">{alert.title}</p>
+                    {alert.message && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {alert.message}
+                      </p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {alert.recipientName ? (
+                      <span className="text-sm">
+                        {alert.recipientName}
+                        <br />
+                        <span className="text-xs text-muted-foreground">
+                          {alert.recipientEmail}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{statusBadge(alert.status)}</TableCell>
+                  <TableCell>
+                    <time
+                      dateTime={alert.createdAt.toISOString()}
+                      className="text-sm"
+                    >
+                      {alert.createdAt.toLocaleDateString()}
+                    </time>
+                  </TableCell>
+                  <TableCell>
+                    <AlertActions
+                      alertId={alert.id}
+                      status={alert.status}
+                      submissionId={extractSubmissionId(alert.message)}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       <PaginationBar

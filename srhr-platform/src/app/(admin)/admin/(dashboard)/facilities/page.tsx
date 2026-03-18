@@ -39,85 +39,85 @@ export default async function FacilitiesPage() {
   )
 
   return (
-    <section className="space-y-6">
-      <header>
-        <hgroup>
-          <h1 className="text-2xl font-bold">Health Facilities</h1>
-          <p className="text-muted-foreground">
-            Health facilities available for patient referrals based on risk assessments.
-          </p>
-        </hgroup>
-      </header>
+    <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
+      {/* Fixed header area */}
+      <div className="shrink-0 space-y-4 border-b p-6 pb-4">
+        <header>
+          <hgroup>
+            <h1 className="text-2xl font-bold">Health Facilities</h1>
+            <p className="text-muted-foreground">
+              Health facilities available for patient referrals based on risk assessments.
+            </p>
+          </hgroup>
+        </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Facilities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{facilities.length}</p>
-          </CardContent>
-        </Card>
-        {Object.entries(typeGroups).map(([type, count]) => (
-          <Card key={type}>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                {type}
+                Total Facilities
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{count}</p>
+              <p className="text-3xl font-bold">{facilities.length}</p>
             </CardContent>
           </Card>
-        ))}
+          {Object.entries(typeGroups).map(([type, count]) => (
+            <Card key={type}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {type}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{count}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
+      {/* Scrollable table area */}
+      <div className="min-h-0 flex-1 overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Ward</TableHead>
+              <TableHead>LGA</TableHead>
+              <TableHead>Coordinates</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {facilities.length === 0 ? (
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Ward</TableHead>
-                <TableHead>LGA</TableHead>
-                <TableHead>Coordinates</TableHead>
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  No facilities registered yet. Import facility data to populate this list.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {facilities.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No facilities registered yet. Import facility data to populate this list.
+            ) : (
+              facilities.map((f) => (
+                <TableRow key={f.id}>
+                  <TableCell className="font-medium">{f.name}</TableCell>
+                  <TableCell>
+                    <Badge className={typeColors[f.type] || ""}>
+                      {f.type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{f.ward ?? "—"}</TableCell>
+                  <TableCell>{f.lga ?? "—"}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {f.gpsLat && f.gpsLng
+                      ? `${f.gpsLat}, ${f.gpsLng}`
+                      : "—"}
                   </TableCell>
                 </TableRow>
-              ) : (
-                facilities.map((f) => (
-                  <TableRow key={f.id}>
-                    <TableCell className="font-medium">{f.name}</TableCell>
-                    <TableCell>
-                      <Badge className={typeColors[f.type] || ""}>
-                        {f.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{f.ward ?? "—"}</TableCell>
-                    <TableCell>{f.lga ?? "—"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {f.gpsLat && f.gpsLng
-                        ? `${f.gpsLat}, ${f.gpsLng}`
-                        : "—"}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </section>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   )
 }
