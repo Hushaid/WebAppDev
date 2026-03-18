@@ -9,16 +9,91 @@ import {
 } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
 import { auditLog } from "@/lib/db/schema"
-import { eq, desc, sql } from "drizzle-orm"
+import { eq, desc, sql, and, gte, lte } from "drizzle-orm"
 
 const PAGE_SIZE = 10
 
-export async function getSubmissions(page: number = 1) {
+export interface SubmissionFilters {
+  submitterType?: string
+  riskLevel?: string
+  dateFrom?: string
+  dateTo?: string
+  flagged?: string
+}
+
+export async function getSubmissions(page: number = 1, filters: SubmissionFilters = {}) {
   const offset = (page - 1) * PAGE_SIZE
 
+  // Build WHERE conditions
+  const conditions = []
+
+  if (filters.submitterType && filters.submitterType !== "all") {
+    conditions.push(eq(submissions.submitterType, filters.submitterType as "field_worker" | "personal_user"))
+  }
+
+  if (filters.flagged === "true") {
+    conditions.push(eq(submissions.flaggedForReview, true))
+  }
+
+  if (filters.dateFrom) {
+    conditions.push(gte(submissions.createdAt, new Date(filters.dateFrom)))
+  }
+
+  if (filters.dateTo) {
+    const toDate = new Date(filters.dateTo)
+    toDate.setHours(23, 59, 59, 999)
+    conditions.push(lte(submissions.createdAt, toDate))
+  }
+
+  // Risk level filter requires joining with riskClassifications
+  const needsRiskJoin = filters.riskLevel && filters.riskLevel !== "all"
+
+  if (needsRiskJoin) {
+    conditions.push(eq(riskClassifications.overallRiskLevel, filters.riskLevel! as "low" | "medium" | "high"))
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+  if (needsRiskJoin) {
+    // Count with risk join
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(submissions)
+      .innerJoin(riskClassifications, eq(riskClassifications.submissionId, submissions.id))
+      .where(whereClause)
+
+    const items = await db
+      .select({
+        id: submissions.id,
+        submitterId: submissions.submitterId,
+        submitterType: submissions.submitterType,
+        gpsLat: submissions.gpsLat,
+        gpsLng: submissions.gpsLng,
+        flaggedForReview: submissions.flaggedForReview,
+        createdAt: submissions.createdAt,
+        overallRiskLevel: riskClassifications.overallRiskLevel,
+      })
+      .from(submissions)
+      .innerJoin(riskClassifications, eq(riskClassifications.submissionId, submissions.id))
+      .where(whereClause)
+      .orderBy(desc(submissions.createdAt))
+      .limit(PAGE_SIZE)
+      .offset(offset)
+
+    return {
+      items,
+      total: countResult.count,
+      page,
+      pageSize: PAGE_SIZE,
+      totalPages: Math.ceil(countResult.count / PAGE_SIZE),
+    }
+  }
+
+  // No risk join needed — left join to still get risk level for display
   const [countResult] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(submissions)
+    .where(whereClause)
 
   const items = await db
     .select({
@@ -29,8 +104,11 @@ export async function getSubmissions(page: number = 1) {
       gpsLng: submissions.gpsLng,
       flaggedForReview: submissions.flaggedForReview,
       createdAt: submissions.createdAt,
+      overallRiskLevel: riskClassifications.overallRiskLevel,
     })
     .from(submissions)
+    .leftJoin(riskClassifications, eq(riskClassifications.submissionId, submissions.id))
+    .where(whereClause)
     .orderBy(desc(submissions.createdAt))
     .limit(PAGE_SIZE)
     .offset(offset)

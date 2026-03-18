@@ -26,6 +26,7 @@ interface MapScore {
   community_wellbeing_avg_score: number | null
   submission_count: number
   hotspot_flag: boolean
+  computed_at?: string | null
 }
 
 export default function PartnersDashboardPage() {
@@ -62,6 +63,7 @@ export default function PartnersDashboardPage() {
         : null,
       submission_count: row.submission_count as number,
       hotspot_flag: row.hotspot_flag as boolean,
+      computed_at: (row.computed_at as string) ?? null,
     }
   })
 
@@ -76,6 +78,9 @@ export default function PartnersDashboardPage() {
       if (filters.diseaseGroup === "maternal_health" && !s.maternal_avg_score) return false
       if (filters.diseaseGroup === "community_wellbeing" && !s.community_wellbeing_avg_score) return false
     }
+    // Date range filter on computed_at
+    if (filters.dateFrom && s.computed_at && s.computed_at < filters.dateFrom) return false
+    if (filters.dateTo && s.computed_at && s.computed_at > filters.dateTo + "T23:59:59") return false
     return true
   })
 

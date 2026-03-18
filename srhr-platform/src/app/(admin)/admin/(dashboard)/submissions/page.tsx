@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getSubmissions } from "./actions"
+import { getSubmissions, type SubmissionFilters } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import { Flag } from "lucide-react"
 import {
@@ -14,6 +14,13 @@ import {
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { PaginationBar } from "@/components/pagination-bar"
+import { SubmissionFiltersBar } from "./filters"
+
+const riskBadgeClass: Record<string, string> = {
+  low: "bg-green-100 text-green-800",
+  medium: "bg-yellow-100 text-yellow-800",
+  high: "bg-red-100 text-red-800",
+}
 
 function submitterTypeBadge(type: string) {
   return type === "field_worker" ? (
@@ -26,11 +33,26 @@ function submitterTypeBadge(type: string) {
 export default async function SubmissionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<Record<string, string | undefined>>
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
-  const { items: submissions, total, totalPages, pageSize } = await getSubmissions(page)
+
+  const filters: SubmissionFilters = {
+    submitterType: params.submitterType,
+    riskLevel: params.riskLevel,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+    flagged: params.flagged,
+  }
+
+  const { items: submissions, total, totalPages, pageSize } = await getSubmissions(page, filters)
+
+  // Build searchParams record for pagination (only non-empty values)
+  const filterParams: Record<string, string> = {}
+  for (const [k, v] of Object.entries(filters)) {
+    if (v && v !== "all") filterParams[k] = v
+  }
 
   return (
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
@@ -45,8 +67,16 @@ export default async function SubmissionsPage({
             </hgroup>
           </header>
 
+          <SubmissionFiltersBar
+            submitterType={filters.submitterType}
+            riskLevel={filters.riskLevel}
+            dateFrom={filters.dateFrom}
+            dateTo={filters.dateTo}
+            flagged={filters.flagged}
+          />
+
           {submissions.length === 0 ? (
-            <p className="text-muted-foreground">No submissions yet.</p>
+            <p className="text-muted-foreground">No submissions match the current filters.</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -54,6 +84,7 @@ export default async function SubmissionsPage({
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Risk Level</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Submitted</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -75,6 +106,17 @@ export default async function SubmissionsPage({
                       <TableCell>
                         <Link href={`/admin/submissions/${sub.id}`} className="block">
                           {submitterTypeBadge(sub.submitterType)}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link href={`/admin/submissions/${sub.id}`} className="block">
+                          {sub.overallRiskLevel ? (
+                            <Badge className={riskBadgeClass[sub.overallRiskLevel] ?? ""}>
+                              {sub.overallRiskLevel}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </Link>
                       </TableCell>
                       <TableCell>
@@ -117,6 +159,7 @@ export default async function SubmissionsPage({
         total={total}
         pageSize={pageSize}
         basePath="/admin/submissions"
+        searchParams={filterParams}
       />
     </div>
   )

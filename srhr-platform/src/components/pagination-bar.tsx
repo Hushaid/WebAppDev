@@ -8,6 +8,18 @@ interface PaginationBarProps {
   total: number
   pageSize: number
   basePath: string
+  searchParams?: Record<string, string>
+}
+
+function buildHref(basePath: string, page: number, searchParams?: Record<string, string>) {
+  const params = new URLSearchParams()
+  if (searchParams) {
+    for (const [k, v] of Object.entries(searchParams)) {
+      if (v && k !== "page") params.set(k, v)
+    }
+  }
+  params.set("page", String(page))
+  return `${basePath}?${params.toString()}`
 }
 
 export function PaginationBar({
@@ -16,6 +28,7 @@ export function PaginationBar({
   total,
   pageSize,
   basePath,
+  searchParams,
 }: PaginationBarProps) {
   if (total <= pageSize) return null
 
@@ -33,7 +46,7 @@ export function PaginationBar({
         </p>
         <div className="flex items-center gap-2">
           {page > 1 ? (
-            <Link href={`${basePath}?page=${page - 1}`}>
+            <Link href={buildHref(basePath, page - 1, searchParams)}>
               <Button variant="outline" size="sm">
                 <ChevronLeft className="mr-1 h-4 w-4" />
                 <span className="hidden sm:inline">Previous</span>
@@ -49,7 +62,7 @@ export function PaginationBar({
             {page}/{totalPages}
           </span>
           {page < totalPages ? (
-            <Link href={`${basePath}?page=${page + 1}`}>
+            <Link href={buildHref(basePath, page + 1, searchParams)}>
               <Button variant="outline" size="sm">
                 <span className="hidden sm:inline">Next</span>
                 <ChevronRight className="ml-1 h-4 w-4" />
