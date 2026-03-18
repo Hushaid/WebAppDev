@@ -184,14 +184,16 @@ function scoreCheckboxQuestion(question: QuestionConfig, responseValue: string):
 
   switch (question.checkboxScoring) {
     case "count_symptom": {
-      const n = selected.length
+      const valid = selected.filter((v) => question.options.some((o) => o.value === v))
+      const n = valid.length
       if (n <= 0) return 0
       if (n <= 2) return 1
       if (n <= 4) return 2
       return 3
     }
     case "count_shelter": {
-      const n = selected.length
+      const valid = selected.filter((v) => question.options.some((o) => o.value === v))
+      const n = valid.length
       if (n <= 2) return 1
       return 2
     }

@@ -40,7 +40,7 @@ describe("computeRisk", () => {
       // Max achievable: 3+2+2+2+1+2+1+1+1+0+2 = 17
       const result = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q12: "more_4_weeks", // 2
           Q13: "worse", // 2
           Q14: "never_tested", // 2
@@ -90,7 +90,7 @@ describe("computeRisk", () => {
           Q22: "yes", // 2
           Q24: "never", // 2
           Q25: "cultural", // 2
-          Q26: "5_symptoms", // 3
+          Q26: "headaches,swelling,blurred_vision,bleeding,c_section", // 3 (5 complications)
           Q27: "under_18_or_over_35", // 1
           Q28: "under_2_years", // 1
           Q29: "home", // 1
@@ -188,7 +188,7 @@ describe("computeRisk", () => {
       // Score exactly 6: Q11(3) + Q13(2) + Q15(1) = 6
       const low = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q13: "worse", // 2
           Q15: "yes", // 1
         }),
@@ -200,7 +200,7 @@ describe("computeRisk", () => {
       // Score exactly 7: add Q14(1) = 7
       const medium = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q13: "worse", // 2
           Q15: "yes", // 1
           Q14: "more_6_months", // 1
@@ -215,7 +215,7 @@ describe("computeRisk", () => {
       // Build up to 12
       const medium = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q12: "more_4_weeks", // 2
           Q13: "worse", // 2
           Q14: "never_tested", // 2
@@ -231,7 +231,7 @@ describe("computeRisk", () => {
       // Add Q18(1) → 13
       const high = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q12: "more_4_weeks", // 2
           Q13: "worse", // 2
           Q14: "never_tested", // 2
@@ -287,7 +287,7 @@ describe("computeRisk", () => {
       // High STI only
       const result = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q12: "more_4_weeks", // 2
           Q13: "worse", // 2
           Q14: "never_tested", // 2
@@ -304,7 +304,7 @@ describe("computeRisk", () => {
     it("medium + low → overall MEDIUM", () => {
       const result = computeRisk(
         responses({
-          Q11: "more_4_symptoms", // 3
+          Q11: "discharge,sores,burning,pain_sex,tummy_pain", // 3 (5 symptoms)
           Q12: "more_4_weeks", // 2
           Q13: "worse", // 2 = 7 → medium STI
         }),
