@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 interface Props {
   submitterType?: string
   riskLevel?: string
+  ageGroup?: string
   dateFrom?: string
   dateTo?: string
   flagged?: string
@@ -24,6 +25,7 @@ interface Props {
 export function SubmissionFiltersBar({
   submitterType,
   riskLevel,
+  ageGroup,
   dateFrom,
   dateTo,
   flagged,
@@ -33,7 +35,7 @@ export function SubmissionFiltersBar({
 
   function navigate(updates: Record<string, string | undefined>) {
     const params = new URLSearchParams()
-    const merged = { submitterType, riskLevel, dateFrom, dateTo, flagged, ...updates }
+    const merged = { submitterType, riskLevel, ageGroup, dateFrom, dateTo, flagged, ...updates }
     for (const [k, v] of Object.entries(merged)) {
       if (v && v !== "all") params.set(k, v)
     }
@@ -47,6 +49,7 @@ export function SubmissionFiltersBar({
 
   const hasFilters = (submitterType && submitterType !== "all") ||
     (riskLevel && riskLevel !== "all") ||
+    (ageGroup && ageGroup !== "all") ||
     dateFrom || dateTo || flagged === "true"
 
   return (
@@ -82,6 +85,24 @@ export function SubmissionFiltersBar({
             <SelectItem value="low">Low</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="high">High</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="age-group">Age Group</Label>
+        <Select
+          value={ageGroup || "all"}
+          onValueChange={(v) => navigate({ ageGroup: v })}
+        >
+          <SelectTrigger id="age-group" className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Ages</SelectItem>
+            <SelectItem value="15_24">15–24 years</SelectItem>
+            <SelectItem value="25_34">25–34 years</SelectItem>
+            <SelectItem value="35_plus">35+ years</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -41,6 +41,7 @@ export default async function SubmissionsPage({
   const filters: SubmissionFilters = {
     submitterType: params.submitterType,
     riskLevel: params.riskLevel,
+    ageGroup: params.ageGroup,
     dateFrom: params.dateFrom,
     dateTo: params.dateTo,
     flagged: params.flagged,
@@ -70,6 +71,7 @@ export default async function SubmissionsPage({
           <SubmissionFiltersBar
             submitterType={filters.submitterType}
             riskLevel={filters.riskLevel}
+            ageGroup={filters.ageGroup}
             dateFrom={filters.dateFrom}
             dateTo={filters.dateTo}
             flagged={filters.flagged}

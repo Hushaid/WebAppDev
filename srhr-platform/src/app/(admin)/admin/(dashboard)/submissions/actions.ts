@@ -9,16 +9,40 @@ import {
 } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
 import { auditLog } from "@/lib/db/schema"
-import { eq, desc, sql, and, gte, lte } from "drizzle-orm"
+import { eq, desc, sql, and, gte, lte, inArray } from "drizzle-orm"
 
 const PAGE_SIZE = 10
 
 export interface SubmissionFilters {
   submitterType?: string
   riskLevel?: string
+  ageGroup?: string
   dateFrom?: string
   dateTo?: string
   flagged?: string
+}
+
+async function getSubmissionIdsByAgeGroup(ageGroup: string): Promise<string[]> {
+  // Q5 is the age group question — find its UUID, then filter responses
+  const [q5] = await db
+    .select({ id: questions.id })
+    .from(questions)
+    .where(eq(questions.questionNumber, "Q5"))
+    .limit(1)
+
+  if (!q5) return []
+
+  const rows = await db
+    .select({ submissionId: questionResponses.submissionId })
+    .from(questionResponses)
+    .where(
+      and(
+        eq(questionResponses.questionId, q5.id),
+        eq(questionResponses.responseValue, ageGroup),
+      ),
+    )
+
+  return rows.map((r) => r.submissionId)
 }
 
 export async function getSubmissions(page: number = 1, filters: SubmissionFilters = {}) {
@@ -43,6 +67,15 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
     const toDate = new Date(filters.dateTo)
     toDate.setHours(23, 59, 59, 999)
     conditions.push(lte(submissions.createdAt, toDate))
+  }
+
+  // Age group filter — requires subquery through question_responses
+  if (filters.ageGroup && filters.ageGroup !== "all") {
+    const ids = await getSubmissionIdsByAgeGroup(filters.ageGroup)
+    if (ids.length === 0) {
+      return { items: [], total: 0, page, pageSize: PAGE_SIZE, totalPages: 0 }
+    }
+    conditions.push(inArray(submissions.id, ids))
   }
 
   // Risk level filter requires joining with riskClassifications

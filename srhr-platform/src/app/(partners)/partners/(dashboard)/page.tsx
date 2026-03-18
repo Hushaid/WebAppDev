@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSession } from "@/lib/auth/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { IrixMap } from "@/components/partners/irix-map"
 import {
   IrixFilters,
@@ -162,7 +163,9 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{isLoading ? "—" : totalCells}</p>
+            {isLoading ? <Skeleton className="h-9 w-16" /> : (
+              <p className="text-3xl font-bold">{totalCells}</p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -172,7 +175,9 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-600">{isLoading ? "—" : hotspotCount}</p>
+            {isLoading ? <Skeleton className="h-9 w-16" /> : (
+              <p className="text-3xl font-bold text-red-600">{hotspotCount}</p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -182,7 +187,9 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{isLoading ? "—" : highRiskCount}</p>
+            {isLoading ? <Skeleton className="h-9 w-16" /> : (
+              <p className="text-3xl font-bold">{highRiskCount}</p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -192,7 +199,9 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{isLoading ? "—" : totalSubmissions}</p>
+            {isLoading ? <Skeleton className="h-9 w-16" /> : (
+              <p className="text-3xl font-bold">{totalSubmissions}</p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -207,8 +216,12 @@ export default function PartnersDashboardPage() {
       {/* Map */}
       <div className="relative">
         {isLoading ? (
-          <div className="flex h-[500px] items-center justify-center rounded-lg border">
-            <p className="text-muted-foreground">Loading community health risk data...</p>
+          <div className="space-y-3 rounded-lg border p-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-8 w-24" />
+            </div>
+            <Skeleton className="h-[460px] w-full rounded-md" />
           </div>
         ) : (
           <IrixMap scores={filteredScores} onCellClick={setSelectedCell} />
