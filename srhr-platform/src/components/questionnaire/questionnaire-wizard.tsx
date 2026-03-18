@@ -28,7 +28,7 @@ interface QuestionnaireWizardProps {
 type WizardQuestion = {
   id: string
   text: string
-  type: "text" | "select" | "radio"
+  type: "text" | "select" | "radio" | "checkbox"
   options?: { label: string; value: string }[]
 }
 
@@ -82,7 +82,7 @@ export function QuestionnaireWizard({
       allQuestions.push({
         id: q.id,
         text: q.text,
-        type: "radio",
+        type: q.type ?? "radio",
         options: q.options.map((o) => ({ label: o.label, value: o.value })),
       })
     }

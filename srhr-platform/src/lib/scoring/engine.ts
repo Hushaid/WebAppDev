@@ -162,6 +162,47 @@ function scoreQuestion(
 ): number {
   if (!responseValue) return 0
 
+  if (question.type === "checkbox") {
+    return scoreCheckboxQuestion(question, responseValue)
+  }
+
   const option = question.options.find((o) => o.value === responseValue)
   return option?.score ?? 0
+}
+
+function scoreCheckboxQuestion(question: QuestionConfig, responseValue: string): number {
+  // "none" means user explicitly selected "None of the above"
+  if (responseValue === "none") {
+    // count_shelter: nothing available = highest risk
+    return question.checkboxScoring === "count_shelter" ? 3 : 0
+  }
+
+  const selected = responseValue.split(",").filter((v) => v && v !== "none")
+  if (selected.length === 0) {
+    return question.checkboxScoring === "count_shelter" ? 3 : 0
+  }
+
+  switch (question.checkboxScoring) {
+    case "count_symptom": {
+      const n = selected.length
+      if (n <= 0) return 0
+      if (n <= 2) return 1
+      if (n <= 4) return 2
+      return 3
+    }
+    case "count_shelter": {
+      const n = selected.length
+      if (n <= 2) return 1
+      return 2
+    }
+    case "max": {
+      const scores = selected.map((val) => {
+        const opt = question.options.find((o) => o.value === val)
+        return opt?.score ?? 0
+      })
+      return Math.max(0, ...scores)
+    }
+    default:
+      return 0
+  }
 }

@@ -12,6 +12,15 @@ export interface QuestionConfig {
   diseaseGroup: DiseaseGroup
   maxScore: number
   options: ScoringOption[]
+  /** When set to "checkbox", the question renders as multi-select checkboxes */
+  type?: "checkbox"
+  /**
+   * How to compute score from the comma-separated multi-select response:
+   * - "count_symptom": 0→0, 1-2→1, 3-4→2, 5+→3  (Q11, Q26)
+   * - "count_shelter": 0 available→3, 1-2→1, 3-4→2  (Q35)
+   * - "max": max score of selected options  (Q21, Q34, Q37)
+   */
+  checkboxScoring?: "count_symptom" | "count_shelter" | "max"
 }
 
 /**
@@ -25,14 +34,20 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
   // === STI (Sexually Transmitted Infections) Risk Assessment (Q11-Q21) ===
   {
     id: "Q11",
-    text: "Have you noticed any of these symptoms lately? (Unusual discharge or smell from private parts, sores or blisters, burning feeling when urinating, pain during sex, lower tummy pain, fever, yellow eyes/skin)",
+    text: "Have you noticed any of these symptoms lately? Select all that apply.",
     diseaseGroup: "sti",
     maxScore: 3,
+    type: "checkbox",
+    checkboxScoring: "count_symptom",
     options: [
-      { label: "No symptom", value: "no_symptom", score: 0 },
-      { label: "1-2 symptoms", value: "1_2_symptoms", score: 1 },
-      { label: "3-4 symptoms", value: "3_4_symptoms", score: 2 },
-      { label: ">4 symptoms", value: "more_4_symptoms", score: 3 },
+      { label: "Unusual discharge or smell from private parts", value: "discharge", score: 1 },
+      { label: "Sores or blisters", value: "sores", score: 1 },
+      { label: "Burning feeling when urinating", value: "burning", score: 1 },
+      { label: "Pain during sex", value: "pain_sex", score: 1 },
+      { label: "Lower tummy pain", value: "tummy_pain", score: 1 },
+      { label: "Fever", value: "fever", score: 1 },
+      { label: "Yellow eyes or skin", value: "yellow_eyes", score: 1 },
+      { label: "None of the above", value: "none", score: 0 },
     ],
   },
   {
@@ -134,12 +149,19 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
   },
   {
     id: "Q21",
-    text: "Which prevention method are you using? (Condoms, pills, injection, implant, IUD/coil, natural method, herbs, or none)",
+    text: "Which prevention method are you using? Select all that apply.",
     diseaseGroup: "sti",
     maxScore: 2,
+    type: "checkbox",
+    checkboxScoring: "max",
     options: [
-      { label: "Any other option", value: "other", score: 1 },
-      { label: "Condom", value: "condom", score: 2 },
+      { label: "Condoms", value: "condom", score: 2 },
+      { label: "Pills", value: "pills", score: 1 },
+      { label: "Injection", value: "injection", score: 1 },
+      { label: "Implant", value: "implant", score: 1 },
+      { label: "IUD / coil", value: "iud", score: 1 },
+      { label: "Natural method", value: "natural", score: 1 },
+      { label: "Herbs", value: "herbs", score: 1 },
     ],
   },
 
@@ -194,14 +216,20 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
   },
   {
     id: "Q26",
-    text: "Have you experienced any of these in this pregnancy or past pregnancies? (Bad headaches, swelling in feet/hands/face, blurred vision, unusual bleeding, C-section, high blood pressure, high sugar level)",
+    text: "Have you experienced any of these in this pregnancy or past pregnancies? Select all that apply.",
     diseaseGroup: "maternal_health",
     maxScore: 3,
+    type: "checkbox",
+    checkboxScoring: "count_symptom",
     options: [
-      { label: "None", value: "none", score: 0 },
-      { label: "1-2 symptoms", value: "1_2_symptoms", score: 1 },
-      { label: "3-4 symptoms", value: "3_4_symptoms", score: 2 },
-      { label: "5 symptoms", value: "5_symptoms", score: 3 },
+      { label: "Bad headaches", value: "headaches", score: 1 },
+      { label: "Swelling in feet, hands, or face", value: "swelling", score: 1 },
+      { label: "Blurred vision", value: "blurred_vision", score: 1 },
+      { label: "Unusual bleeding", value: "bleeding", score: 1 },
+      { label: "C-section", value: "c_section", score: 1 },
+      { label: "High blood pressure", value: "high_bp", score: 1 },
+      { label: "High sugar level (diabetes)", value: "high_sugar", score: 1 },
+      { label: "None of the above", value: "none", score: 0 },
     ],
   },
   {
@@ -282,25 +310,31 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
   },
   {
     id: "Q34",
-    text: "Which groups face the greatest health risks related to Sexual and Reproductive Health (the health of your body when it comes to sex and having babies) during flooding?",
+    text: "Which groups face the greatest health risks related to sexual and reproductive health during flooding? Select all that apply.",
     diseaseGroup: "maternal_health",
     maxScore: 1,
+    type: "checkbox",
+    checkboxScoring: "max",
     options: [
-      { label: "Others", value: "others", score: 0 },
       { label: "Pregnant women", value: "pregnant", score: 1 },
       { label: "Nursing mothers", value: "nursing", score: 1 },
       { label: "People living with disability", value: "disability", score: 1 },
+      { label: "Other groups", value: "others", score: 0 },
     ],
   },
   {
     id: "Q35",
-    text: "During floods, which of the following is available in temporary shelters? (Safe delivery spaces, privacy for women, menstrual hygiene supplies, violence reporting)",
+    text: "During floods, which of the following is available in temporary shelters? Select all that apply.",
     diseaseGroup: "maternal_health",
     maxScore: 3,
+    type: "checkbox",
+    checkboxScoring: "count_shelter",
     options: [
-      { label: "1-2 answers ticked", value: "1_2_ticked", score: 1 },
-      { label: "3-4 answers ticked", value: "3_4_ticked", score: 2 },
-      { label: "None of the above", value: "none", score: 3 },
+      { label: "Safe delivery spaces", value: "delivery_spaces", score: 0 },
+      { label: "Privacy for women", value: "privacy", score: 0 },
+      { label: "Menstrual hygiene supplies", value: "hygiene", score: 0 },
+      { label: "Violence reporting mechanism", value: "violence_reporting", score: 0 },
+      { label: "None of the above", value: "none", score: 0 },
     ],
   },
   {
@@ -318,13 +352,20 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
   // === COMMUNITY HEALTH WELLBEING (Q37-Q43) ===
   {
     id: "Q37",
-    text: "Which of the following are available at the health centre in your community? (Sanitary pads, condoms, birth control, delivery pack, community health workers, trained nurses/doctors, private rooms)",
+    text: "Which of the following are available at the health centre in your community? Select all that apply.",
     diseaseGroup: "community_wellbeing",
     maxScore: 3,
+    type: "checkbox",
+    checkboxScoring: "max",
     options: [
-      { label: "Other options", value: "other", score: 1 },
-      { label: "CHEW", value: "chew", score: 2 },
+      { label: "Sanitary pads", value: "sanitary_pads", score: 1 },
+      { label: "Condoms", value: "condoms", score: 1 },
+      { label: "Birth control (pills, injection, or implant)", value: "birth_control", score: 1 },
+      { label: "Delivery pack", value: "delivery_pack", score: 1 },
+      { label: "Community health workers (CHEW)", value: "chew", score: 2 },
       { label: "Trained nurses or doctors", value: "nurses_doctors", score: 3 },
+      { label: "Private rooms", value: "private_rooms", score: 1 },
+      { label: "None of the above", value: "none", score: 0 },
     ],
   },
   {
@@ -412,7 +453,7 @@ export interface SkipRule {
 export const SKIP_RULES: SkipRule[] = [
   {
     questionId: "Q11",
-    skipWhen: ["no_symptom"],
+    skipWhen: ["none", "no_symptom"], // "none" = new checkbox value; "no_symptom" = legacy
     skipTargets: ["Q12", "Q13"],
   },
   {
