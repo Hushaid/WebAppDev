@@ -17,6 +17,19 @@ import { useElectricShape } from "@/lib/electric/use-shape"
 import type { IrixScoreRow } from "@/lib/electric/shapes"
 import { MapPin } from "lucide-react"
 
+function StatValue({
+  value,
+  className,
+  showSkeleton,
+}: {
+  value: number
+  className?: string
+  showSkeleton: boolean
+}) {
+  if (showSkeleton) return <Skeleton className="h-9 w-16" />
+  return <p className={`text-3xl font-bold ${className ?? ""}`}>{value}</p>
+}
+
 interface MapScore {
   h3_index: string
   lat: number
@@ -46,12 +59,12 @@ export default function PartnersDashboardPage() {
   // Timeout: if still loading after 8s, treat as unavailable
   const [timedOut, setTimedOut] = useState(false)
   useEffect(() => {
-    if (!isLoading) {
-      setTimedOut(false)
-      return
-    }
+    if (!isLoading) return
     const timer = setTimeout(() => setTimedOut(true), 8000)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      setTimedOut(false)
+    }
   }, [isLoading])
 
   const dataUnavailable = isError || (isLoading && timedOut)
@@ -151,11 +164,6 @@ export default function PartnersDashboardPage() {
     return () => { cancelled = true }
   }, [])
 
-  function StatValue({ value, className }: { value: number; className?: string }) {
-    if (showSkeleton) return <Skeleton className="h-9 w-16" />
-    return <p className={`text-3xl font-bold ${className ?? ""}`}>{value}</p>
-  }
-
   return (
     <section className="space-y-6">
       <header>
@@ -178,7 +186,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <StatValue value={totalCells} />
+            <StatValue value={totalCells} showSkeleton={showSkeleton} />
           </CardContent>
         </Card>
         <Card>
@@ -188,7 +196,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <StatValue value={hotspotCount} className="text-red-600" />
+            <StatValue value={hotspotCount} className="text-red-600" showSkeleton={showSkeleton} />
           </CardContent>
         </Card>
         <Card>
@@ -198,7 +206,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <StatValue value={highRiskCount} />
+            <StatValue value={highRiskCount} showSkeleton={showSkeleton} />
           </CardContent>
         </Card>
         <Card>
@@ -208,7 +216,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <StatValue value={totalSubmissions} />
+            <StatValue value={totalSubmissions} showSkeleton={showSkeleton} />
           </CardContent>
         </Card>
       </div>
