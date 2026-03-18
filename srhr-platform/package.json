@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "npx portless srhr next dev --turbopack",
+    "dev": "npx portless srhr --force next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
