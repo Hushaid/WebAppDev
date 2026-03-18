@@ -24,6 +24,7 @@ services:
       - "3060:3000"
     environment:
       DATABASE_URL: postgresql://srhr_user:srhr_dev_password@postgres:5432/srhr_platform
+      ELECTRIC_INSECURE: "true"
     depends_on:
       - postgres
 

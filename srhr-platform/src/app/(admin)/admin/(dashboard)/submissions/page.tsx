@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { getSubmissions, type SubmissionFilters } from "./actions"
 import { Badge } from "@/components/ui/badge"
-import { Flag } from "lucide-react"
+import { Flag, FileText } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -78,7 +78,28 @@ export default async function SubmissionsPage({
           />
 
           {submissions.length === 0 ? (
-            <p className="text-muted-foreground">No submissions match the current filters.</p>
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16">
+              <FileText className="mb-3 h-10 w-10 text-muted-foreground/50" />
+              {Object.keys(filterParams).length > 0 ? (
+                <>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    No submissions match your filters
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground/70">
+                    Try adjusting or resetting the filters above.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    No submissions yet
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground/70">
+                    Submissions will appear here once field workers or personal users complete questionnaires.
+                  </p>
+                </>
+              )}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>

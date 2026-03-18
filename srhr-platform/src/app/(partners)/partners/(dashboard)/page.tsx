@@ -15,6 +15,7 @@ import { CellDetail } from "@/components/partners/cell-detail"
 import { ClimateLayer } from "@/components/partners/climate-layer"
 import { useElectricShape } from "@/lib/electric/use-shape"
 import type { IrixScoreRow } from "@/lib/electric/shapes"
+import { MapPin } from "lucide-react"
 
 interface MapScore {
   h3_index: string
@@ -38,17 +39,28 @@ export default function PartnersDashboardPage() {
   const [climateVisible, setClimateVisible] = useState(false)
 
   // Real-time IRIX scores via Electric SQL
-  const { data: irixRows, isLoading } = useElectricShape<IrixScoreRow>(
+  const { data: irixRows, isLoading, isError } = useElectricShape<IrixScoreRow>(
     "irix_scores",
   )
 
+  // Timeout: if still loading after 8s, treat as unavailable
+  const [timedOut, setTimedOut] = useState(false)
+  useEffect(() => {
+    if (!isLoading) {
+      setTimedOut(false)
+      return
+    }
+    const timer = setTimeout(() => setTimedOut(true), 8000)
+    return () => clearTimeout(timer)
+  }, [isLoading])
+
+  const dataUnavailable = isError || (isLoading && timedOut)
+  const showSkeleton = isLoading && !timedOut
+  const hasData = !isLoading && !isError && irixRows.length > 0
+
   // Transform Electric SQL rows to map-compatible scores
-  // H3 cell center coordinates are derived from the H3 index
   const scores: MapScore[] = irixRows.map((row) => {
     const h3Index = (row.geographic_unit_id as string) ?? ""
-    // Latitude and longitude should be stored alongside IRIX scores.
-    // Fall back to row-level lat/lng if available, otherwise use H3 cell center
-    // from geographic_units join. Default to Nigeria centroid if unavailable.
     const lat = row.lat ? parseFloat(row.lat as string) : 9.06
     const lng = row.lng ? parseFloat(row.lng as string) : 7.49
     return {
@@ -73,13 +85,11 @@ export default function PartnersDashboardPage() {
     if (filters.riskLevel !== "all" && s.overall_risk_level !== filters.riskLevel) {
       return false
     }
-    // Disease group filter: only show cells where the selected group has a non-null score
     if (filters.diseaseGroup !== "all") {
       if (filters.diseaseGroup === "sti" && !s.sti_avg_score) return false
       if (filters.diseaseGroup === "maternal_health" && !s.maternal_avg_score) return false
       if (filters.diseaseGroup === "community_wellbeing" && !s.community_wellbeing_avg_score) return false
     }
-    // Date range filter on computed_at
     if (filters.dateFrom && s.computed_at && s.computed_at < filters.dateFrom) return false
     if (filters.dateTo && s.computed_at && s.computed_at > filters.dateTo + "T23:59:59") return false
     return true
@@ -141,6 +151,11 @@ export default function PartnersDashboardPage() {
     return () => { cancelled = true }
   }, [])
 
+  function StatValue({ value, className }: { value: number; className?: string }) {
+    if (showSkeleton) return <Skeleton className="h-9 w-16" />
+    return <p className={`text-3xl font-bold ${className ?? ""}`}>{value}</p>
+  }
+
   return (
     <section className="space-y-6">
       <header>
@@ -163,9 +178,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-9 w-16" /> : (
-              <p className="text-3xl font-bold">{totalCells}</p>
-            )}
+            <StatValue value={totalCells} />
           </CardContent>
         </Card>
         <Card>
@@ -175,9 +188,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-9 w-16" /> : (
-              <p className="text-3xl font-bold text-red-600">{hotspotCount}</p>
-            )}
+            <StatValue value={hotspotCount} className="text-red-600" />
           </CardContent>
         </Card>
         <Card>
@@ -187,9 +198,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-9 w-16" /> : (
-              <p className="text-3xl font-bold">{highRiskCount}</p>
-            )}
+            <StatValue value={highRiskCount} />
           </CardContent>
         </Card>
         <Card>
@@ -199,9 +208,7 @@ export default function PartnersDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-9 w-16" /> : (
-              <p className="text-3xl font-bold">{totalSubmissions}</p>
-            )}
+            <StatValue value={totalSubmissions} />
           </CardContent>
         </Card>
       </div>
@@ -215,13 +222,43 @@ export default function PartnersDashboardPage() {
 
       {/* Map */}
       <div className="relative">
-        {isLoading ? (
+        {showSkeleton ? (
           <div className="space-y-3 rounded-lg border p-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-8 w-24" />
             </div>
             <Skeleton className="h-[460px] w-full rounded-md" />
+          </div>
+        ) : dataUnavailable ? (
+          <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed">
+            <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
+            <p className="text-sm font-medium text-muted-foreground">
+              Unable to load community risk data
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              The real-time data service is currently unavailable. Please try again later.
+            </p>
+          </div>
+        ) : !hasData ? (
+          <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed">
+            <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
+            <p className="text-sm font-medium text-muted-foreground">
+              No community risk data yet
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              IRIX scores will appear here once enough questionnaire submissions have been processed.
+            </p>
+          </div>
+        ) : filteredScores.length === 0 ? (
+          <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed">
+            <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
+            <p className="text-sm font-medium text-muted-foreground">
+              No results match your filters
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              Try adjusting the filters above to see community risk data.
+            </p>
           </div>
         ) : (
           <IrixMap scores={filteredScores} onCellClick={setSelectedCell} />
