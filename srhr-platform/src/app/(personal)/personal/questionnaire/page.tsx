@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useSession } from "@/lib/auth/client"
@@ -20,6 +20,20 @@ export default function PersonalQuestionnairePage() {
     cooldownEndsAt?: string
   }>({ blocked: false })
   const [checking, setChecking] = useState(true)
+  const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
+
+  // Request location permission immediately on page load so the browser
+  // prompt is visible while the user reads the first question.
+  useEffect(() => {
+    captureGps()
+      .then((gps) => {
+        gpsRef.current = gps
+        sessionStorage.setItem("lastGps", JSON.stringify(gps))
+      })
+      .catch(() => {
+        // GPS is optional — continue without it
+      })
+  }, [])
 
   // Check single-submission cooldown (24h)
   useEffect(() => {
@@ -55,17 +69,9 @@ export default function PersonalQuestionnairePage() {
   async function handleComplete(data: QuestionnaireCompleteData) {
     setSubmitting(true)
 
-    // Capture GPS
-    let gpsLat: string | undefined
-    let gpsLng: string | undefined
-    try {
-      const gps = await captureGps()
-      gpsLat = gps.lat.toString()
-      gpsLng = gps.lng.toString()
-      sessionStorage.setItem("lastGps", JSON.stringify(gps))
-    } catch {
-      // GPS optional
-    }
+    // Use GPS captured at page load (prompt was shown on mount)
+    const gpsLat = gpsRef.current?.lat.toString()
+    const gpsLng = gpsRef.current?.lng.toString()
 
     if (!session?.user?.id) {
       router.push("/log-in")
