@@ -22,7 +22,7 @@ export async function getDedupSettings() {
 
   return {
     radiusMeters: radiusRow ? parseInt(radiusRow.value, 10) : 100,
-    windowMinutes: windowRow ? parseInt(windowRow.value, 10) : 2,
+    windowMinutes: windowRow ? parseInt(windowRow.value, 10) : 480,
   }
 }
 
@@ -36,8 +36,8 @@ export async function updateDedupSettings(data: {
   if (data.radiusMeters < 10 || data.radiusMeters > 10000) {
     return { success: false as const, error: "Radius must be between 10 and 10,000 meters." }
   }
-  if (data.windowMinutes < 1 || data.windowMinutes > 60) {
-    return { success: false as const, error: "Time window must be between 1 and 60 minutes." }
+  if (data.windowMinutes < 1 || data.windowMinutes > 1440) {
+    return { success: false as const, error: "Time window must be between 1 and 1,440 minutes (24 hours)." }
   }
 
   await db

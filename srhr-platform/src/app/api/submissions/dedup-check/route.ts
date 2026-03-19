@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { submissions, platformSettings } from "@/lib/db/schema"
 import { eq, and, gte, sql } from "drizzle-orm"
 
-const DEFAULT_DEDUP_WINDOW_MS = 2 * 60 * 1000
+const DEFAULT_DEDUP_WINDOW_MS = 480 * 60 * 1000 // 8 hours
 const DEFAULT_DEDUP_RADIUS_METERS = 100
 
 function metersToDegrees(meters: number) {

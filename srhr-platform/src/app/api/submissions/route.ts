@@ -23,7 +23,7 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
 
 /** Default dedup values — overridden by platform_settings if configured */
-const DEFAULT_DEDUP_WINDOW_MS = 2 * 60 * 1000
+const DEFAULT_DEDUP_WINDOW_MS = 480 * 60 * 1000 // 8 hours
 const DEFAULT_DEDUP_RADIUS_METERS = 100
 
 /** Convert meters to approximate degrees (~111,320m per degree at equator) */

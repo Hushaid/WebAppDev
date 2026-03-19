@@ -15,7 +15,7 @@ interface DedupSettingsProps {
 
 export function DedupSettings({ initialRadius, initialWindow }: DedupSettingsProps) {
   const [radius, setRadius] = useState(initialRadius)
-  const [window, setWindow] = useState(initialWindow)
+  const [window, setWindow] = useState(initialWindow || 480)
   const [isPending, startTransition] = useTransition()
 
   function handleSave() {
@@ -69,13 +69,13 @@ export function DedupSettings({ initialRadius, initialWindow }: DedupSettingsPro
               id="dedup-window"
               type="number"
               min={1}
-              max={60}
+              max={1440}
               value={window}
-              onChange={(e) => setWindow(parseInt(e.target.value, 10) || 2)}
+              onChange={(e) => setWindow(parseInt(e.target.value, 10) || 480)}
             />
             <p className="text-xs text-muted-foreground">
               Only submissions made within this many minutes of each other are
-              checked for duplicates. Default: 2 min. Range: 1–60 min.
+              checked for duplicates. Default: 480 min (8 hours). Range: 1–1,440 min (24 hours).
             </p>
           </div>
         </div>
