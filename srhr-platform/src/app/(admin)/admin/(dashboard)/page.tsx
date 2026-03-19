@@ -158,31 +158,33 @@ export default async function AdminDashboard() {
           ) : (
             <ul className="space-y-3">
               {stats.recentSubmissions.map((sub) => (
-                <li
-                  key={sub.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {sub.id.slice(0, 8)}...
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {sub.submitterType === "field_worker"
-                        ? "Field Worker"
-                        : "Personal"}{" "}
-                      &middot;{" "}
-                      {sub.createdAt
-                        ? new Date(sub.createdAt).toLocaleString()
-                        : ""}
-                    </p>
-                  </div>
-                  {sub.overallRiskLevel && (
-                    <Badge
-                      className={riskColors[sub.overallRiskLevel] || ""}
-                    >
-                      {sub.overallRiskLevel}
-                    </Badge>
-                  )}
+                <li key={sub.id}>
+                  <Link
+                    href={`/admin/submissions/${sub.id}`}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {sub.id.slice(0, 8)}...
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {sub.submitterType === "field_worker"
+                          ? "Field Worker"
+                          : "Personal"}{" "}
+                        &middot;{" "}
+                        {sub.createdAt
+                          ? new Date(sub.createdAt).toLocaleString()
+                          : ""}
+                      </p>
+                    </div>
+                    {sub.overallRiskLevel && (
+                      <Badge
+                        className={riskColors[sub.overallRiskLevel] || ""}
+                      >
+                        {sub.overallRiskLevel}
+                      </Badge>
+                    )}
+                  </Link>
                 </li>
               ))}
             </ul>

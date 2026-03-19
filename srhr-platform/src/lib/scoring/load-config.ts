@@ -2,7 +2,7 @@ import { db } from "@/lib/db"
 import { questions, questionnaires } from "@/lib/db/schema"
 import { eq, asc } from "drizzle-orm"
 import type { ScoringConfig } from "./engine"
-import type { QuestionConfig, DiseaseGroup } from "./questions-config"
+import { SCORED_QUESTIONS, type QuestionConfig, type DiseaseGroup } from "./questions-config"
 
 /**
  * Loads scoring configuration from the database.
@@ -26,13 +26,24 @@ export async function loadScoringConfigFromDB(): Promise<ScoringConfig | null> {
   const scoredRows = rows.filter((r) => r.diseaseGroup !== null && r.options)
   if (scoredRows.length === 0) return null
 
-  const questionConfigs: QuestionConfig[] = scoredRows.map((r) => ({
-    id: r.questionNumber,
-    text: r.text,
-    diseaseGroup: r.diseaseGroup as DiseaseGroup,
-    maxScore: r.scoreWeight,
-    options: (r.options ?? []) as { label: string; value: string; score: number }[],
-  }))
+  // Build a lookup from static config to inherit type/checkboxScoring metadata
+  const staticMap = new Map(SCORED_QUESTIONS.map((q) => [q.id, q]))
+
+  const questionConfigs: QuestionConfig[] = scoredRows.map((r) => {
+    const staticQ = staticMap.get(r.questionNumber)
+    const isCheckbox = r.type === "multiple_choice"
+    return {
+      id: r.questionNumber,
+      text: r.text,
+      diseaseGroup: r.diseaseGroup as DiseaseGroup,
+      maxScore: r.scoreWeight,
+      options: (r.options ?? []) as { label: string; value: string; score: number }[],
+      ...(isCheckbox && {
+        type: "checkbox" as const,
+        checkboxScoring: staticQ?.checkboxScoring,
+      }),
+    }
+  })
 
   const skipRules = scoredRows
     .filter((r) => {
