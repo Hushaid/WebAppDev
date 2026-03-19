@@ -6,6 +6,8 @@ import { eq, gte, sql, count } from "drizzle-orm"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 
 async function getDashboardStats() {
   const now = new Date()
@@ -71,12 +73,18 @@ const riskColors: Record<string, string> = {
 }
 
 export default async function AdminDashboard() {
-  const stats = await getDashboardStats()
+  const [stats, session] = await Promise.all([
+    getDashboardStats(),
+    auth.api.getSession({ headers: await headers() }),
+  ])
+  const adminName = session?.user?.name
 
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold">
+          {adminName ? `Welcome, ${adminName}` : "Admin Dashboard"}
+        </h1>
         <p className="text-muted-foreground">
           Monitor platform activity, track assessments, and manage health risk data across all users.
         </p>
