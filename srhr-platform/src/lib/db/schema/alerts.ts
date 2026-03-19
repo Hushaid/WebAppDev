@@ -22,6 +22,7 @@ export const alerts = pgTable("alerts", {
   sentAt: timestamp("sent_at", { withTimezone: true }),
   openedAt: timestamp("opened_at", { withTimezone: true }),
   actionedAt: timestamp("actioned_at", { withTimezone: true }),
+  adminNote: text("admin_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })

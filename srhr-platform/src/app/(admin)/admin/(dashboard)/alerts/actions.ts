@@ -26,6 +26,7 @@ export async function getAlerts(page: number = 1) {
       status: alerts.status,
       title: alerts.title,
       message: alerts.message,
+      adminNote: alerts.adminNote,
       sentAt: alerts.sentAt,
       createdAt: alerts.createdAt,
       recipientName: users.name,
@@ -49,6 +50,7 @@ export async function getAlerts(page: number = 1) {
 export async function updateAlertStatus(
   alertId: string,
   status: "sent" | "opened" | "actioned" | "dismissed",
+  note?: string,
 ) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
@@ -58,6 +60,7 @@ export async function updateAlertStatus(
   if (status === "sent") updateData.sentAt = new Date()
   if (status === "opened") updateData.openedAt = new Date()
   if (status === "actioned") updateData.actionedAt = new Date()
+  if (note?.trim()) updateData.adminNote = note.trim()
 
   await db.update(alerts).set(updateData).where(eq(alerts.id, alertId))
 
@@ -66,6 +69,7 @@ export async function updateAlertStatus(
     action: `alert_${status}`,
     entityType: "alert",
     entityId: alertId,
+    metadata: note?.trim() ? { note: note.trim() } : undefined,
   }).catch(console.error)
 
   revalidatePath("/admin/alerts")

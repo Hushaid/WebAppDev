@@ -141,6 +141,7 @@ export default async function AlertsPage({
                       alertId={alert.id}
                       status={alert.status}
                       submissionId={extractSubmissionId(alert.message)}
+                      adminNote={alert.adminNote ?? null}
                     />
                   </TableCell>
                 </TableRow>
