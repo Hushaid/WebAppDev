@@ -94,8 +94,7 @@ export default async function AlertsPage({
               <TableRow>
                 <TableHead className="w-[100px]">Type</TableHead>
                 <TableHead className="w-[70px]">Risk</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead className="w-[140px]">Recipient</TableHead>
+                <TableHead className="w-[260px]">Title</TableHead>
                 <TableHead className="w-[90px]">Status</TableHead>
                 <TableHead className="w-[100px]">Created</TableHead>
                 <TableHead className="w-[180px]">Actions</TableHead>
@@ -112,19 +111,6 @@ export default async function AlertsPage({
                       <p className="text-xs text-muted-foreground line-clamp-2">
                         {alert.message}
                       </p>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {alert.recipientName ? (
-                      <span className="text-sm">
-                        {alert.recipientName}
-                        <br />
-                        <span className="text-xs text-muted-foreground">
-                          {alert.recipientEmail}
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell>{statusBadge(alert.status)}</TableCell>
