@@ -78,10 +78,14 @@ export function UserActions({
   const [isStatusPending, startStatusTransition] = useTransition()
   const [isDeletePending, startDeleteTransition] = useTransition()
 
+  const isSelf = callerId === userId
+
+  // super_admin accounts cannot be suspended (only deleted by super_admin)
+  const canSuspend = currentRole !== "super_admin"
+
   // Determine if the current caller can delete this user:
   // - Can't delete yourself
   // - admin cannot delete admin/super_admin rows
-  const isSelf = callerId === userId
   const canDelete =
     !isSelf &&
     (callerRole === "super_admin" ||
@@ -173,16 +177,18 @@ export function UserActions({
           </DialogContent>
         </Dialog>
       </li>
-      <li>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleToggleStatus}
-          disabled={isStatusPending}
-        >
-          {currentStatus === "active" ? "Suspend" : "Activate"}
-        </Button>
-      </li>
+      {canSuspend && (
+        <li>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleToggleStatus}
+            disabled={isStatusPending}
+          >
+            {currentStatus === "active" ? "Suspend" : "Activate"}
+          </Button>
+        </li>
+      )}
       {canDelete && (
         <li>
           <AlertDialog>

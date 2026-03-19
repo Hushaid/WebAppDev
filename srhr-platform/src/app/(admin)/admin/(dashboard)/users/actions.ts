@@ -1,7 +1,16 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { users, accounts } from "@/lib/db/schema"
+import {
+  users,
+  accounts,
+  submissions,
+  alerts,
+  subjects,
+  auditLog,
+  climateDatasets,
+  fieldWorkerCodes,
+} from "@/lib/db/schema"
 import { eq, desc } from "drizzle-orm"
 
 /** Roles that a plain admin is not allowed to delete (only super_admin can) */
@@ -209,7 +218,18 @@ export async function deleteUser(userId: string) {
     return { success: false as const, error: "Admins cannot delete admin or super admin accounts." }
   }
 
-  // sessions, accounts, twoFactors cascade-delete automatically via FK
+  // 1. Delete records with NOT NULL FKs (cannot be nullified)
+  await db.delete(alerts).where(eq(alerts.recipientId, userId))
+  await db.delete(submissions).where(eq(submissions.submitterId, userId))
+  await db.delete(fieldWorkerCodes).where(eq(fieldWorkerCodes.issuedBy, userId))
+
+  // 2. Nullify nullable FKs so the rows are preserved but unlinking the user
+  await db.update(subjects).set({ createdBy: null }).where(eq(subjects.createdBy, userId))
+  await db.update(auditLog).set({ actorId: null }).where(eq(auditLog.actorId, userId))
+  await db.update(climateDatasets).set({ uploadedBy: null }).where(eq(climateDatasets.uploadedBy, userId))
+  await db.update(fieldWorkerCodes).set({ issuedTo: null }).where(eq(fieldWorkerCodes.issuedTo, userId))
+
+  // 3. Delete user — sessions, accounts, twoFactors cascade automatically via FK
   await db.delete(users).where(eq(users.id, userId))
 
   logAudit({
