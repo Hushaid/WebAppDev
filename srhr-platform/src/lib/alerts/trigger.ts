@@ -32,7 +32,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
 
   // Find all partner and admin users to notify
   const recipients = await db
-    .select({ id: users.id, email: users.email, name: users.name })
+    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
     .from(users)
     .where(
       inArray(users.role, ["partner", "admin", "super_admin"]),
@@ -83,9 +83,10 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
     const recipient = recipients[i]
     const alertRecord = insertedAlerts[i]
 
-    // Determine the alerts page URL based on role
-    const alertsUrl = `${baseUrl}/partners/alerts`
-    const submissionUrl = `${baseUrl}/admin/submissions/${payload.submissionId}`
+    // Determine URLs based on role
+    const isAdmin = recipient.role === "admin" || recipient.role === "super_admin"
+    const alertsUrl = isAdmin ? `${baseUrl}/admin/alerts` : `${baseUrl}/partners/alerts`
+    const submissionUrl = isAdmin ? `${baseUrl}/admin/submissions/${payload.submissionId}` : null
 
     try {
       await resend.emails.send({
@@ -118,9 +119,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
             <a href="${alertsUrl}" style="display: inline-block; background: #dc2626; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 4px 8px 0;">
               View Alerts
             </a>
-            <a href="${submissionUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 0;">
-              View Submission
-            </a>
+            ${submissionUrl ? `<a href="${submissionUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 0;">View Submission</a>` : ""}
 
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
             <p style="color: #94a3b8; font-size: 12px;">Hushaid &mdash; Confidential health assessments for Nigerian communities.</p>

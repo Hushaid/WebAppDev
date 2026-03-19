@@ -14,6 +14,7 @@ type GpsState =
   | { status: "pending" }
   | { status: "granted"; lat: number; lng: number }
   | { status: "denied"; error: string }
+  | { status: "duplicate"; blockedUntil: string; windowMinutes: number }
 
 export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
@@ -25,16 +26,38 @@ export default function FieldWorkerQuestionnairePage() {
   // Request location permission immediately on page load.
   // GPS is required for field workers — it enables duplicate detection (FR-023).
   useEffect(() => {
+    if (!session) return // wait for session to load before dedup check
+
     captureGps()
-      .then((pos) => {
+      .then(async (pos) => {
         gpsRef.current = { lat: pos.lat, lng: pos.lng }
         sessionStorage.setItem("lastGps", JSON.stringify({ lat: pos.lat, lng: pos.lng }))
+
+        // Check for duplicate submission before allowing the assessment to start
+        const submitterId = session.user?.id
+        if (submitterId) {
+          try {
+            const res = await fetch(
+              `/api/submissions/dedup-check?submitterId=${submitterId}&lat=${pos.lat}&lng=${pos.lng}`,
+            )
+            if (res.ok) {
+              const data = await res.json()
+              if (data.isDuplicate) {
+                setGps({ status: "duplicate", blockedUntil: data.blockedUntil, windowMinutes: data.windowMinutes })
+                return
+              }
+            }
+          } catch {
+            // Network error — allow through, API-level check is the final guard
+          }
+        }
+
         setGps({ status: "granted", lat: pos.lat, lng: pos.lng })
       })
       .catch((err: Error) => {
         setGps({ status: "denied", error: err.message })
       })
-  }, [])
+  }, [session])
 
   async function handleComplete(data: QuestionnaireCompleteData) {
     if (!gpsRef.current) return // blocked by UI — should not reach here
@@ -124,13 +147,29 @@ export default function FieldWorkerQuestionnairePage() {
           <p className="text-sm font-medium text-destructive">Location access required</p>
           <p className="text-sm text-muted-foreground">
             Location permission is required to submit an assessment. This is used to prevent
-            duplicate data collection (FR-023). Please enable location access in your browser
-            settings and reload the page.
+            duplicate data collection. Please enable location access in your browser settings
+            and reload the page.
           </p>
           <p className="text-xs text-muted-foreground">Error: {gps.error}</p>
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             Reload page
           </Button>
+        </div>
+      )}
+
+      {gps.status === "duplicate" && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 space-y-3">
+          <p className="text-sm font-medium text-orange-800">Recent submission detected</p>
+          <p className="text-sm text-orange-700">
+            A submission was already recorded from this location within the last{" "}
+            {gps.windowMinutes} {gps.windowMinutes === 1 ? "minute" : "minutes"}. To prevent
+            duplicate data collection, you cannot start a new assessment from here yet.
+          </p>
+          <p className="text-sm text-orange-700">
+            You can start a new assessment after{" "}
+            <strong>{new Date(gps.blockedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</strong>,
+            or move to a different location.
+          </p>
         </div>
       )}
 

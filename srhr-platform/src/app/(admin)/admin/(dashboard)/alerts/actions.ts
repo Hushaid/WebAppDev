@@ -14,9 +14,15 @@ const PAGE_SIZE = 10
 export async function getAlerts(page: number = 1) {
   const offset = (page - 1) * PAGE_SIZE
 
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  const userId = session?.user?.id
+  if (!userId) return { items: [], total: 0, page, pageSize: PAGE_SIZE, totalPages: 0 }
+
   const [countResult] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(alerts)
+    .where(eq(alerts.recipientId, userId))
 
   const items = await db
     .select({
@@ -34,6 +40,7 @@ export async function getAlerts(page: number = 1) {
     })
     .from(alerts)
     .leftJoin(users, eq(alerts.recipientId, users.id))
+    .where(eq(alerts.recipientId, userId))
     .orderBy(desc(alerts.createdAt))
     .limit(PAGE_SIZE)
     .offset(offset)
