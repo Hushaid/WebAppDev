@@ -1,7 +1,8 @@
+export const runtime = "nodejs"
+
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { betterFetch } from "@better-fetch/fetch"
-import type { Session } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 
 const protectedRoutes: Record<string, string[]> = {
   "/admin": ["admin", "super_admin"],
@@ -52,16 +53,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Fetch session from Better Auth
-  const { data: session } = await betterFetch<Session>(
-    "/api/auth/get-session",
-    {
-      baseURL: request.nextUrl.origin,
-      headers: {
-        cookie: request.headers.get("cookie") || "",
-      },
-    },
-  )
+  // Validate session directly via Better Auth (no self-referential HTTP call)
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  })
 
   // Get the login URL for this route group
   const loginUrl = loginRoutes[matchedRoute] ?? "/log-in"

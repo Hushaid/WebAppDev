@@ -34,11 +34,22 @@ async function getTrustedOrigins(request?: Request) {
     if (origin) {
       const url = new URL(origin)
       const o = url.origin
-      if (
-        (o.startsWith("http://srhr.localhost") || o.startsWith("http://localhost")) &&
-        !origins.includes(o)
-      ) {
-        origins.push(o)
+      if (!origins.includes(o)) {
+        // Always trust localhost variants (dev)
+        if (o.startsWith("http://srhr.localhost") || o.startsWith("http://localhost")) {
+          origins.push(o)
+        }
+        // Trust any origin whose hostname matches the configured base URL
+        // so production HTTPS domains (e.g. stage.hushaid.com) are accepted
+        // even when the protocol or port differs from the env-var value.
+        try {
+          const baseHostname = new URL(baseUrl).hostname
+          if (url.hostname === baseHostname) {
+            origins.push(o)
+          }
+        } catch {
+          // ignore
+        }
       }
     }
   } catch {
@@ -225,8 +236,8 @@ export const auth = betterAuth({
     max: 10,
   },
   session: {
-    expiresIn: 60 * 30, // 30 minutes — session expires after 30 min of inactivity
-    updateAge: 60 * 5, // 5 minutes — refresh session on activity
+    expiresIn: 60 * 60 * 8, // 8 hours — session expires after 8 hours of inactivity
+    updateAge: 60 * 15, // 15 minutes — refresh session token on activity
   },
   user: {
     additionalFields: {

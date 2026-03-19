@@ -13,10 +13,28 @@ const TRUSTED_ORIGINS = [
   "http://localhost:1355",
 ].filter(Boolean) as string[]
 
+const _baseHostname = (() => {
+  try {
+    const u = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_BETTER_AUTH_URL
+    return u ? new URL(u).hostname : null
+  } catch {
+    return null
+  }
+})()
+
 function isOriginTrusted(origin: string | null): boolean {
   if (!origin) return false
   if (TRUSTED_ORIGINS.includes(origin)) return true
-  return origin.startsWith("http://srhr.localhost") || origin.startsWith("http://localhost")
+  if (origin.startsWith("http://srhr.localhost") || origin.startsWith("http://localhost")) return true
+  // Trust any scheme/port combination for the configured production hostname
+  if (_baseHostname) {
+    try {
+      return new URL(origin).hostname === _baseHostname
+    } catch {
+      return false
+    }
+  }
+  return false
 }
 
 function getAllowedOrigin(request: NextRequest): string {
@@ -38,8 +56,28 @@ async function withCors(
   handler: (req: NextRequest) => Promise<Response>,
 ): Promise<Response> {
   const response = await handler(request)
-  const newHeaders = new Headers(response.headers)
+  const newHeaders = new Headers()
+
+  // Copy all headers except Set-Cookie (handled separately to preserve multiples)
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "set-cookie") {
+      newHeaders.set(key, value)
+    }
+  })
+
+  // Append CORS headers
   Object.entries(corsHeaders(request)).forEach(([k, v]) => newHeaders.set(k, v))
+
+  // Re-append each Set-Cookie header individually so multiple cookies are preserved
+  const setCookies =
+    typeof response.headers.getSetCookie === "function"
+      ? response.headers.getSetCookie()
+      : ([response.headers.get("set-cookie")].filter(Boolean) as string[])
+
+  for (const cookie of setCookies) {
+    newHeaders.append("set-cookie", cookie)
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

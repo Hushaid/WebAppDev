@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts")
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Allow middleware to run on the Node.js runtime so it can call the
+    // auth DB directly instead of making a self-referential HTTP call.
+    nodeMiddleware: true,
+  },
   async headers() {
     return [
       {
