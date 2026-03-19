@@ -3,6 +3,9 @@
 import { db } from "@/lib/db"
 import { users, accounts } from "@/lib/db/schema"
 import { eq, desc } from "drizzle-orm"
+
+/** Roles that a plain admin is not allowed to delete (only super_admin can) */
+const PROTECTED_ROLES = ["admin", "super_admin"]
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -174,6 +177,47 @@ export async function createUser(data: {
     entityType: "user",
     entityId: id,
     metadata: { role: data.role, email: data.email.toLowerCase().trim() },
+  }).catch(console.error)
+
+  revalidatePath("/admin/users")
+  return { success: true as const }
+}
+
+export async function deleteUser(userId: string) {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+
+  const callerRole = (session?.user as { role?: string } | undefined)?.role
+  const callerId = session?.user?.id
+
+  if (!callerRole || !["admin", "super_admin"].includes(callerRole)) {
+    return { success: false as const, error: "Unauthorized." }
+  }
+
+  if (callerId === userId) {
+    return { success: false as const, error: "You cannot delete your own account." }
+  }
+
+  // Fetch target user to check their role
+  const [target] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+  if (!target) {
+    return { success: false as const, error: "User not found." }
+  }
+
+  // admin cannot delete admin or super_admin users — only super_admin can
+  if (callerRole === "admin" && PROTECTED_ROLES.includes(target.role)) {
+    return { success: false as const, error: "Admins cannot delete admin or super admin accounts." }
+  }
+
+  // sessions, accounts, twoFactors cascade-delete automatically via FK
+  await db.delete(users).where(eq(users.id, userId))
+
+  logAudit({
+    actorId: callerId,
+    action: "delete",
+    entityType: "user",
+    entityId: userId,
+    metadata: { deletedRole: target.role, deletedEmail: target.email },
   }).catch(console.error)
 
   revalidatePath("/admin/users")

@@ -13,6 +13,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,14 +42,19 @@ const ROLES = [
 type UserRole = (typeof ROLES)[number]
 type UserStatus = "active" | "inactive" | "suspended"
 
+/** Roles that a plain admin cannot delete */
+const PROTECTED_ROLES = ["admin", "super_admin"]
+
 interface UserActionsProps {
   userId: string
   userName: string
   currentRole: string
   currentStatus: string
   callerRole: string
+  callerId: string
   updateRole: (userId: string, role: UserRole) => Promise<void>
   updateStatus: (userId: string, status: UserStatus) => Promise<void>
+  deleteUser: (userId: string) => Promise<{ success: boolean; error?: string }>
 }
 
 export function UserActions({
@@ -47,8 +63,10 @@ export function UserActions({
   currentRole,
   currentStatus,
   callerRole,
+  callerId,
   updateRole,
   updateStatus,
+  deleteUser,
 }: UserActionsProps) {
   const availableRoles = callerRole === "super_admin"
     ? ROLES
@@ -58,6 +76,16 @@ export function UserActions({
   const [selectedRole, setSelectedRole] = useState(currentRole)
   const [isRolePending, startRoleTransition] = useTransition()
   const [isStatusPending, startStatusTransition] = useTransition()
+  const [isDeletePending, startDeleteTransition] = useTransition()
+
+  // Determine if the current caller can delete this user:
+  // - Can't delete yourself
+  // - admin cannot delete admin/super_admin rows
+  const isSelf = callerId === userId
+  const canDelete =
+    !isSelf &&
+    (callerRole === "super_admin" ||
+      (callerRole === "admin" && !PROTECTED_ROLES.includes(currentRole)))
 
   function handleSaveRole() {
     if (selectedRole === currentRole) {
@@ -88,6 +116,17 @@ export function UserActions({
         )
       } catch {
         toast.error("Failed to update status")
+      }
+    })
+  }
+
+  function handleDelete() {
+    startDeleteTransition(async () => {
+      const result = await deleteUser(userId)
+      if (result.success) {
+        toast.success("User deleted", { description: userName })
+      } else {
+        toast.error(result.error ?? "Failed to delete user")
       }
     })
   }
@@ -144,6 +183,35 @@ export function UserActions({
           {currentStatus === "active" ? "Suspend" : "Activate"}
         </Button>
       </li>
+      {canDelete && (
+        <li>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={isDeletePending}>
+                {isDeletePending ? "Deleting..." : "Delete"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete user?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete <strong>{userName}</strong> and all their
+                  data (sessions, login credentials, 2FA). This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </li>
+      )}
     </menu>
   )
 }

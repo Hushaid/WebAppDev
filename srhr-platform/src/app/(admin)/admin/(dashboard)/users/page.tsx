@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getUsers, updateUserRole, updateUserStatus } from "./actions"
+import { getUsers, updateUserRole, updateUserStatus, deleteUser } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -20,6 +20,7 @@ export default async function UsersPage() {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
   const callerRole = (session?.user as { role?: string } | undefined)?.role ?? "admin"
+  const callerId = session?.user?.id ?? ""
   const allUsers = await getUsers()
 
   return (
@@ -91,8 +92,10 @@ export default async function UsersPage() {
                       currentRole={user.role}
                       currentStatus={user.status}
                       callerRole={callerRole}
+                      callerId={callerId}
                       updateRole={updateUserRole}
                       updateStatus={updateUserStatus}
+                      deleteUser={deleteUser}
                     />
                   </TableCell>
                 </TableRow>
