@@ -25,11 +25,15 @@ interface QuestionnaireWizardProps {
   onComplete: (data: QuestionnaireCompleteData) => void
 }
 
+/** Question IDs where a response is not required to advance */
+const OPTIONAL_QUESTION_IDS = new Set(["Q10", "Q44", "PS4", "PS5"])
+
 type WizardQuestion = {
   id: string
   text: string
   type: "text" | "select" | "radio" | "checkbox"
   options?: { label: string; value: string }[]
+  optional?: boolean
 }
 
 export function QuestionnaireWizard({
@@ -53,6 +57,7 @@ export function QuestionnaireWizard({
         text: q.text,
         type: q.type,
         options: q.options,
+        optional: OPTIONAL_QUESTION_IDS.has(q.id),
       })
     }
 
@@ -95,6 +100,7 @@ export function QuestionnaireWizard({
         text: q.text,
         type: q.type,
         options: q.options,
+        optional: OPTIONAL_QUESTION_IDS.has(q.id),
       })
     }
 
@@ -105,6 +111,7 @@ export function QuestionnaireWizard({
         text: q.text,
         type: q.type,
         options: q.options,
+        optional: OPTIONAL_QUESTION_IDS.has(q.id),
       })
     }
 
@@ -144,7 +151,8 @@ export function QuestionnaireWizard({
     setCurrentIndex((i) => Math.max(i - 1, 0))
   }
 
-  const canAdvance = !!responses[visibleQuestions[safeIndex]?.id]
+  const canAdvance =
+    currentQuestion?.optional || !!responses[visibleQuestions[safeIndex]?.id]
 
   const handleEnterKey = useCallback(
     (e: KeyboardEvent) => {
@@ -230,6 +238,7 @@ export function QuestionnaireWizard({
         onChange={handleChange}
         onNext={handleNext}
         showError={showError}
+        optional={currentQuestion.optional}
       />
 
       <nav className="flex justify-between">

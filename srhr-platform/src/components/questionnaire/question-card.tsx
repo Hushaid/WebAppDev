@@ -28,6 +28,7 @@ interface QuestionCardProps {
   onChange: (value: string) => void
   onNext?: () => void
   showError?: boolean
+  optional?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -150,12 +151,18 @@ export function QuestionCard({
   onChange,
   onNext,
   showError,
+  optional,
 }: QuestionCardProps) {
   return (
     <Card className={showError ? "border-destructive" : undefined}>
       <CardHeader>
         <CardTitle className="text-base font-medium leading-snug">
-          <Label htmlFor={questionId}>{text}</Label>
+          <Label htmlFor={questionId}>
+            {text}
+            {optional && (
+              <span className="ml-1.5 text-sm font-normal text-muted-foreground">(Optional)</span>
+            )}
+          </Label>
         </CardTitle>
       </CardHeader>
       <CardContent>
