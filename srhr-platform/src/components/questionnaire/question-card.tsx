@@ -157,12 +157,7 @@ export function QuestionCard({
     <Card className={showError ? "border-destructive" : undefined}>
       <CardHeader>
         <CardTitle className="text-base font-medium leading-snug">
-          <Label htmlFor={questionId}>
-            {text}
-            {optional && (
-              <span className="ml-1.5 text-sm font-normal text-muted-foreground">(Optional)</span>
-            )}
-          </Label>
+          <Label htmlFor={questionId}>{text}</Label>
         </CardTitle>
       </CardHeader>
       <CardContent>
