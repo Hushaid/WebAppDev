@@ -27,6 +27,7 @@ interface QuestionCardProps {
   value: string
   onChange: (value: string) => void
   onNext?: () => void
+  showError?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -148,9 +149,10 @@ export function QuestionCard({
   value,
   onChange,
   onNext,
+  showError,
 }: QuestionCardProps) {
   return (
-    <Card>
+    <Card className={showError ? "border-destructive" : undefined}>
       <CardHeader>
         <CardTitle className="text-base font-medium leading-snug">
           <Label htmlFor={questionId}>{text}</Label>
@@ -206,6 +208,14 @@ export function QuestionCard({
             value={value}
             onChange={onChange}
           />
+        )}
+
+        {showError && (
+          <p className="mt-3 text-sm font-medium text-destructive">
+            {type === "text"
+              ? "Please enter a response before continuing."
+              : "Please select an option before continuing."}
+          </p>
         )}
       </CardContent>
     </Card>

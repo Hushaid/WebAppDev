@@ -38,6 +38,7 @@ export function QuestionnaireWizard({
 }: QuestionnaireWizardProps) {
   const [responses, setResponses] = useState<QuestionnaireResponse>({})
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [showError, setShowError] = useState(false)
 
   const sex = (responses["Q3"] as Sex) || null
 
@@ -118,6 +119,7 @@ export function QuestionnaireWizard({
   const isLast = safeIndex === totalQuestions - 1
 
   function handleChange(value: string) {
+    setShowError(false)
     setResponses((prev) => ({
       ...prev,
       [currentQuestion.id]: value,
@@ -125,6 +127,11 @@ export function QuestionnaireWizard({
   }
 
   function handleNext() {
+    if (!canAdvance) {
+      setShowError(true)
+      return
+    }
+    setShowError(false)
     if (isLast) {
       handleSubmit()
       return
@@ -133,6 +140,7 @@ export function QuestionnaireWizard({
   }
 
   function handleBack() {
+    setShowError(false)
     setCurrentIndex((i) => Math.max(i - 1, 0))
   }
 
@@ -144,7 +152,7 @@ export function QuestionnaireWizard({
       const tag = (e.target as HTMLElement)?.tagName
       // Let text inputs handle Enter via their own onKeyDown
       if (tag === "INPUT" || tag === "TEXTAREA") return
-      if (canAdvance) handleNext()
+      handleNext()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [canAdvance, safeIndex, isLast, totalQuestions],
@@ -221,6 +229,7 @@ export function QuestionnaireWizard({
         value={responses[currentQuestion.id] ?? ""}
         onChange={handleChange}
         onNext={handleNext}
+        showError={showError}
       />
 
       <nav className="flex justify-between">
