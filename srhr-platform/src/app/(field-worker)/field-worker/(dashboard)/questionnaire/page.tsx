@@ -10,26 +10,35 @@ import { captureGps } from "@/lib/utils/geo"
 import { addPendingSubmission } from "@/lib/offline/db"
 import { Button } from "@/components/ui/button"
 
+type GpsState =
+  | { status: "pending" }
+  | { status: "granted"; lat: number; lng: number }
+  | { status: "denied"; error: string }
+
 export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
+  const [gps, setGps] = useState<GpsState>({ status: "pending" })
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
 
-  // Request location permission immediately on page load so the browser
-  // prompt is visible while the field worker reads the first question.
+  // Request location permission immediately on page load.
+  // GPS is required for field workers — it enables duplicate detection (FR-023).
   useEffect(() => {
     captureGps()
-      .then((gps) => {
-        gpsRef.current = gps
-        sessionStorage.setItem("lastGps", JSON.stringify(gps))
+      .then((pos) => {
+        gpsRef.current = { lat: pos.lat, lng: pos.lng }
+        sessionStorage.setItem("lastGps", JSON.stringify({ lat: pos.lat, lng: pos.lng }))
+        setGps({ status: "granted", lat: pos.lat, lng: pos.lng })
       })
-      .catch(() => {
-        // GPS is optional — continue without it
+      .catch((err: Error) => {
+        setGps({ status: "denied", error: err.message })
       })
   }, [])
 
   async function handleComplete(data: QuestionnaireCompleteData) {
+    if (!gpsRef.current) return // blocked by UI — should not reach here
+
     setSubmitting(true)
 
     if (!session?.user?.id) {
@@ -37,9 +46,8 @@ export default function FieldWorkerQuestionnairePage() {
       return
     }
 
-    // Use GPS captured at page load (prompt was shown on mount)
-    const gpsLat = gpsRef.current?.lat.toString()
-    const gpsLng = gpsRef.current?.lng.toString()
+    const gpsLat = gpsRef.current.lat.toString()
+    const gpsLng = gpsRef.current.lng.toString()
 
     const payload = {
       submitterId: session.user.id,
@@ -69,8 +77,13 @@ export default function FieldWorkerQuestionnairePage() {
       if (res.ok) {
         const result = await res.json()
         sessionStorage.setItem("lastSubmissionId", result.submissionId)
+      } else if (res.status === 409) {
+        // Duplicate submission detected
+        const body = await res.json()
+        alert(body.error ?? "Duplicate submission detected. Please move to a new location before submitting again.")
+        setSubmitting(false)
+        return
       } else {
-        // Server error — queue for later
         await addPendingSubmission(payload)
       }
     } catch {
@@ -98,7 +111,30 @@ export default function FieldWorkerQuestionnairePage() {
             : "Complete the health risk assessment for the individual you are assisting."}
         </p>
       </header>
-      {!submitting && (
+
+      {/* GPS required gate */}
+      {gps.status === "pending" && (
+        <div className="rounded-lg border p-4 text-sm text-muted-foreground">
+          Waiting for location access… Please allow location permission when prompted.
+        </div>
+      )}
+
+      {gps.status === "denied" && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 space-y-3">
+          <p className="text-sm font-medium text-destructive">Location access required</p>
+          <p className="text-sm text-muted-foreground">
+            Location permission is required to submit an assessment. This is used to prevent
+            duplicate data collection (FR-023). Please enable location access in your browser
+            settings and reload the page.
+          </p>
+          <p className="text-xs text-muted-foreground">Error: {gps.error}</p>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            Reload page
+          </Button>
+        </div>
+      )}
+
+      {!submitting && gps.status === "granted" && (
         <QuestionnaireWizard
           submitterType="field_worker"
           onComplete={handleComplete}

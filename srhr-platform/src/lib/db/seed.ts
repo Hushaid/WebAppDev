@@ -175,7 +175,7 @@ async function seed() {
       return {
         questionNumber: q.id,
         text: questionTexts[q.id] ?? q.text,
-        type: "single_choice" as const,
+        type: (q.type === "checkbox" ? "multiple_choice" : "single_choice") as "single_choice" | "multiple_choice",
         scoreWeight: q.maxScore,
         diseaseGroup: q.diseaseGroup as "sti" | "maternal_health" | "community_wellbeing",
         options: q.options,
@@ -213,9 +213,10 @@ async function seed() {
         .limit(1)
 
       if (existing) {
-        // Update text, options, and conditionalLogic
+        // Update text, type, options, and conditionalLogic
         const updates: Record<string, unknown> = {}
         if (existing.text !== q.text) updates.text = q.text
+        if (existing.type !== q.type) updates.type = q.type
         if ("options" in q && q.options) updates.options = q.options
         if ("conditionalLogic" in q) updates.conditionalLogic = q.conditionalLogic
         if (Object.keys(updates).length > 0) {

@@ -26,12 +26,14 @@ export async function loadScoringConfigFromDB(): Promise<ScoringConfig | null> {
   const scoredRows = rows.filter((r) => r.diseaseGroup !== null && r.options)
   if (scoredRows.length === 0) return null
 
-  // Build a lookup from static config to inherit type/checkboxScoring metadata
+  // Build a lookup from static config to inherit type/checkboxScoring metadata.
+  // The DB type column is unreliable (seed stored everything as single_choice),
+  // so we derive checkbox behaviour from the static config instead.
   const staticMap = new Map(SCORED_QUESTIONS.map((q) => [q.id, q]))
 
   const questionConfigs: QuestionConfig[] = scoredRows.map((r) => {
     const staticQ = staticMap.get(r.questionNumber)
-    const isCheckbox = r.type === "multiple_choice"
+    const isCheckbox = staticQ?.type === "checkbox"
     return {
       id: r.questionNumber,
       text: r.text,

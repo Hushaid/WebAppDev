@@ -88,6 +88,14 @@ export async function POST(request: NextRequest) {
     }
     const body = parsed.data
 
+    // 0. GPS is required for field workers (FR-023 — enables duplicate detection)
+    if (body.submitterType === "field_worker" && (!body.gpsLat || !body.gpsLng)) {
+      return NextResponse.json(
+        { error: "Location data is required for field worker submissions." },
+        { status: 400 },
+      )
+    }
+
     // 1. Duplicate detection
     // a) Check by clientSubmissionId (offline sync retries)
     if (body.clientSubmissionId) {
