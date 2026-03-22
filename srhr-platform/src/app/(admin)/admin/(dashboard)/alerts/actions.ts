@@ -3,7 +3,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, desc, sql } from "drizzle-orm"
+import { eq, desc, sql, and } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -69,7 +69,33 @@ export async function updateAlertStatus(
   if (status === "actioned") updateData.actionedAt = new Date()
   if (note?.trim()) updateData.adminNote = note.trim()
 
-  await db.update(alerts).set(updateData).where(eq(alerts.id, alertId))
+  // For actioned/dismissed, propagate to ALL sibling alerts (same event, different recipients)
+  // so that when one admin resolves/dismisses, it's done for everyone
+  if (status === "actioned" || status === "dismissed") {
+    // Look up the alert to find its title + message (the shared key across recipients)
+    const [alertRow] = await db
+      .select({ title: alerts.title, message: alerts.message })
+      .from(alerts)
+      .where(eq(alerts.id, alertId))
+      .limit(1)
+
+    if (alertRow) {
+      await db
+        .update(alerts)
+        .set(updateData)
+        .where(
+          and(
+            eq(alerts.title, alertRow.title),
+            alertRow.message
+              ? eq(alerts.message, alertRow.message)
+              : sql`${alerts.message} IS NULL`,
+          ),
+        )
+    }
+  } else {
+    // For other statuses (sent, opened), only update the individual alert
+    await db.update(alerts).set(updateData).where(eq(alerts.id, alertId))
+  }
 
   logAudit({
     actorId: session?.user?.id,
