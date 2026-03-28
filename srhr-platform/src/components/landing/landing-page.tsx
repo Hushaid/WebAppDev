@@ -334,16 +334,18 @@ export function LandingPage() {
 function ContactForm() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState("")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSending(true)
+    setError("")
 
     const form = e.currentTarget
     const data = new FormData(form)
 
     try {
-      await fetch("/api/contact", {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -352,11 +354,17 @@ function ContactForm() {
           message: data.get("message"),
         }),
       })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        setError(body?.error || "Something went wrong. Please try again.")
+        return
+      }
+
       setSent(true)
       form.reset()
     } catch {
-      // Silently handle — the form still resets
-      setSent(true)
+      setError("Could not reach the server. Please try again.")
     } finally {
       setSending(false)
     }
@@ -418,6 +426,9 @@ function ContactForm() {
           required
         />
       </div>
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
       <Button type="submit" disabled={sending} className="mt-2">
         {sending ? (
           <>
