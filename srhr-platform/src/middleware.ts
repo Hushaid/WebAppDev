@@ -29,6 +29,7 @@ const publicPaths = [
   "/forgot-password",
   "/reset-password",
   "/api/auth",
+  "/api/contact",
   "/mfa",
   "/admin/log-in",
   "/field-worker/log-in",

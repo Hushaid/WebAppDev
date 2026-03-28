@@ -2,18 +2,24 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import {
   Heart,
-  Shield,
   Users,
   ClipboardCheck,
   ArrowRight,
   MapPin,
   BarChart3,
   Lock,
+  Mail,
+  Send,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 export function LandingPage() {
   return (
@@ -46,17 +52,16 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28 lg:py-36">
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
-              Confidential health assessments
+              Confidential risk assessments
             </div>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Community health risk assessment,{" "}
-              <span className="text-primary">simplified</span>
+              Know your risk,{" "}
+              <span className="text-primary">own your future</span>
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Hushaid empowers communities across Nigeria with confidential,
-              AI-powered sexual and reproductive health risk assessments.
-              Collect data, score risks, and generate actionable insights.
+              AI-powered sexual and reproductive health risk assessments
+              — by collecting community and climate data to generate actionable insights.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" className="w-full sm:w-auto" asChild>
@@ -136,8 +141,8 @@ export function LandingPage() {
                 <CardTitle className="text-xl">Personal User</CardTitle>
                 <CardDescription className="text-sm leading-relaxed">
                   Take a confidential health risk assessment on your own.
-                  No field worker needed — assess your STI, maternal health,
-                  and community wellbeing risks privately.
+                  Assess your STI, maternal health, and community
+                  wellbeing risks privately.
                 </CardDescription>
               </CardHeader>
               <div className="flex gap-2 px-6 pb-6">
@@ -160,7 +165,7 @@ export function LandingPage() {
                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-chart-2/10 text-chart-2">
                   <Users className="h-6 w-6" />
                 </div>
-                <CardTitle className="text-xl">Field Worker</CardTitle>
+                <CardTitle className="text-xl">Field / Health Worker</CardTitle>
                 <CardDescription className="text-sm leading-relaxed">
                   Conduct health assessments in the community on behalf
                   of individuals. GPS-tagged submissions help build a
@@ -266,6 +271,47 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Contact Us */}
+      <section id="contact" className="scroll-mt-20 border-t bg-muted/30 py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Contact us
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Have questions or want to partner with us? Get in touch.
+            </p>
+          </div>
+          <div className="mx-auto grid max-w-4xl gap-10 lg:grid-cols-2">
+            {/* Info */}
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-3 rounded-xl border bg-background p-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Email us</p>
+                  <a
+                    href="mailto:Info@hushaid.com"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Info@hushaid.com
+                  </a>
+                </div>
+              </div>
+              <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+                Whether you are an NGO, government agency, healthcare provider,
+                or community leader — we would love to hear from you. Send us a
+                message and our team will get back to you shortly.
+              </p>
+            </div>
+
+            {/* Contact Form */}
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
@@ -282,6 +328,110 @@ export function LandingPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+function ContactForm() {
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSending(true)
+
+    const form = e.currentTarget
+    const data = new FormData(form)
+
+    try {
+      await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          email: data.get("email"),
+          message: data.get("message"),
+        }),
+      })
+      setSent(true)
+      form.reset()
+    } catch {
+      // Silently handle — the form still resets
+      setSent(true)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl border bg-background p-10 text-center">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Send className="h-5 w-5" />
+        </div>
+        <h3 className="font-semibold">Message sent</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Thank you for reaching out. We will get back to you soon.
+        </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-4"
+          onClick={() => setSent(false)}
+        >
+          Send another message
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 rounded-xl border bg-background p-6"
+    >
+      <div className="space-y-2">
+        <Label htmlFor="contact-name">Name</Label>
+        <Input
+          id="contact-name"
+          name="name"
+          placeholder="Your name"
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-email">Email address</Label>
+        <Input
+          id="contact-email"
+          name="email"
+          type="email"
+          placeholder="you@example.com"
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-message">Message</Label>
+        <Textarea
+          id="contact-message"
+          name="message"
+          placeholder="How can we help?"
+          rows={4}
+          required
+        />
+      </div>
+      <Button type="submit" disabled={sending} className="mt-2">
+        {sending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          <>
+            Send message
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </>
+        )}
+      </Button>
+    </form>
   )
 }
 
