@@ -37,7 +37,7 @@ export function LandingPage() {
           />
           <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/log-in">Sign in</Link>
+              <Link href="/log-in">Log in</Link>
             </Button>
             <Button size="sm" asChild>
               <Link href="/create-account">Get started</Link>
@@ -153,7 +153,7 @@ export function LandingPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/log-in">Sign in</Link>
+                  <Link href="/log-in">Log in</Link>
                 </Button>
               </div>
             </Card>
@@ -183,7 +183,7 @@ export function LandingPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/field-worker/log-in">Sign in</Link>
+                  <Link href="/field-worker/log-in">Log in</Link>
                 </Button>
               </div>
             </Card>
