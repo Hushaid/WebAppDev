@@ -39,6 +39,11 @@ const publicPaths = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Allow the landing page (exact match)
+  if (pathname === "/") {
+    return NextResponse.next()
+  }
+
   // Allow public paths
   if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next()

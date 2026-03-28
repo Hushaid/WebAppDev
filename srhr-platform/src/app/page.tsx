@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
+import { LandingPage } from "@/components/landing/landing-page"
 
 const roleRoutes: Record<string, string> = {
   admin: "/admin",
@@ -17,11 +18,11 @@ export default async function HomePage() {
     headers: await headers(),
   })
 
-  if (!session?.user) {
-    redirect("/log-in")
+  if (session?.user) {
+    const role = (session.user as { role?: string }).role || "personal_user"
+    const destination = roleRoutes[role] || "/log-in"
+    redirect(destination)
   }
 
-  const role = (session.user as { role?: string }).role || "personal_user"
-  const destination = roleRoutes[role] || "/log-in"
-  redirect(destination)
+  return <LandingPage />
 }
