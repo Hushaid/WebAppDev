@@ -16,20 +16,43 @@ import { AdminHeaderAction } from "@/components/admin-header-action"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 
-export default async function UsersPage() {
+import { UserRoleFilter } from "./role-filter"
+
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>
+}) {
+  const params = await searchParams
+  const filterRole = params.role || "all"
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
   const callerRole = (session?.user as { role?: string } | undefined)?.role ?? "admin"
   const callerId = session?.user?.id ?? ""
+  const isSuperAdmin = callerRole === "super_admin"
   const allUsers = await getUsers()
+  const filteredUsers = filterRole === "all" ? allUsers : allUsers.filter(u => u.role === filterRole)
+
+  /** Mask PII for non-super_admin viewers */
+  function maskEmail(email: string) {
+    if (isSuperAdmin) return email
+    const [local, domain] = email.split("@")
+    return `${local.slice(0, 2)}***@${domain}`
+  }
+  function maskName(name: string | null) {
+    if (isSuperAdmin || !name) return name ?? "—"
+    return `${name.slice(0, 2)}${"*".repeat(Math.max(0, name.length - 2))}`
+  }
 
   return (
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
       {/* Fixed header area */}
       <div className="shrink-0 border-b p-6 pb-4">
-        <AdminHeaderAction>
-          <CreateUserDialog callerRole={callerRole} />
-        </AdminHeaderAction>
+        {callerRole === "super_admin" && (
+          <AdminHeaderAction>
+            <CreateUserDialog callerRole={callerRole} />
+          </AdminHeaderAction>
+        )}
 
         <header>
           <h1 className="text-2xl font-bold">Users</h1>
@@ -37,6 +60,9 @@ export default async function UsersPage() {
             Manage platform users, roles, and access.
           </p>
         </header>
+        <div className="mt-4">
+          <UserRoleFilter currentRole={filterRole} />
+        </div>
       </div>
 
       {/* Scrollable table area */}
@@ -53,17 +79,17 @@ export default async function UsersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {allUsers.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
-              allUsers.map((user) => (
+              filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.name ?? "—"}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{maskName(user.name)}</TableCell>
+                  <TableCell>{maskEmail(user.email)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{user.role.replace(/_/g, " ")}</Badge>
                   </TableCell>

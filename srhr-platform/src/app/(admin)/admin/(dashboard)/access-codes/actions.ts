@@ -6,10 +6,20 @@ import { eq, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import crypto from "node:crypto"
 import { logAudit } from "@/lib/audit"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 
 const PAGE_SIZE = 10
 
+async function requireSuperAdmin() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  const role = (session?.user as { role?: string })?.role
+  if (role !== "super_admin") throw new Error("Unauthorized: super admin only.")
+  return session!
+}
+
 export async function generateAccessCode(issuedBy: string) {
+  await requireSuperAdmin()
   const code = crypto.randomBytes(4).toString("hex").toUpperCase()
 
   const [inserted] = await db.insert(fieldWorkerCodes).values({
@@ -29,6 +39,7 @@ export async function generateAccessCode(issuedBy: string) {
 }
 
 export async function revokeAccessCode(codeId: string) {
+  await requireSuperAdmin()
   await db
     .update(fieldWorkerCodes)
     .set({ revoked: true })
@@ -44,6 +55,7 @@ export async function revokeAccessCode(codeId: string) {
 }
 
 export async function deleteAccessCode(codeId: string) {
+  await requireSuperAdmin()
   await db
     .delete(fieldWorkerCodes)
     .where(eq(fieldWorkerCodes.id, codeId))

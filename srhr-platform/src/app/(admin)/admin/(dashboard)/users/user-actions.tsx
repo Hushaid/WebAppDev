@@ -79,17 +79,12 @@ export function UserActions({
   const [isDeletePending, startDeleteTransition] = useTransition()
 
   const isSelf = callerId === userId
+  const isSuperAdmin = callerRole === "super_admin"
 
-  // super_admin accounts cannot be suspended (only deleted by super_admin)
-  const canSuspend = currentRole !== "super_admin"
-
-  // Determine if the current caller can delete this user:
-  // - Can't delete yourself
-  // - admin cannot delete admin/super_admin rows
-  const canDelete =
-    !isSelf &&
-    (callerRole === "super_admin" ||
-      (callerRole === "admin" && !PROTECTED_ROLES.includes(currentRole)))
+  // Only super_admin can manage users
+  const canEditRole = isSuperAdmin
+  const canSuspend = isSuperAdmin && currentRole !== "super_admin"
+  const canDelete = isSuperAdmin && !isSelf
 
   function handleSaveRole() {
     if (selectedRole === currentRole) {
@@ -137,6 +132,7 @@ export function UserActions({
 
   return (
     <menu className="flex items-center gap-2">
+      {canEditRole && (
       <li>
         <Dialog open={roleOpen} onOpenChange={(open) => {
           setRoleOpen(open)
@@ -177,6 +173,7 @@ export function UserActions({
           </DialogContent>
         </Dialog>
       </li>
+      )}
       {canSuspend && (
         <li>
           <Button

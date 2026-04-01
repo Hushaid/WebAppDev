@@ -32,6 +32,8 @@ export async function updateDedupSettings(data: {
 }) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string })?.role
+  if (callerRole !== "super_admin") return { success: false as const, error: "Unauthorized: super admin only." }
 
   if (data.radiusMeters < 10 || data.radiusMeters > 10000) {
     return { success: false as const, error: "Radius must be between 10 and 10,000 meters." }
@@ -115,6 +117,8 @@ export async function updateThresholdSettings(data: {
 }) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string })?.role
+  if (callerRole !== "super_admin") return { success: false as const, error: "Unauthorized: super admin only." }
 
   const keyMap: Record<string, string> = {
     sti: "threshold_sti",

@@ -25,10 +25,14 @@ interface HighRiskAlertPayload {
 }
 
 /**
- * Create alerts for all partner/admin users when a high-risk submission arrives.
+ * Create alerts for all partner/admin users when a high or medium risk submission arrives.
+ * High risk: creates alert + sends email notification.
+ * Medium risk: creates alert record only (visible on dashboard, no email).
  */
 export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
-  if (payload.overallRiskLevel !== "high") return
+  const isHigh = payload.overallRiskLevel === "high"
+  const isMedium = payload.overallRiskLevel === "medium"
+  if (!isHigh && !isMedium) return
 
   // Find all partner and admin users to notify
   const recipients = await db
@@ -40,20 +44,22 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
 
   if (recipients.length === 0) return
 
+  const targetLevels = isHigh ? ["high"] : ["medium", "high"]
   const highCategories = [
-    payload.stiRiskLevel === "high" ? "STI" : null,
-    payload.maternalRiskLevel === "high" ? "Maternal Health" : null,
-    payload.communityWellbeingRiskLevel === "high" ? "Community Well-being" : null,
+    targetLevels.includes(payload.stiRiskLevel) ? "STI" : null,
+    payload.maternalRiskLevel && targetLevels.includes(payload.maternalRiskLevel) ? "Maternal Health" : null,
+    targetLevels.includes(payload.communityWellbeingRiskLevel) ? "Community Well-being" : null,
   ].filter(Boolean)
 
-  const title = `High Risk Submission Detected`
+  const riskLabel = isHigh ? "HIGH" : "MEDIUM"
+  const title = `${isHigh ? "High" : "Medium"} Risk Submission Detected`
   const locationText = payload.gpsLat
     ? `${parseFloat(payload.gpsLat).toFixed(4)}, ${parseFloat(payload.gpsLng!).toFixed(4)}`
     : "No GPS location captured"
 
   const message = [
-    `A submission has been classified as HIGH risk.`,
-    `Categories: ${highCategories.join(", ")}.`,
+    `A submission has been classified as ${riskLabel} risk.`,
+    `Categories: ${highCategories.join(", ") || "N/A"}.`,
     `Aggregate score: ${payload.aggregateScore}.`,
     `Location: ${locationText}.`,
     `Submission ID: ${payload.submissionId}.`,
@@ -63,7 +69,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   const alertValues = recipients.map((r) => ({
     type: "high_risk_individual" as const,
     recipientId: r.id,
-    riskLevel: "high" as const,
+    riskLevel: (isHigh ? "high" : "medium") as "high" | "medium",
     status: "pending" as const,
     title,
     message,
@@ -71,7 +77,9 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
 
   const insertedAlerts = await db.insert(alerts).values(alertValues).returning()
 
-  // Send email notifications via Resend
+  // Send email notifications only for HIGH risk (medium risk = dashboard-only, no notification)
+  if (!isHigh) return
+
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) return
 

@@ -23,6 +23,15 @@ export default async function AccessCodesPage({
 }: {
   searchParams: Promise<{ page?: string }>
 }) {
+  // Super admin only
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string })?.role
+  if (callerRole !== "super_admin") {
+    const { redirect } = await import("next/navigation")
+    redirect("/admin")
+  }
+
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
   const { items: codes, total, totalPages, pageSize } = await getAccessCodes(page)

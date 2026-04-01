@@ -46,10 +46,9 @@ export async function updateUserRole(userId: string, role: UserRole) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
 
-  // Only super_admin can assign the super_admin role
   const callerRole = (session?.user as { role?: string } | undefined)?.role
-  if (role === "super_admin" && callerRole !== "super_admin") {
-    throw new Error("Only a super admin can assign the super admin role.")
+  if (callerRole !== "super_admin") {
+    throw new Error("Only a super admin can change user roles.")
   }
 
   await db
@@ -71,6 +70,10 @@ export async function updateUserRole(userId: string, role: UserRole) {
 export async function updateUserStatus(userId: string, status: UserStatus) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string })?.role
+  if (callerRole !== "super_admin") {
+    throw new Error("Only a super admin can change user status.")
+  }
 
   await db
     .update(users)
@@ -101,13 +104,8 @@ export async function createUser(data: {
   })
 
   const callerRole = (session?.user as { role?: string } | undefined)?.role
-  if (!callerRole || !["admin", "super_admin"].includes(callerRole)) {
-    return { success: false as const, error: "Unauthorized." }
-  }
-
-  // Only super_admin can create another super_admin
-  if (data.role === "super_admin" && callerRole !== "super_admin") {
-    return { success: false as const, error: "Only a super admin can create super admin accounts." }
+  if (callerRole !== "super_admin") {
+    return { success: false as const, error: "Only a super admin can create users." }
   }
 
   // 2. Check if user already exists
@@ -199,23 +197,17 @@ export async function deleteUser(userId: string) {
   const callerRole = (session?.user as { role?: string } | undefined)?.role
   const callerId = session?.user?.id
 
-  if (!callerRole || !["admin", "super_admin"].includes(callerRole)) {
-    return { success: false as const, error: "Unauthorized." }
+  if (callerRole !== "super_admin") {
+    return { success: false as const, error: "Only a super admin can delete users." }
   }
 
   if (callerId === userId) {
     return { success: false as const, error: "You cannot delete your own account." }
   }
 
-  // Fetch target user to check their role
   const [target] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
   if (!target) {
     return { success: false as const, error: "User not found." }
-  }
-
-  // admin cannot delete admin or super_admin users — only super_admin can
-  if (callerRole === "admin" && PROTECTED_ROLES.includes(target.role)) {
-    return { success: false as const, error: "Admins cannot delete admin or super admin accounts." }
   }
 
   // 1. Delete records with NOT NULL FKs (cannot be nullified)

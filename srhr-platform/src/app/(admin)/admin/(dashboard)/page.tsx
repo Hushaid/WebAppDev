@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { db } from "@/lib/db"
 import { users, submissions, riskClassifications } from "@/lib/db/schema"
-import { eq, gte, sql, count } from "drizzle-orm"
+import { eq, gte, sql, count, desc } from "drizzle-orm"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -56,6 +56,33 @@ async function getDashboardStats() {
       .limit(5),
   ])
 
+  // Risk type breakdown
+  const riskBreakdown = await db
+    .select({
+      stiHigh: sql<number>`count(*) filter (where ${riskClassifications.stiRiskLevel} = 'high')::int`,
+      stiMedium: sql<number>`count(*) filter (where ${riskClassifications.stiRiskLevel} = 'medium')::int`,
+      maternalHigh: sql<number>`count(*) filter (where ${riskClassifications.maternalRiskLevel} = 'high')::int`,
+      maternalMedium: sql<number>`count(*) filter (where ${riskClassifications.maternalRiskLevel} = 'medium')::int`,
+      communityHigh: sql<number>`count(*) filter (where ${riskClassifications.communityWellbeingRiskLevel} = 'high')::int`,
+      communityMedium: sql<number>`count(*) filter (where ${riskClassifications.communityWellbeingRiskLevel} = 'medium')::int`,
+    })
+    .from(riskClassifications)
+
+  // Field worker activity (top 10 by submission count)
+  const fieldWorkerActivity = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      submissionCount: count(submissions.id),
+    })
+    .from(users)
+    .leftJoin(submissions, eq(users.id, submissions.submitterId))
+    .where(eq(users.role, "field_worker"))
+    .groupBy(users.id, users.name, users.email)
+    .orderBy(desc(count(submissions.id)))
+    .limit(10)
+
   return {
     totalUsers: totalUsers?.count ?? 0,
     fieldWorkers: fieldWorkers?.count ?? 0,
@@ -63,6 +90,8 @@ async function getDashboardStats() {
     weekSubmissions: weekSubmissions?.count ?? 0,
     highRiskAlerts: highRiskAlerts?.count ?? 0,
     recentSubmissions,
+    riskBreakdown: riskBreakdown[0] ?? { stiHigh: 0, stiMedium: 0, maternalHigh: 0, maternalMedium: 0, communityHigh: 0, communityMedium: 0 },
+    fieldWorkerActivity,
   }
 }
 
@@ -138,6 +167,68 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
+      {/* Risk Type Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Risk Type Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium text-muted-foreground">STI Risk</p>
+              <div className="mt-2 flex items-center gap-3">
+                <Badge className="bg-red-100 text-red-800">{stats.riskBreakdown.stiHigh} high</Badge>
+                <Badge className="bg-yellow-100 text-yellow-800">{stats.riskBreakdown.stiMedium} medium</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium text-muted-foreground">Maternal Health</p>
+              <div className="mt-2 flex items-center gap-3">
+                <Badge className="bg-red-100 text-red-800">{stats.riskBreakdown.maternalHigh} high</Badge>
+                <Badge className="bg-yellow-100 text-yellow-800">{stats.riskBreakdown.maternalMedium} medium</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium text-muted-foreground">Community Wellbeing</p>
+              <div className="mt-2 flex items-center gap-3">
+                <Badge className="bg-red-100 text-red-800">{stats.riskBreakdown.communityHigh} high</Badge>
+                <Badge className="bg-yellow-100 text-yellow-800">{stats.riskBreakdown.communityMedium} medium</Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Field Worker Activity */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Field Worker Activity</CardTitle>
+            <Link href="/admin/users?role=field_worker" className="text-sm text-primary hover:underline">
+              View all
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {stats.fieldWorkerActivity.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No field workers registered yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {stats.fieldWorkerActivity.map((fw) => (
+                <li key={fw.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="text-sm font-medium">{fw.name ?? fw.email}</p>
+                    <p className="text-xs text-muted-foreground">{fw.email}</p>
+                  </div>
+                  <Badge variant="secondary">{fw.submissionCount} submissions</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -191,6 +282,7 @@ export default async function AdminDashboard() {
           )}
         </CardContent>
       </Card>
+      </div>
     </section>
   )
 }

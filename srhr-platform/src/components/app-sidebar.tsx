@@ -45,7 +45,7 @@ const navItems = [
     title: "Management",
     items: [
       { title: "Users", url: "/admin/users", icon: Users },
-      { title: "Access Codes", url: "/admin/access-codes", icon: KeyRound },
+      { title: "Access Codes", url: "/admin/access-codes", icon: KeyRound, superAdminOnly: true },
       { title: "Questionnaires", url: "/admin/questionnaires", icon: FileQuestion },
       { title: "Submissions", url: "/admin/submissions", icon: ClipboardList },
       { title: "Facilities", url: "/admin/facilities", icon: Building2 },
@@ -61,13 +61,13 @@ const navItems = [
   {
     title: "System",
     items: [
-      { title: "Data Sources", url: "/admin/data-sources", icon: Database },
-      { title: "Settings", url: "/admin/settings", icon: Settings },
+      { title: "Data Sources", url: "/admin/data-sources", icon: Database, superAdminOnly: true },
+      { title: "Settings", url: "/admin/settings", icon: Settings, superAdminOnly: true },
     ],
   },
 ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ role, ...props }: React.ComponentProps<typeof Sidebar> & { role: string }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -87,12 +87,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        {navItems.map((group) => (
+        {navItems.map((group) => {
+          const visibleItems = group.items.filter(
+            (item) => !item.superAdminOnly || role === "super_admin",
+          )
+          if (visibleItems.length === 0) return null
+          return (
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => (
+                {visibleItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
@@ -112,7 +117,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        ))}
+          )
+        })}
       </SidebarContent>
       <SidebarFooter className="border-t p-4">
         <SidebarMenu>
