@@ -165,7 +165,7 @@ export default function PersonalQuestionnairePage() {
             </p>
             {endsAt && (
               <p className="text-sm">
-                {t("cooldownAfter").replace("{time}", endsAt.toLocaleString())}
+                {t("cooldownAfter", { time: endsAt.toLocaleString() })}
               </p>
             )}
             <Link href="/personal/result">

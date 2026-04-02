@@ -163,17 +163,19 @@ export default function FieldWorkerQuestionnairePage() {
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 space-y-3">
           <p className="text-sm font-medium text-orange-800">{t("recentSubmissionDetectedTitle")}</p>
           <p className="text-sm text-orange-700">
-            {t("recentSubmissionDetectedBody")
-              .replace("{minutes}", String(gps.windowMinutes))
-              .replace("{unit}", gps.windowMinutes === 1 ? t("minute") : t("minutes"))}
+            {t("recentSubmissionDetectedBody", {
+              minutes: gps.windowMinutes,
+              unit: gps.windowMinutes === 1 ? t("minute") : t("minutes"),
+            })}
           </p>
           <p className="text-sm text-orange-700">
-            {t("startNewAssessmentAfter")
-              .replace(
-                "{time}",
-                new Date(gps.blockedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-              )
-              .replace("{move}", t("moveDifferentLocation"))}
+            {t("startNewAssessmentAfter", {
+              time: new Date(gps.blockedUntil).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              move: t("moveDifferentLocation"),
+            })}
           </p>
         </div>
       )}
