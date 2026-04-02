@@ -152,7 +152,6 @@ export function QuestionCard({
   onChange,
   onNext,
   showError,
-  optional,
 }: QuestionCardProps) {
   const t = useTranslations("questionnaire")
 

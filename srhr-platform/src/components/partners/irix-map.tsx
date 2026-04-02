@@ -6,6 +6,11 @@ import "mapbox-gl/dist/mapbox-gl.css"
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ""
 const HAS_PUBLIC_MAPBOX_TOKEN = MAPBOX_TOKEN.startsWith("pk.")
+const TOKEN_ERROR = !HAS_PUBLIC_MAPBOX_TOKEN
+  ? MAPBOX_TOKEN
+    ? "Mapbox is configured with a secret token. Use a public NEXT_PUBLIC_MAPBOX_TOKEN that starts with pk."
+    : "Mapbox is not configured. Add a public NEXT_PUBLIC_MAPBOX_TOKEN to enable the map."
+  : null
 
 interface IrixMapScore {
   h3_index: string
@@ -40,14 +45,7 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
-    if (!HAS_PUBLIC_MAPBOX_TOKEN) {
-      setMapError(
-        MAPBOX_TOKEN
-          ? "Mapbox is configured with a secret token. Use a public NEXT_PUBLIC_MAPBOX_TOKEN that starts with pk."
-          : "Mapbox is not configured. Add a public NEXT_PUBLIC_MAPBOX_TOKEN to enable the map.",
-      )
-      return
-    }
+    if (TOKEN_ERROR) return
 
     mapboxgl.accessToken = MAPBOX_TOKEN
 
@@ -59,11 +57,13 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
         zoom: 8,
       })
     } catch (error) {
-      setMapError(
-        error instanceof Error
-          ? error.message
-          : "Failed to initialize the risk map.",
-      )
+      setTimeout(() => {
+        setMapError(
+          error instanceof Error
+            ? error.message
+            : "Failed to initialize the risk map.",
+        )
+      }, 0)
       return
     }
 
@@ -206,14 +206,14 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
     }
   }, [scores, loaded, onCellClick])
 
-  if (mapError) {
+  if (TOKEN_ERROR || mapError) {
     return (
       <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed px-6 text-center">
         <p className="text-sm font-medium text-muted-foreground">
           Unable to load the map
         </p>
         <p className="mt-1 text-xs text-muted-foreground/70">
-          {mapError}
+          {TOKEN_ERROR ?? mapError}
         </p>
       </div>
     )
