@@ -250,9 +250,10 @@ export function QuestionnaireWizard({
       <header className="space-y-2">
         <Progress value={progress} className="h-2" />
         <p className="text-sm text-muted-foreground">
-          {t("progress")
-            .replace("{current}", String(safeIndex + 1))
-            .replace("{total}", String(totalQuestions))}
+          {t("progress", {
+            current: safeIndex + 1,
+            total: totalQuestions,
+          })}
         </p>
       </header>
 
