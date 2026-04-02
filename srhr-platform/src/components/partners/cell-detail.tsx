@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface CellScore {
   h3_index: string
+  location_name?: string
   overall_irix_score: number
   overall_risk_level: string
   sti_avg_score: number | null
@@ -38,7 +39,8 @@ export function CellDetail({ cell, onClose }: CellDetailProps) {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-2">
-            Cell <code className="text-xs">{cell.h3_index.slice(0, 10)}...</code>
+            {cell.location_name ?? "Cell"}
+            <code className="text-xs">{cell.h3_index.slice(0, 10)}...</code>
             {cell.hotspot_flag && (
               <Badge variant="destructive">Hotspot</Badge>
             )}
