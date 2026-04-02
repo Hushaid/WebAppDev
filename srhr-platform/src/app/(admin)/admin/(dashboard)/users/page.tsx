@@ -16,40 +16,47 @@ import { CreateUserDialog } from "./create-user-dialog"
 import { AdminHeaderAction } from "@/components/admin-header-action"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-
+import { Suspense } from "react"
 import { UserRoleFilter } from "./role-filter"
 
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string }>
+  searchParams: Promise<{ role?: string; sex?: string }>
 }) {
   const params = await searchParams
   const filterRole = params.role || "all"
+  const filterSex = params.sex || "all"
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
   const callerRole = (session?.user as { role?: string } | undefined)?.role ?? "admin"
   const callerId = session?.user?.id ?? ""
   const isSuperAdmin = callerRole === "super_admin"
   const allUsers = await getUsers()
-  const filteredUsers = filterRole === "all" ? allUsers : allUsers.filter(u => u.role === filterRole)
+
+  const filteredUsers = allUsers.filter((u) => {
+    if (filterRole !== "all" && u.role !== filterRole) return false
+    if (filterSex !== "all" && (u.sex ?? "") !== filterSex) return false
+    return true
+  })
 
   /** Mask PII for non-super_admin viewers */
+  function mask(value: string | null, visibleChars = 2): string {
+    if (isSuperAdmin || !value) return value ?? "—"
+    if (value.length <= visibleChars) return "*".repeat(value.length)
+    return `${value.slice(0, visibleChars)}${"*".repeat(Math.max(0, value.length - visibleChars))}`
+  }
   function maskEmail(email: string) {
     if (isSuperAdmin) return email
     const [local, domain] = email.split("@")
     return `${local.slice(0, 2)}***@${domain}`
-  }
-  function maskName(name: string | null) {
-    if (isSuperAdmin || !name) return name ?? "—"
-    return `${name.slice(0, 2)}${"*".repeat(Math.max(0, name.length - 2))}`
   }
 
   return (
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
       {/* Fixed header area */}
       <div className="shrink-0 border-b p-6 pb-4">
-        {callerRole === "super_admin" && (
+        {isSuperAdmin && (
           <AdminHeaderAction>
             <CreateUserDialog callerRole={callerRole} />
           </AdminHeaderAction>
@@ -62,7 +69,9 @@ export default async function UsersPage({
           </p>
         </header>
         <div className="mt-4">
-          <UserRoleFilter currentRole={filterRole} />
+          <Suspense>
+            <UserRoleFilter currentRole={filterRole} currentSex={filterSex} />
+          </Suspense>
         </div>
       </div>
 
@@ -73,6 +82,9 @@ export default async function UsersPage({
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Sex</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Address</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
@@ -82,15 +94,18 @@ export default async function UsersPage({
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
               filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{maskName(user.name)}</TableCell>
+                  <TableCell>{mask(user.name)}</TableCell>
                   <TableCell>{maskEmail(user.email)}</TableCell>
+                  <TableCell className="capitalize">{user.sex ?? "—"}</TableCell>
+                  <TableCell>{mask(user.phone, 3)}</TableCell>
+                  <TableCell className="max-w-[150px] truncate">{mask(user.homeAddress, 4)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{user.role.replace(/_/g, " ")}</Badge>
                   </TableCell>

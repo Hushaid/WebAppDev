@@ -14,8 +14,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { updateProfileAfterSignup } from "./actions"
 
 export default function CreateAccountPage() {
+  const [sex, setSex] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -64,6 +73,15 @@ export default function CreateAccountPage() {
       return
     }
 
+    if (!sex) {
+      setError("Please select your sex.")
+      setLoading(false)
+      return
+    }
+
+    const phone = (formData.get("phone") as string).trim()
+    const homeAddress = (formData.get("homeAddress") as string).trim()
+
     const { error: authError } = await signUp.email({
       name,
       email,
@@ -75,6 +93,13 @@ export default function CreateAccountPage() {
       setLoading(false)
       return
     }
+
+    // Save additional profile fields
+    await updateProfileAfterSignup(email, {
+      sex,
+      phone: phone || undefined,
+      homeAddress: homeAddress || undefined,
+    })
 
     setSubmittedEmail(email)
     setVerificationSent(true)
@@ -146,6 +171,40 @@ export default function CreateAccountPage() {
               type="email"
               required
               autoComplete="email"
+            />
+          </fieldset>
+          <fieldset className="space-y-2">
+            <Label>Sex</Label>
+            <Select value={sex} onValueChange={setSex} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select sex" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+              </SelectContent>
+            </Select>
+          </fieldset>
+          <fieldset className="space-y-2">
+            <Label htmlFor="phone">
+              Mobile Number <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+            />
+          </fieldset>
+          <fieldset className="space-y-2">
+            <Label htmlFor="homeAddress">
+              Home Address <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Input
+              id="homeAddress"
+              name="homeAddress"
+              type="text"
+              autoComplete="street-address"
             />
           </fieldset>
           <fieldset className="space-y-2">

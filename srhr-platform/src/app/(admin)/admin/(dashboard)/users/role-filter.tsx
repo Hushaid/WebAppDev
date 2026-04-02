@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   Select,
   SelectContent,
@@ -18,28 +18,50 @@ const ROLES = [
   { value: "super_admin", label: "Super admin" },
 ]
 
-export function UserRoleFilter({ currentRole }: { currentRole: string }) {
+const SEX_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+]
+
+export function UserRoleFilter({ currentRole, currentSex }: { currentRole: string; currentSex: string }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  function pushFilters(updates: Record<string, string>) {
+    const params = new URLSearchParams(searchParams.toString())
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === "all") {
+        params.delete(key)
+      } else {
+        params.set(key, value)
+      }
+    }
+    router.push(`/admin/users${params.toString() ? `?${params}` : ""}`)
+  }
 
   return (
-    <Select
-      value={currentRole}
-      onValueChange={(value) => {
-        const params = new URLSearchParams()
-        if (value !== "all") params.set("role", value)
-        router.push(`/admin/users${params.toString() ? `?${params}` : ""}`)
-      }}
-    >
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Filter by role" />
-      </SelectTrigger>
-      <SelectContent>
-        {ROLES.map((r) => (
-          <SelectItem key={r.value} value={r.value}>
-            {r.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="flex items-center gap-3">
+      <Select value={currentRole} onValueChange={(v) => pushFilters({ role: v })}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Filter by role" />
+        </SelectTrigger>
+        <SelectContent>
+          {ROLES.map((r) => (
+            <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={currentSex} onValueChange={(v) => pushFilters({ sex: v })}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue placeholder="Filter by sex" />
+        </SelectTrigger>
+        <SelectContent>
+          {SEX_OPTIONS.map((s) => (
+            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
