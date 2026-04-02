@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import type { ThresholdConfig, RiskLevel } from "@/lib/scoring/thresholds"
 import { ChangePasswordForm } from "@/components/auth/change-password-form"
 import { DedupSettings } from "./dedup-settings"
-import { updateThresholdSettings } from "./actions"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -41,6 +41,7 @@ function ThresholdEditor({
   maxPossible,
   category,
 }: ThresholdEditorProps) {
+  const router = useRouter()
   const [values, setValues] = useState<ThresholdConfig>({ ...thresholds })
   const [isPending, startTransition] = useTransition()
 
@@ -61,12 +62,17 @@ function ThresholdEditor({
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updateThresholdSettings({
-        category,
-        thresholds: values,
-      })
+      const result = await fetch("/api/admin/settings/thresholds", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category,
+          thresholds: values,
+        }),
+      }).then((response) => response.json())
       if (result.success) {
         toast.success("Thresholds saved")
+        router.refresh()
       } else {
         toast.error(result.error)
       }

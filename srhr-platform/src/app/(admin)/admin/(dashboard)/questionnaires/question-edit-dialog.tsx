@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { updateQuestion } from "./actions"
 
 interface OptionRow {
   label: string
@@ -40,6 +40,7 @@ interface QuestionData {
 }
 
 export function QuestionEditDialog({ question }: { question: QuestionData }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -92,17 +93,22 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
         .map((s) => s.trim())
         .filter(Boolean)
 
-      const result = await updateQuestion(question.id, {
-        text,
-        options,
-        conditionalLogic:
-          skipWhenArr.length > 0 && skipTargetsArr.length > 0
-            ? { skipWhen: skipWhenArr, skipTargets: skipTargetsArr }
-            : null,
-      })
+      const result = await fetch(`/api/admin/questionnaires/questions/${question.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          options,
+          conditionalLogic:
+            skipWhenArr.length > 0 && skipTargetsArr.length > 0
+              ? { skipWhen: skipWhenArr, skipTargets: skipTargetsArr }
+              : null,
+        }),
+      }).then((response) => response.json())
 
       if (result.success) {
         setOpen(false)
+        router.refresh()
       } else {
         setError(result.error ?? "Failed to save")
       }

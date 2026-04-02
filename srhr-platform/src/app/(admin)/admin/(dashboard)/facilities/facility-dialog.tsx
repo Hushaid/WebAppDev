@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,11 +35,8 @@ interface FacilityData {
   gpsLng?: string
 }
 
-export function CreateFacilityDialog({
-  onCreate,
-}: {
-  onCreate: (data: FacilityData) => Promise<{ success: boolean }>
-}) {
+export function CreateFacilityDialog() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [type, setType] = useState("PHC")
   const [loading, setLoading] = useState(false)
@@ -46,17 +45,30 @@ export function CreateFacilityDialog({
     e.preventDefault()
     setLoading(true)
     const fd = new FormData(e.currentTarget)
-    await onCreate({
-      name: (fd.get("name") as string).trim(),
-      type,
-      address: (fd.get("address") as string).trim() || undefined,
-      ward: (fd.get("ward") as string).trim() || undefined,
-      lga: (fd.get("lga") as string).trim() || undefined,
-      gpsLat: (fd.get("gpsLat") as string).trim() || undefined,
-      gpsLng: (fd.get("gpsLng") as string).trim() || undefined,
-    })
+    const result = await fetch("/api/admin/facilities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: (fd.get("name") as string).trim(),
+        type,
+        address: (fd.get("address") as string).trim() || undefined,
+        ward: (fd.get("ward") as string).trim() || undefined,
+        lga: (fd.get("lga") as string).trim() || undefined,
+        gpsLat: (fd.get("gpsLat") as string).trim() || undefined,
+        gpsLng: (fd.get("gpsLng") as string).trim() || undefined,
+      } satisfies FacilityData),
+    }).then((response) => response.json())
+
+    if (!result.success) {
+      toast.error(result.error ?? "Failed to add facility")
+      setLoading(false)
+      return
+    }
+
+    toast.success("Facility added")
     setLoading(false)
     setOpen(false)
+    router.refresh()
   }
 
   return (
@@ -81,8 +93,10 @@ export function CreateFacilityDialog({
             <Select value={type} onValueChange={setType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {FACILITY_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                {FACILITY_TYPES.map((facilityType) => (
+                  <SelectItem key={facilityType} value={facilityType}>
+                    {facilityType}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -124,11 +138,19 @@ export function CreateFacilityDialog({
 
 export function EditFacilityDialog({
   facility,
-  onUpdate,
 }: {
-  facility: { id: string; name: string; type: string; address: string | null; ward: string | null; lga: string | null; gpsLat: string | null; gpsLng: string | null }
-  onUpdate: (id: string, data: FacilityData) => Promise<{ success: boolean }>
+  facility: {
+    id: string
+    name: string
+    type: string
+    address: string | null
+    ward: string | null
+    lga: string | null
+    gpsLat: string | null
+    gpsLng: string | null
+  }
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [type, setType] = useState(facility.type)
   const [loading, setLoading] = useState(false)
@@ -137,17 +159,30 @@ export function EditFacilityDialog({
     e.preventDefault()
     setLoading(true)
     const fd = new FormData(e.currentTarget)
-    await onUpdate(facility.id, {
-      name: (fd.get("name") as string).trim(),
-      type,
-      address: (fd.get("address") as string).trim() || undefined,
-      ward: (fd.get("ward") as string).trim() || undefined,
-      lga: (fd.get("lga") as string).trim() || undefined,
-      gpsLat: (fd.get("gpsLat") as string).trim() || undefined,
-      gpsLng: (fd.get("gpsLng") as string).trim() || undefined,
-    })
+    const result = await fetch(`/api/admin/facilities/${facility.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: (fd.get("name") as string).trim(),
+        type,
+        address: (fd.get("address") as string).trim() || undefined,
+        ward: (fd.get("ward") as string).trim() || undefined,
+        lga: (fd.get("lga") as string).trim() || undefined,
+        gpsLat: (fd.get("gpsLat") as string).trim() || undefined,
+        gpsLng: (fd.get("gpsLng") as string).trim() || undefined,
+      } satisfies FacilityData),
+    }).then((response) => response.json())
+
+    if (!result.success) {
+      toast.error(result.error ?? "Failed to update facility")
+      setLoading(false)
+      return
+    }
+
+    toast.success("Facility updated")
     setLoading(false)
     setOpen(false)
+    router.refresh()
   }
 
   return (
@@ -171,8 +206,10 @@ export function EditFacilityDialog({
             <Select value={type} onValueChange={setType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {FACILITY_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                {FACILITY_TYPES.map((facilityType) => (
+                  <SelectItem key={facilityType} value={facilityType}>
+                    {facilityType}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

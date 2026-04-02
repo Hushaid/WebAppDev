@@ -1,9 +1,9 @@
 "use client"
 
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { revokeAccessCode, deleteAccessCode } from "./actions"
 
 interface CodeActionsProps {
   codeId: string
@@ -13,14 +13,21 @@ interface CodeActionsProps {
 }
 
 export function CodeActions({ codeId, codeValue, used, revoked }: CodeActionsProps) {
+  const router = useRouter()
   const [isRevokePending, startRevokeTransition] = useTransition()
   const [isDeletePending, startDeleteTransition] = useTransition()
 
   function handleRevoke() {
     startRevokeTransition(async () => {
       try {
-        await revokeAccessCode(codeId)
+        const result = await fetch(`/api/admin/access-codes/${codeId}`, {
+          method: "PATCH",
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to revoke access code")
+        }
         toast.success("Access code revoked", { description: codeValue })
+        router.refresh()
       } catch {
         toast.error("Failed to revoke access code")
       }
@@ -30,8 +37,14 @@ export function CodeActions({ codeId, codeValue, used, revoked }: CodeActionsPro
   function handleDelete() {
     startDeleteTransition(async () => {
       try {
-        await deleteAccessCode(codeId)
+        const result = await fetch(`/api/admin/access-codes/${codeId}`, {
+          method: "DELETE",
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to delete access code")
+        }
         toast.success("Access code deleted", { description: codeValue })
+        router.refresh()
       } catch {
         toast.error("Failed to delete access code")
       }

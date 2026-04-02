@@ -1,9 +1,9 @@
 "use client"
 
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { updatePartnerAlertStatus } from "./actions"
 
 interface PartnerAlertActionsProps {
   alertId: string
@@ -11,6 +11,7 @@ interface PartnerAlertActionsProps {
 }
 
 export function PartnerAlertActions({ alertId, status }: PartnerAlertActionsProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   if (status === "actioned" || status === "dismissed") return null
@@ -18,12 +19,20 @@ export function PartnerAlertActions({ alertId, status }: PartnerAlertActionsProp
   function handleAction(newStatus: "actioned" | "dismissed") {
     startTransition(async () => {
       try {
-        await updatePartnerAlertStatus(alertId, newStatus)
+        const result = await fetch(`/api/partners/alerts/${alertId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to update alert")
+        }
         toast.success(
           newStatus === "actioned"
             ? "Alert marked as actioned"
             : "Alert dismissed",
         )
+        router.refresh()
       } catch {
         toast.error("Failed to update alert")
       }

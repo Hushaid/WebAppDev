@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { updatePartnerPreferences } from "@/app/(admin)/admin/(dashboard)/settings/actions"
 
 interface AlertPreferences {
   highRiskAlerts: boolean
@@ -61,7 +60,11 @@ export default function PartnerPreferencesPage() {
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updatePartnerPreferences(prefs)
+      const result = await fetch("/api/partner-preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(prefs),
+      }).then((response) => response.json())
       if (result.success) {
         toast.success("Preferences saved")
       } else {

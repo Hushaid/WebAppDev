@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { updateAlertStatus } from "./actions"
 
 interface AlertActionsProps {
   alertId: string
@@ -29,6 +29,7 @@ export function AlertActions({
   submissionId,
   adminNote,
 }: AlertActionsProps) {
+  const router = useRouter()
   const [resolveOpen, setResolveOpen] = useState(false)
   const [dismissOpen, setDismissOpen] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
@@ -41,10 +42,18 @@ export function AlertActions({
   function handleResolve() {
     startTransition(async () => {
       try {
-        await updateAlertStatus(alertId, "actioned", resolveNote)
+        const result = await fetch(`/api/admin/alerts/${alertId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "actioned", note: resolveNote }),
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to update alert")
+        }
         toast.success("Alert marked as resolved")
         setResolveOpen(false)
         setResolveNote("")
+        router.refresh()
       } catch {
         toast.error("Failed to update alert")
       }
@@ -54,10 +63,18 @@ export function AlertActions({
   function handleDismiss() {
     startTransition(async () => {
       try {
-        await updateAlertStatus(alertId, "dismissed", dismissNote)
+        const result = await fetch(`/api/admin/alerts/${alertId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "dismissed", note: dismissNote }),
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to update alert")
+        }
         toast.success("Alert dismissed")
         setDismissOpen(false)
         setDismissNote("")
+        router.refresh()
       } catch {
         toast.error("Failed to update alert")
       }

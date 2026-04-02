@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { updateDedupSettings } from "./actions"
 
 interface DedupSettingsProps {
   initialRadius: number
@@ -14,18 +14,24 @@ interface DedupSettingsProps {
 }
 
 export function DedupSettings({ initialRadius, initialWindow }: DedupSettingsProps) {
+  const router = useRouter()
   const [radius, setRadius] = useState(initialRadius)
   const [window, setWindow] = useState(initialWindow || 480)
   const [isPending, startTransition] = useTransition()
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updateDedupSettings({
-        radiusMeters: radius,
-        windowMinutes: window,
-      })
+      const result = await fetch("/api/admin/settings/dedup", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          radiusMeters: radius,
+          windowMinutes: window,
+        }),
+      }).then((response) => response.json())
       if (result.success) {
         toast.success("Duplicate detection settings saved")
+        router.refresh()
       } else {
         toast.error(result.error)
       }

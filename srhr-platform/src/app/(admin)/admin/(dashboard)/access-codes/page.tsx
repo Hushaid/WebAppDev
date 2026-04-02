@@ -1,8 +1,7 @@
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { getAccessCodes, generateAccessCode } from "./actions"
+import { getAccessCodes } from "./actions"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -14,6 +13,7 @@ import {
 import { AdminHeaderAction } from "@/components/admin-header-action"
 import { CopyCodeButton } from "./copy-code-button"
 import { CodeActions } from "./code-actions"
+import { GenerateCodeButton } from "./generate-code-button"
 import { PaginationBar } from "@/components/pagination-bar"
 
 export const dynamic = "force-dynamic"
@@ -41,15 +41,7 @@ export default async function AccessCodesPage({
       {/* Fixed header area */}
       <div className="shrink-0 border-b p-6 pb-4">
         <AdminHeaderAction>
-          <form
-            action={async () => {
-              "use server"
-              const s = await auth.api.getSession({ headers: await headers() })
-              await generateAccessCode(s?.user?.id ?? "")
-            }}
-          >
-            <Button type="submit">Generate code</Button>
-          </form>
+          <GenerateCodeButton />
         </AdminHeaderAction>
 
         <header>

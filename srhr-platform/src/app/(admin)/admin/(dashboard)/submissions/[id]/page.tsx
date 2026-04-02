@@ -152,7 +152,6 @@ export default async function SubmissionDetailPage(props: {
       {session?.user?.id && (
         <PiiDownload
           submissionId={submission.id}
-          actorId={session.user.id}
           contactResponses={contactResponses}
         />
       )}

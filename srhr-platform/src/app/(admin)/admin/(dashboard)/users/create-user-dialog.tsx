@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createUser } from "./actions"
 
 const BASE_ROLES = [
   { value: "admin", label: "Admin" },
@@ -36,6 +36,7 @@ const ALL_ROLES = [
 type UserRole = "personal_user" | "field_worker" | "partner" | "admin" | "super_admin"
 
 export function CreateUserDialog({ callerRole }: { callerRole: string }) {
+  const router = useRouter()
   const CREATABLE_ROLES = callerRole === "super_admin" ? ALL_ROLES : BASE_ROLES
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
@@ -65,7 +66,12 @@ export function CreateUserDialog({ callerRole }: { callerRole: string }) {
       return
     }
 
-    const result = await createUser({ name, email, password, role })
+    const response = await fetch("/api/admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role }),
+    })
+    const result = await response.json()
 
     if (!result.success) {
       setError(result.error ?? "Failed to create user.")
@@ -76,6 +82,7 @@ export function CreateUserDialog({ callerRole }: { callerRole: string }) {
     setOpen(false)
     setError("")
     setLoading(false)
+    router.refresh()
   }
 
   return (
