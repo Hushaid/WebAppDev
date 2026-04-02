@@ -9,6 +9,9 @@ const nextConfig = {
     // Allow middleware to run on the Node.js runtime so it can call the
     // auth DB directly instead of making a self-referential HTTP call.
     nodeMiddleware: true,
+    serverActions: {
+      allowedOrigins: ["srhr.localhost", "srhr.localhost:1355", "localhost:3000", "localhost:4139"],
+    },
   },
   async headers() {
     return [
