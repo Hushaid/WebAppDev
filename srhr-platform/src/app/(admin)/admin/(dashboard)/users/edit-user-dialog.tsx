@@ -13,15 +13,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Pencil } from "lucide-react"
 import { updateUserDetails } from "./actions"
+
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`
+  return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
+}
+
+function stripPhone(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 10)
+}
+
+/** Extract 10 local digits from stored +234... format or raw */
+function toLocalDigits(stored: string): string {
+  if (!stored) return ""
+  const clean = stored.replace(/\D/g, "")
+  if (clean.startsWith("234") && clean.length === 13) return clean.slice(3)
+  return clean.slice(0, 10)
+}
 
 interface EditUserDialogProps {
   userId: string
@@ -46,6 +59,8 @@ export function EditUserDialog({
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [sex, setSex] = useState(currentSex || "")
+  const [phoneDisplay, setPhoneDisplay] = useState(formatPhone(toLocalDigits(currentPhone)))
+  const [altPhoneDisplay, setAltPhoneDisplay] = useState(formatPhone(toLocalDigits(currentAlternatePhone)))
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -53,10 +68,13 @@ export function EditUserDialog({
     setLoading(true)
 
     const fd = new FormData(e.currentTarget)
+    const rawPhone = stripPhone(phoneDisplay)
+    const rawAltPhone = stripPhone(altPhoneDisplay)
+
     const result = await updateUserDetails(userId, {
       name: (fd.get("name") as string).trim(),
-      phone: (fd.get("phone") as string).trim(),
-      alternatePhone: (fd.get("alternatePhone") as string).trim(),
+      phone: rawPhone ? `+234${rawPhone}` : "",
+      alternatePhone: rawAltPhone ? `+234${rawAltPhone}` : "",
       homeAddress: (fd.get("homeAddress") as string).trim(),
       sex,
     })
@@ -90,24 +108,47 @@ export function EditUserDialog({
             <Input id="eu-name" name="name" defaultValue={currentName} required minLength={2} />
           </fieldset>
           <fieldset className="space-y-2">
-            <Label htmlFor="eu-sex">Sex</Label>
-            <Select value={sex} onValueChange={setSex}>
-              <SelectTrigger id="eu-sex">
-                <SelectValue placeholder="Select sex" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Sex</Label>
+            <RadioGroup value={sex} onValueChange={setSex} className="flex flex-row gap-6">
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="male" id="eu-sex-male" />
+                <Label htmlFor="eu-sex-male" className="font-normal cursor-pointer">Male</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="female" id="eu-sex-female" />
+                <Label htmlFor="eu-sex-female" className="font-normal cursor-pointer">Female</Label>
+              </div>
+            </RadioGroup>
           </fieldset>
           <fieldset className="space-y-2">
             <Label htmlFor="eu-phone">Phone Number</Label>
-            <Input id="eu-phone" name="phone" type="tel" defaultValue={currentPhone} />
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">+234</span>
+              <Input
+                id="eu-phone"
+                type="tel"
+                inputMode="numeric"
+                value={phoneDisplay}
+                onChange={(e) => setPhoneDisplay(formatPhone(stripPhone(e.target.value)))}
+                placeholder="803 456 7890"
+                maxLength={12}
+              />
+            </div>
           </fieldset>
           <fieldset className="space-y-2">
             <Label htmlFor="eu-alt-phone">Alternate Phone Number</Label>
-            <Input id="eu-alt-phone" name="alternatePhone" type="tel" defaultValue={currentAlternatePhone} />
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">+234</span>
+              <Input
+                id="eu-alt-phone"
+                type="tel"
+                inputMode="numeric"
+                value={altPhoneDisplay}
+                onChange={(e) => setAltPhoneDisplay(formatPhone(stripPhone(e.target.value)))}
+                placeholder="803 456 7890"
+                maxLength={12}
+              />
+            </div>
           </fieldset>
           <fieldset className="space-y-2">
             <Label htmlFor="eu-address">Home Address</Label>

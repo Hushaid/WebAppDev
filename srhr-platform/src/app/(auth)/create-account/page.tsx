@@ -14,23 +14,42 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { updateProfileAfterSignup } from "./actions"
+
+/** Format 10 raw digits as "803 456 7890" for display */
+function formatNigerianPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`
+  return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
+}
+
+/** Strip formatting, return raw 10 digits */
+function stripPhone(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 10)
+}
+
+/** Validate: must be exactly 10 digits starting with valid NG prefix (7,8,9) */
+function isValidNigerianPhone(digits: string): boolean {
+  if (digits.length !== 10) return false
+  return /^[789]\d{9}$/.test(digits)
+}
 
 export default function CreateAccountPage() {
   const [sex, setSex] = useState("")
+  const [phoneDisplay, setPhoneDisplay] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState("")
+
+  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = stripPhone(e.target.value)
+    setPhoneDisplay(formatNigerianPhone(raw))
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -79,7 +98,14 @@ export default function CreateAccountPage() {
       return
     }
 
-    const phone = (formData.get("phone") as string).trim()
+    // Validate phone if provided
+    const rawPhone = stripPhone(phoneDisplay)
+    if (rawPhone && !isValidNigerianPhone(rawPhone)) {
+      setError("Please enter a valid 10-digit Nigerian mobile number (e.g. 803 456 7890).")
+      setLoading(false)
+      return
+    }
+
     const homeAddress = (formData.get("homeAddress") as string).trim()
 
     const { error: authError } = await signUp.email({
@@ -94,10 +120,10 @@ export default function CreateAccountPage() {
       return
     }
 
-    // Save additional profile fields
+    // Save additional profile fields — store phone as full +234 format
     await updateProfileAfterSignup(email, {
       sex,
-      phone: phone || undefined,
+      phone: rawPhone ? `+234${rawPhone}` : undefined,
       homeAddress: homeAddress || undefined,
     })
 
@@ -175,26 +201,44 @@ export default function CreateAccountPage() {
           </fieldset>
           <fieldset className="space-y-2">
             <Label>Sex</Label>
-            <Select value={sex} onValueChange={setSex} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select sex" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
+            <RadioGroup
+              value={sex}
+              onValueChange={setSex}
+              className="flex flex-row gap-6"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="male" id="sex-male" />
+                <Label htmlFor="sex-male" className="font-normal cursor-pointer">Male</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="female" id="sex-female" />
+                <Label htmlFor="sex-female" className="font-normal cursor-pointer">Female</Label>
+              </div>
+            </RadioGroup>
           </fieldset>
           <fieldset className="space-y-2">
             <Label htmlFor="phone">
               Mobile Number <span className="text-muted-foreground text-xs">(Optional)</span>
             </Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-            />
+            <p className="text-xs text-muted-foreground">
+              Enter your 10-digit number without +234 (e.g. 803 456 7890).
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                +234
+              </span>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="numeric"
+                value={phoneDisplay}
+                onChange={handlePhoneChange}
+                placeholder="803 456 7890"
+                maxLength={12}
+                autoComplete="tel-national"
+              />
+            </div>
           </fieldset>
           <fieldset className="space-y-2">
             <Label htmlFor="homeAddress">
