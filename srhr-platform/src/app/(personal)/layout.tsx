@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Image from "next/image"
 import { SignOutButton } from "@/components/sign-out-button"
+import { LanguageSelector } from "@/components/language-selector"
 import { PersonalNav } from "./personal/nav"
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default function PersonalLayout({
             <PersonalNav />
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSelector />
             <SignOutButton />
           </div>
         </nav>

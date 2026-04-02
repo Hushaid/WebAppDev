@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { OnlineIndicator } from "@/components/online-indicator"
 import { SignOutButton } from "@/components/sign-out-button"
+import { LanguageSelector } from "@/components/language-selector"
 import { FieldWorkerNav } from "./nav"
 
 export default function FieldWorkerDashboardLayout({
@@ -27,6 +28,7 @@ export default function FieldWorkerDashboardLayout({
             <FieldWorkerNav />
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSelector />
             <OnlineIndicator />
             <SignOutButton />
           </div>

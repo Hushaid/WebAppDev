@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { Globe } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -10,11 +11,9 @@ import {
 } from "@/components/ui/select"
 
 const languages = [
-  { code: "en", label: "English" },
-  { code: "ha", label: "Hausa" },
-  { code: "yo", label: "Yoruba" },
-  { code: "ig", label: "Igbo" },
-  { code: "pcm", label: "Pidgin" },
+  { code: "en", label: "English", native: "English" },
+  { code: "ha", label: "Hausa", native: "Hausa" },
+  { code: "pcm", label: "Pidgin", native: "Pidgin" },
 ] as const
 
 export function LanguageSelector() {
@@ -36,13 +35,14 @@ export function LanguageSelector() {
 
   return (
     <Select defaultValue={current} onValueChange={handleChange}>
-      <SelectTrigger className="w-[130px]">
+      <SelectTrigger className="w-[130px] h-9 text-sm">
+        <Globe className="size-3.5 mr-1.5 shrink-0" />
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {languages.map((lang) => (
           <SelectItem key={lang.code} value={lang.code}>
-            {lang.label}
+            {lang.native}
           </SelectItem>
         ))}
       </SelectContent>

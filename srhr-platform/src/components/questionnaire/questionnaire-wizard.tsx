@@ -19,6 +19,10 @@ import {
   MATERNAL_QUESTIONS,
 } from "@/lib/scoring/questions-config"
 import { computeRisk, type QuestionResponse } from "@/lib/scoring/engine"
+import {
+  localizeScoredQuestions,
+  localizeDemographicQuestions,
+} from "@/lib/i18n/questions"
 
 interface QuestionnaireWizardProps {
   submitterType: SubmitterType
@@ -43,15 +47,51 @@ export function QuestionnaireWizard({
   const [responses, setResponses] = useState<QuestionnaireResponse>({})
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showError, setShowError] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [messages, setMessages] = useState<Record<string, any> | null>(null)
+
+  // Load translation messages based on locale cookie
+  useEffect(() => {
+    const locale =
+      document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("locale="))
+        ?.split("=")[1] || "en"
+
+    import(`@/messages/${locale}.json`)
+      .then((mod) => setMessages(mod.default))
+      .catch(() => {
+        // Fallback to English if locale file doesn't exist
+        import("@/messages/en.json").then((mod) => setMessages(mod.default))
+      })
+  }, [])
 
   const sex = (responses["Q3"] as Sex) || null
+
+  // Apply translations to question configs
+  const localizedDemographic = useMemo(
+    () => (messages ? localizeDemographicQuestions(DEMOGRAPHIC_QUESTIONS, messages) : DEMOGRAPHIC_QUESTIONS),
+    [messages],
+  )
+  const localizedScored = useMemo(
+    () => (messages ? localizeScoredQuestions(SCORED_QUESTIONS, messages) : SCORED_QUESTIONS),
+    [messages],
+  )
+  const localizedClosing = useMemo(
+    () => (messages ? localizeDemographicQuestions(CLOSING_QUESTIONS, messages) : CLOSING_QUESTIONS),
+    [messages],
+  )
+  const localizedPostSurvey = useMemo(
+    () => (messages ? localizeDemographicQuestions(POST_SURVEY_QUESTIONS, messages) : POST_SURVEY_QUESTIONS),
+    [messages],
+  )
 
   // Build the full question list, applying skip logic
   const visibleQuestions = useMemo(() => {
     const allQuestions: WizardQuestion[] = []
 
     // Q1-Q10: demographics
-    for (const q of DEMOGRAPHIC_QUESTIONS) {
+    for (const q of localizedDemographic) {
       allQuestions.push({
         id: q.id,
         text: q.text,
@@ -81,7 +121,7 @@ export function QuestionnaireWizard({
       }
     }
 
-    for (const q of SCORED_QUESTIONS) {
+    for (const q of localizedScored) {
       if (skippedIds.has(q.id)) continue
       if (q.maxScore === 0 && q.options.length === 0) continue // Q23 not scored, no options
 
@@ -94,7 +134,7 @@ export function QuestionnaireWizard({
     }
 
     // Q44-Q45: closing
-    for (const q of CLOSING_QUESTIONS) {
+    for (const q of localizedClosing) {
       allQuestions.push({
         id: q.id,
         text: q.text,
@@ -105,7 +145,7 @@ export function QuestionnaireWizard({
     }
 
     // PS1-PS5: post-survey feedback
-    for (const q of POST_SURVEY_QUESTIONS) {
+    for (const q of localizedPostSurvey) {
       allQuestions.push({
         id: q.id,
         text: q.text,
@@ -116,7 +156,7 @@ export function QuestionnaireWizard({
     }
 
     return allQuestions
-  }, [sex, responses])
+  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey])
 
   const totalQuestions = visibleQuestions.length
   // Clamp index if the list shrank due to skip logic changes
@@ -194,25 +234,27 @@ export function QuestionnaireWizard({
   // Consent declined — stop the survey
   const consentDeclined = responses["Q1"] === "no"
 
+  // Translated UI labels (fallback to English)
+  const t = messages?.questionnaire as Record<string, string> | undefined
+  const tCommon = messages?.common as Record<string, string> | undefined
+
   if (!currentQuestion) {
-    return <p className="text-muted-foreground">Loading questionnaire...</p>
+    return <p className="text-muted-foreground">{tCommon?.loading ?? "Loading..."}</p>
   }
 
   if (consentDeclined && safeIndex > 0) {
     return (
       <section className="space-y-6">
         <div className="rounded-lg border p-6 text-center space-y-4">
-          <h3 className="text-lg font-semibold">Survey Ended</h3>
+          <h3 className="text-lg font-semibold">{t?.surveyEndedTitle ?? "Survey Ended"}</h3>
           <p className="text-muted-foreground">
-            Thank you for your time. Since consent was not given, the survey
-            cannot continue. Your privacy is respected and no data has been
-            collected.
+            {t?.surveyEndedMessage ?? "Thank you for your time. Since consent was not given, the survey cannot continue. Your privacy is respected and no data has been collected."}
           </p>
           <Button variant="outline" onClick={() => {
             setResponses({})
             setCurrentIndex(0)
           }}>
-            Start Over
+            {t?.startOver ?? "Start Over"}
           </Button>
         </div>
       </section>
@@ -224,7 +266,9 @@ export function QuestionnaireWizard({
       <header className="space-y-2">
         <Progress value={progress} className="h-2" />
         <p className="text-sm text-muted-foreground">
-          Question {safeIndex + 1} of {totalQuestions}
+          {(t?.progress ?? "Question {current} of {total}")
+            .replace("{current}", String(safeIndex + 1))
+            .replace("{total}", String(totalQuestions))}
         </p>
       </header>
 
@@ -247,10 +291,10 @@ export function QuestionnaireWizard({
           onClick={handleBack}
           disabled={safeIndex === 0}
         >
-          Back
+          {tCommon?.back ?? "Back"}
         </Button>
         <Button onClick={handleNext}>
-          {isLast ? "Submit" : "Next"}
+          {isLast ? (tCommon?.submit ?? "Submit") : (tCommon?.next ?? "Next")}
         </Button>
       </nav>
     </section>

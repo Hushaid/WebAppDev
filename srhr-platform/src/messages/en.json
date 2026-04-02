@@ -47,7 +47,18 @@
     "cooldown": "Assessment Cooldown",
     "cooldownMessage": "You can submit another assessment after {time}.",
     "gpsCapture": "Capturing GPS location...",
-    "gpsRequired": "GPS location is required for field submissions."
+    "gpsRequired": "GPS location is required for field submissions.",
+    "surveyEndedTitle": "Survey Ended",
+    "surveyEndedMessage": "Thank you for your time. Since consent was not given, the survey cannot continue. Your privacy is respected and no data has been collected.",
+    "startOver": "Start Over",
+    "pageTitle": "Health Assessment",
+    "checkingAvailability": "Checking availability...",
+    "cooldownTitle": "Please wait before retaking",
+    "cooldownBody": "You completed an assessment recently. To keep your results accurate and meaningful, there is a short waiting period between assessments.",
+    "cooldownAfter": "You can take another assessment after {time}.",
+    "viewLastResults": "View your last results",
+    "pageDescription": "Answer the questions below to receive a confidential health risk assessment. Your data is encrypted and private.",
+    "submittingAnswers": "Submitting your answers..."
   },
   "risk": {
     "low": "Low Risk",
@@ -86,5 +97,403 @@
     "alerts": "Alerts",
     "auditLog": "Audit Log",
     "settings": "Settings"
+  },
+  "questions": {
+    "Q1": {
+      "text": "This survey will help understand your healthcare needs and ensure your community has supplies like medicine, delivery packs, sanitary pads, contraceptives and free treatment during flooding. Your answers are private. Can we start?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q2": {
+      "text": "What is the name of your state and community?"
+    },
+    "Q3": {
+      "text": "What is your sex?",
+      "options": {
+        "male": "Male",
+        "female": "Female"
+      }
+    },
+    "Q4": {
+      "text": "Where do you live?",
+      "options": {
+        "family": "With family",
+        "alone": "Alone",
+        "idp_camp": "In a camp (IDP)",
+        "other": "Other"
+      }
+    },
+    "Q5": {
+      "text": "What is your age group?",
+      "options": {
+        "15_24": "15–24 years",
+        "25_34": "25–34 years",
+        "35_plus": "35 years or older"
+      }
+    },
+    "Q6": {
+      "text": "What is your occupation?"
+    },
+    "Q7": {
+      "text": "What is your annual range of income?",
+      "options": {
+        "10k_20k": "₦10,000 – ₦20,000",
+        "20k_30k": "₦20,000 – ₦30,000",
+        "30k_40k": "₦30,000 – ₦40,000",
+        "40k_50k": "₦40,000 – ₦50,000"
+      }
+    },
+    "Q8": {
+      "text": "What type of living condition do you have?",
+      "options": {
+        "hut": "Hut",
+        "bungalow": "Bungalow",
+        "homeless": "Homeless",
+        "idp_camp": "IDP camp"
+      }
+    },
+    "Q9": {
+      "text": "What is your family size?",
+      "options": {
+        "2_4": "2–4",
+        "5_7": "5–7",
+        "8_10": "8–10"
+      }
+    },
+    "Q10": {
+      "text": "Do you have any disability? If yes, please state."
+    },
+    "Q11": {
+      "text": "Have you noticed any of these symptoms lately? Select all that apply.",
+      "options": {
+        "discharge": "Unusual discharge or smell from private parts",
+        "sores": "Sores or blisters",
+        "burning": "Burning feeling when urinating",
+        "pain_sex": "Pain during sex",
+        "tummy_pain": "Lower tummy pain",
+        "fever": "Fever",
+        "yellow_eyes": "Yellow eyes or skin",
+        "none": "None of the above"
+      }
+    },
+    "Q12": {
+      "text": "How long have these symptoms been happening?",
+      "options": {
+        "less_1_week": "Less than 1 week",
+        "1_4_weeks": "1–4 weeks",
+        "more_4_weeks": "More than 4 weeks"
+      }
+    },
+    "Q13": {
+      "text": "Are the symptoms getting worse, staying the same, or improving?",
+      "options": {
+        "improving": "Improving",
+        "same": "Stay the same",
+        "worse": "Getting worse"
+      }
+    },
+    "Q14": {
+      "text": "When was the last time you had a blood test for HIV or other infections?",
+      "options": {
+        "last_6_months": "Last 6 months",
+        "more_6_months": ">6 months",
+        "never_tested": "Never tested"
+      }
+    },
+    "Q15": {
+      "text": "Have you had a sexual partner in the last one year?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q16": {
+      "text": "How often are you able to use a condom?",
+      "options": {
+        "every_time": "Every time",
+        "sometimes": "Sometimes",
+        "never": "Never"
+      }
+    },
+    "Q17": {
+      "text": "Recently, has anyone forced or pressured you to have sex when you did not want to?",
+      "options": {
+        "no": "No",
+        "yes": "Yes",
+        "rather_not_say": "I'd rather not say"
+      }
+    },
+    "Q18": {
+      "text": "Have you had to exchange sex for money, food, gifts, or a place to stay?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q19": {
+      "text": "Does your sexual partner have other partners, or any health problems you know about?",
+      "options": {
+        "no": "No",
+        "yes": "Yes",
+        "not_sure": "Not sure"
+      }
+    },
+    "Q20": {
+      "text": "Are you currently using any method to prevent STIs (Sexually Transmitted Infections — diseases passed through sexual contact) or pregnancy?",
+      "options": {
+        "yes": "Yes",
+        "no": "No",
+        "want_but_no_access": "I would like to but I don't have"
+      }
+    },
+    "Q21": {
+      "text": "Which prevention method are you using? Select all that apply.",
+      "options": {
+        "condom": "Condoms",
+        "pills": "Pills",
+        "injection": "Injection",
+        "implant": "Implant",
+        "iud": "IUD / coil",
+        "natural": "Natural method",
+        "herbs": "Herbs"
+      }
+    },
+    "Q22": {
+      "text": "Are you currently pregnant?",
+      "options": {
+        "no": "No",
+        "not_sure": "Not sure",
+        "yes": "Yes"
+      }
+    },
+    "Q23": {
+      "text": "How many months pregnant are you?",
+      "options": {
+        "early": "Early (1–3 months)",
+        "middle": "Middle (4–6 months)",
+        "late": "Late (7 months+)",
+        "not_sure": "Not sure"
+      }
+    },
+    "Q24": {
+      "text": "When was the last time you went for antenatal care (check-ups during pregnancy) during this pregnancy?",
+      "options": {
+        "last_month": "In the last month",
+        "1_3_months": "1–3 months ago",
+        "more_3_months": "Over 3 months ago",
+        "never": "Never"
+      }
+    },
+    "Q25": {
+      "text": "What prevents you from attending antenatal care (pregnancy check-ups)?",
+      "options": {
+        "no_barrier": "No barrier",
+        "far_away": "Health centre far away",
+        "no_money": "I don't have money",
+        "cultural": "Cultural reasons",
+        "not_aware": "Not aware of antenatal clinic"
+      }
+    },
+    "Q26": {
+      "text": "Have you experienced any of these in this pregnancy or past pregnancies? Select all that apply.",
+      "options": {
+        "headaches": "Bad headaches",
+        "swelling": "Swelling in feet, hands, or face",
+        "blurred_vision": "Blurred vision",
+        "bleeding": "Unusual bleeding",
+        "c_section": "C-section",
+        "high_bp": "High blood pressure",
+        "high_sugar": "High sugar level (diabetes)",
+        "none": "None of the above"
+      }
+    },
+    "Q27": {
+      "text": "How old were you when you had your first pregnancy?",
+      "options": {
+        "never_pregnant": "Never been pregnant",
+        "over_18": ">18 years",
+        "under_18_or_over_35": "<18 years or >35 years"
+      }
+    },
+    "Q28": {
+      "text": "What is the time gap between each of your children?",
+      "options": {
+        "no_children": "No children",
+        "over_2_years": ">2 years or I have only one child",
+        "under_2_years": "<2 years"
+      }
+    },
+    "Q29": {
+      "text": "If pregnant now, where do you plan to deliver your baby?",
+      "options": {
+        "health_centre": "At health centre",
+        "home": "At home",
+        "traditional": "Traditional birth attendant"
+      }
+    },
+    "Q30": {
+      "text": "Are you preparing for delivery and do you have a delivery pack ready? (Soap, gloves, wrapper, baby clothes, cap, socks, towel, delivery pad)",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q31": {
+      "text": "Where did you deliver your previous babies?",
+      "options": {
+        "no_deliveries": "No previous deliveries",
+        "health_centre": "At health centre",
+        "home": "At home",
+        "traditional": "Traditional birth attendant"
+      }
+    },
+    "Q32": {
+      "text": "Have you ever had a miscarriage (lost a pregnancy before the baby was born)?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q33": {
+      "text": "If yes, how many miscarriages have you had?",
+      "options": {
+        "0_1": "0-1",
+        "2_3": "2-3",
+        "more_3": ">3"
+      }
+    },
+    "Q34": {
+      "text": "Which groups face the greatest health risks related to sexual and reproductive health during flooding? Select all that apply.",
+      "options": {
+        "pregnant": "Pregnant women",
+        "nursing": "Nursing mothers",
+        "disability": "People living with disability",
+        "others": "Other groups"
+      }
+    },
+    "Q35": {
+      "text": "During floods, which of the following is available in temporary shelters? Select all that apply.",
+      "options": {
+        "delivery_spaces": "Safe delivery spaces",
+        "privacy": "Privacy for women",
+        "hygiene": "Menstrual hygiene supplies",
+        "violence_reporting": "Violence reporting mechanism",
+        "none": "None of the above"
+      }
+    },
+    "Q36": {
+      "text": "During flooding, are there reports of GBV (Gender-Based Violence — physical, sexual, or emotional harm based on someone's gender) in your community?",
+      "options": {
+        "no": "No",
+        "not_sure": "Not sure",
+        "yes": "Yes"
+      }
+    },
+    "Q37": {
+      "text": "Which of the following are available at the health centre in your community? Select all that apply.",
+      "options": {
+        "sanitary_pads": "Sanitary pads",
+        "condoms": "Condoms",
+        "birth_control": "Birth control (pills, injection, or implant)",
+        "delivery_pack": "Delivery pack",
+        "chew": "Community health workers (CHEW)",
+        "nurses_doctors": "Trained nurses or doctors",
+        "private_rooms": "Private rooms",
+        "none": "None of the above"
+      }
+    },
+    "Q38": {
+      "text": "Is the health centre close enough for you to reach easily?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q39": {
+      "text": "During flooding, can you still get to the nearest health centre, or are the roads flooded?",
+      "options": {
+        "yes": "Yes, I can access health centre",
+        "flooded": "Roads are flooded",
+        "not_sure": "Not sure"
+      }
+    },
+    "Q40": {
+      "text": "Were there medicines and drugs available during past floods?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q41": {
+      "text": "If you have children under 5 years old, have any of them missed their vaccinations recently due to flooding?",
+      "options": {
+        "no_children": "I don't have under 5 children",
+        "up_to_date": "No, they are up to date",
+        "missed": "Yes, they missed some"
+      }
+    },
+    "Q42": {
+      "text": "Can you get help or medicine within 3 days after a sexual assault? (To prevent HIV, STIs (Sexually Transmitted Infections), or pregnancy)",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q43": {
+      "text": "Are warnings sent ahead of time before flooding occurs in your area?",
+      "options": {
+        "yes": "Yes",
+        "no": "No",
+        "not_sure": "Not sure"
+      }
+    },
+    "Q44": {
+      "text": "Please provide your phone or WhatsApp number so that relief teams can reach you with supplies or emergency health support during the floods. (Optional)"
+    },
+    "Q45": {
+      "text": "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "PS1": {
+      "text": "How easy to understand were the questions asked?",
+      "options": {
+        "1": "Not easy",
+        "2": "Slightly easy",
+        "3": "Fairly easy",
+        "4": "Easy",
+        "5": "Very easy"
+      }
+    },
+    "PS2": {
+      "text": "How well did the words used to describe specific illnesses, symptoms, or body parts match what people actually call them in this community?",
+      "options": {
+        "1": "Not well at all",
+        "2": "Slightly well",
+        "3": "Fairly well",
+        "4": "Well",
+        "5": "Very well"
+      }
+    },
+    "PS3": {
+      "text": "How well did the questions asked in this survey (and the options provided) reflect the reality in the area and health problems that actually worry you, your family and the community as a whole, the most?",
+      "options": {
+        "1": "Not well at all",
+        "2": "Slightly well",
+        "3": "Fairly well",
+        "4": "Well",
+        "5": "Very well"
+      }
+    },
+    "PS4": {
+      "text": "Do you have any other suggestions to make this survey better or capture the community's health reality more accurately?"
+    },
+    "PS5": {
+      "text": "Are there any health issues or local context that this survey missed entirely?"
+    }
   }
 }
