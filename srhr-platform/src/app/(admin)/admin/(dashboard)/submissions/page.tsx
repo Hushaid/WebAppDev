@@ -108,6 +108,7 @@ export default async function SubmissionsPage({
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
+                <TableHead>Submitted By</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Risk Level</TableHead>
                 <TableHead>Location</TableHead>
@@ -126,6 +127,11 @@ export default async function SubmissionsPage({
                           <Flag className="h-3.5 w-3.5 text-orange-500" aria-label="Flagged for review" />
                         )}
                       </span>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/admin/submissions/${sub.id}`} className="block text-sm">
+                      {sub.submitterName ?? <span className="text-muted-foreground">—</span>}
                     </Link>
                   </TableCell>
                   <TableCell>

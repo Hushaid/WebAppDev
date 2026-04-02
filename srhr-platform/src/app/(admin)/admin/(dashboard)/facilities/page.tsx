@@ -12,6 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AdminHeaderAction } from "@/components/admin-header-action"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
+import { createFacility, updateFacility, deleteFacility } from "./actions"
+import { CreateFacilityDialog, EditFacilityDialog } from "./facility-dialog"
+import { DeleteFacilityButton } from "./facility-actions"
 
 async function getFacilities() {
   return db
@@ -28,6 +34,9 @@ const typeColors: Record<string, string> = {
 }
 
 export default async function FacilitiesPage() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  const callerRole = (session?.user as { role?: string })?.role
+  const isSuperAdmin = callerRole === "super_admin"
   const facilities = await getFacilities()
 
   const typeGroups = facilities.reduce(
@@ -42,6 +51,12 @@ export default async function FacilitiesPage() {
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
       {/* Fixed header area */}
       <div className="shrink-0 space-y-4 border-b p-6 pb-4">
+        {isSuperAdmin && (
+          <AdminHeaderAction>
+            <CreateFacilityDialog onCreate={createFacility} />
+          </AdminHeaderAction>
+        )}
+
         <header>
           <hgroup>
             <h1 className="text-2xl font-bold">Health Facilities</h1>
@@ -87,13 +102,14 @@ export default async function FacilitiesPage() {
               <TableHead>Ward</TableHead>
               <TableHead>LGA</TableHead>
               <TableHead>Coordinates</TableHead>
+              {isSuperAdmin && <TableHead>Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {facilities.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  No facilities registered yet. Import facility data to populate this list.
+                <TableCell colSpan={isSuperAdmin ? 6 : 5} className="text-center text-muted-foreground">
+                  No facilities registered yet. {isSuperAdmin ? "Click \"Add facility\" to create one." : "Import facility data to populate this list."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -112,6 +128,18 @@ export default async function FacilitiesPage() {
                       ? `${f.gpsLat}, ${f.gpsLng}`
                       : "—"}
                   </TableCell>
+                  {isSuperAdmin && (
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <EditFacilityDialog facility={f} onUpdate={updateFacility} />
+                        <DeleteFacilityButton
+                          facilityId={f.id}
+                          facilityName={f.name}
+                          onDelete={deleteFacility}
+                        />
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

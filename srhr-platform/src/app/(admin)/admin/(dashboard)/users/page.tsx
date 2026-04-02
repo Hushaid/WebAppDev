@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
-import { getUsers, updateUserRole, updateUserStatus, deleteUser } from "./actions"
+import { getUsers, updateUserRole, updateUserStatus, deleteUser, updateUserDetails } from "./actions"
+import { EditUserDialog } from "./edit-user-dialog"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -112,17 +113,31 @@ export default async function UsersPage({
                     </time>
                   </TableCell>
                   <TableCell>
-                    <UserActions
-                      userId={user.id}
-                      userName={user.name ?? user.email}
-                      currentRole={user.role}
-                      currentStatus={user.status}
-                      callerRole={callerRole}
-                      callerId={callerId}
-                      updateRole={updateUserRole}
-                      updateStatus={updateUserStatus}
-                      deleteUser={deleteUser}
-                    />
+                    <div className="flex items-center gap-1">
+                      {isSuperAdmin && (
+                        <EditUserDialog
+                          userId={user.id}
+                          currentName={user.name ?? ""}
+                          currentEmail={user.email}
+                          currentPhone={user.phone ?? ""}
+                          currentAlternatePhone={user.alternatePhone ?? ""}
+                          currentHomeAddress={user.homeAddress ?? ""}
+                          currentSex={user.sex ?? ""}
+                          updateUserDetails={updateUserDetails}
+                        />
+                      )}
+                      <UserActions
+                        userId={user.id}
+                        userName={user.name ?? user.email}
+                        currentRole={user.role}
+                        currentStatus={user.status}
+                        callerRole={callerRole}
+                        callerId={callerId}
+                        updateRole={updateUserRole}
+                        updateStatus={updateUserStatus}
+                        deleteUser={deleteUser}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -42,6 +42,41 @@ export async function getUsers() {
   return db.select().from(users).orderBy(desc(users.createdAt))
 }
 
+export async function updateUserDetails(
+  userId: string,
+  data: { name: string; phone: string; alternatePhone: string; homeAddress: string; sex: string },
+) {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string })?.role
+  if (callerRole !== "super_admin") {
+    return { success: false as const, error: "Only a super admin can edit user details." }
+  }
+
+  await db
+    .update(users)
+    .set({
+      name: data.name || undefined,
+      phone: data.phone || null,
+      alternatePhone: data.alternatePhone || null,
+      homeAddress: data.homeAddress || null,
+      sex: data.sex || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+
+  logAudit({
+    actorId: session?.user?.id,
+    action: "update",
+    entityType: "user",
+    entityId: userId,
+    metadata: { fields: Object.keys(data) },
+  }).catch(console.error)
+
+  revalidatePath("/admin/users")
+  return { success: true as const }
+}
+
 export async function updateUserRole(userId: string, role: UserRole) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })

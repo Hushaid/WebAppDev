@@ -100,6 +100,7 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
         id: submissions.id,
         submitterId: submissions.submitterId,
         submitterType: submissions.submitterType,
+        submitterName: users.name,
         gpsLat: submissions.gpsLat,
         gpsLng: submissions.gpsLng,
         flaggedForReview: submissions.flaggedForReview,
@@ -108,6 +109,7 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
       })
       .from(submissions)
       .innerJoin(riskClassifications, eq(riskClassifications.submissionId, submissions.id))
+      .leftJoin(users, eq(submissions.submitterId, users.id))
       .where(whereClause)
       .orderBy(desc(submissions.createdAt))
       .limit(PAGE_SIZE)
@@ -133,6 +135,7 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
       id: submissions.id,
       submitterId: submissions.submitterId,
       submitterType: submissions.submitterType,
+      submitterName: users.name,
       gpsLat: submissions.gpsLat,
       gpsLng: submissions.gpsLng,
       flaggedForReview: submissions.flaggedForReview,
@@ -141,6 +144,7 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
     })
     .from(submissions)
     .leftJoin(riskClassifications, eq(riskClassifications.submissionId, submissions.id))
+    .leftJoin(users, eq(submissions.submitterId, users.id))
     .where(whereClause)
     .orderBy(desc(submissions.createdAt))
     .limit(PAGE_SIZE)

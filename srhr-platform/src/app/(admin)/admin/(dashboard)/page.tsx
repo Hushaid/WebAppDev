@@ -56,6 +56,33 @@ async function getDashboardStats() {
       .limit(5),
   ])
 
+  // User counts by role
+  const usersByRole = await db
+    .select({
+      role: users.role,
+      count: count(),
+    })
+    .from(users)
+    .groupBy(users.role)
+
+  const roleCounts = Object.fromEntries(usersByRole.map((r) => [r.role, r.count]))
+
+  // Field worker last-known locations (most recent submission GPS per worker)
+  const fieldWorkerLocations = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      gpsLat: submissions.gpsLat,
+      gpsLng: submissions.gpsLng,
+      lastSubmission: sql<string>`max(${submissions.createdAt})`,
+    })
+    .from(users)
+    .innerJoin(submissions, eq(users.id, submissions.submitterId))
+    .where(eq(users.role, "field_worker"))
+    .groupBy(users.id, users.name, submissions.gpsLat, submissions.gpsLng)
+    .orderBy(desc(sql`max(${submissions.createdAt})`))
+    .limit(20)
+
   // Risk type breakdown
   const riskBreakdown = await db
     .select({
@@ -92,6 +119,8 @@ async function getDashboardStats() {
     recentSubmissions,
     riskBreakdown: riskBreakdown[0] ?? { stiHigh: 0, stiMedium: 0, maternalHigh: 0, maternalMedium: 0, communityHigh: 0, communityMedium: 0 },
     fieldWorkerActivity,
+    roleCounts,
+    fieldWorkerLocations,
   }
 }
 
@@ -118,6 +147,26 @@ export default async function AdminDashboard() {
           Monitor platform activity, track assessments, and manage health risk data across all users.
         </p>
       </header>
+
+      {/* Users by Role */}
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        {[
+          { label: "Personal Users", key: "personal_user" },
+          { label: "Field Workers", key: "field_worker" },
+          { label: "Partners", key: "partner" },
+          { label: "Admins", key: "admin" },
+          { label: "Super Admins", key: "super_admin" },
+        ].map(({ label, key }) => (
+          <Card key={key}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{stats.roleCounts[key] ?? 0}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -283,6 +332,37 @@ export default async function AdminDashboard() {
         </CardContent>
       </Card>
       </div>
+
+      {/* Field Worker Locations */}
+      {stats.fieldWorkerLocations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Field Worker Locations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {stats.fieldWorkerLocations
+                .filter((fw) => fw.gpsLat && fw.gpsLng)
+                .map((fw) => (
+                  <div key={`${fw.id}-${fw.gpsLat}`} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="text-sm font-medium">{fw.name ?? "Unnamed"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {parseFloat(fw.gpsLat!).toFixed(4)}, {parseFloat(fw.gpsLng!).toFixed(4)}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {new Date(fw.lastSubmission).toLocaleDateString()}
+                    </Badge>
+                  </div>
+                ))}
+            </div>
+            {stats.fieldWorkerLocations.filter((fw) => fw.gpsLat && fw.gpsLng).length === 0 && (
+              <p className="text-sm text-muted-foreground">No GPS data captured from field workers yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </section>
   )
 }
