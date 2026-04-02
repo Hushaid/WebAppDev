@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getUsers, updateUserRole, updateUserStatus, deleteUser, updateUserDetails } from "./actions"
+import { getUsers, updateUserRole, updateUserStatus, deleteUser } from "./actions"
 import { EditUserDialog } from "./edit-user-dialog"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -123,7 +123,6 @@ export default async function UsersPage({
                           currentAlternatePhone={user.alternatePhone ?? ""}
                           currentHomeAddress={user.homeAddress ?? ""}
                           currentSex={user.sex ?? ""}
-                          updateUserDetails={updateUserDetails}
                         />
                       )}
                       <UserActions

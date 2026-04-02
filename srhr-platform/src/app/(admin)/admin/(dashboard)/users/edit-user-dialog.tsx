@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Pencil } from "lucide-react"
+import { updateUserDetails } from "./actions"
 
 interface EditUserDialogProps {
   userId: string
@@ -30,16 +31,6 @@ interface EditUserDialogProps {
   currentAlternatePhone: string
   currentHomeAddress: string
   currentSex: string
-  updateUserDetails: (
-    userId: string,
-    data: {
-      name: string
-      phone: string
-      alternatePhone: string
-      homeAddress: string
-      sex: string
-    },
-  ) => Promise<{ success: boolean; error?: string }>
 }
 
 export function EditUserDialog({
@@ -50,7 +41,6 @@ export function EditUserDialog({
   currentAlternatePhone,
   currentHomeAddress,
   currentSex,
-  updateUserDetails,
 }: EditUserDialogProps) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
