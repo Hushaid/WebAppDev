@@ -5,9 +5,11 @@ import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ""
+const HAS_PUBLIC_MAPBOX_TOKEN = MAPBOX_TOKEN.startsWith("pk.")
 
 interface IrixMapScore {
   h3_index: string
+  location_name: string
   lat: number
   lng: number
   overall_irix_score: number
@@ -34,22 +36,43 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [mapError, setMapError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
+    if (!HAS_PUBLIC_MAPBOX_TOKEN) {
+      setMapError(
+        MAPBOX_TOKEN
+          ? "Mapbox is configured with a secret token. Use a public NEXT_PUBLIC_MAPBOX_TOKEN that starts with pk."
+          : "Mapbox is not configured. Add a public NEXT_PUBLIC_MAPBOX_TOKEN to enable the map.",
+      )
+      return
+    }
 
     mapboxgl.accessToken = MAPBOX_TOKEN
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [7.49, 9.06], // Nigeria center (Abuja area)
-      zoom: 8,
-    })
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/light-v11",
+        center: [7.49, 9.06], // Nigeria center (Abuja area)
+        zoom: 8,
+      })
+    } catch (error) {
+      setMapError(
+        error instanceof Error
+          ? error.message
+          : "Failed to initialize the risk map.",
+      )
+      return
+    }
 
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right")
 
     map.current.on("load", () => setLoaded(true))
+    map.current.on("error", () => {
+      setMapError("The risk map could not be loaded. Please verify the Mapbox public token.")
+    })
 
     return () => {
       map.current?.remove()
@@ -71,6 +94,7 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
         },
         properties: {
           h3_index: s.h3_index,
+          location_name: s.location_name,
           score: s.overall_irix_score,
           risk_level: s.overall_risk_level,
           sti_avg: s.sti_avg_score,
@@ -158,6 +182,7 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
         if (props && onCellClick) {
           onCellClick({
             h3_index: props.h3_index,
+            location_name: props.location_name ?? "Unknown",
             lat: (e.features[0].geometry as GeoJSON.Point).coordinates[1],
             lng: (e.features[0].geometry as GeoJSON.Point).coordinates[0],
             overall_irix_score: props.score,
@@ -180,6 +205,19 @@ export function IrixMap({ scores, onCellClick }: IrixMapProps) {
       })
     }
   }, [scores, loaded, onCellClick])
+
+  if (mapError) {
+    return (
+      <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed px-6 text-center">
+        <p className="text-sm font-medium text-muted-foreground">
+          Unable to load the map
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground/70">
+          {mapError}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <figure

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -19,19 +20,23 @@ import { toast } from "sonner"
 export function DeleteFacilityButton({
   facilityId,
   facilityName,
-  onDelete,
 }: {
   facilityId: string
   facilityName: string
-  onDelete: (id: string) => Promise<{ success: boolean }>
 }) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   function handleDelete() {
     startTransition(async () => {
-      const result = await onDelete(facilityId)
+      const result = await fetch(`/api/admin/facilities/${facilityId}`, {
+        method: "DELETE",
+      }).then((response) => response.json())
       if (result.success) {
         toast.success("Facility deleted", { description: facilityName })
+        router.refresh()
+      } else {
+        toast.error(result.error ?? "Failed to delete facility")
       }
     })
   }

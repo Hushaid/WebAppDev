@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/dialog"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Pencil } from "lucide-react"
-import { updateUserDetails } from "./actions"
 
 function formatPhone(raw: string): string {
   const digits = raw.replace(/\D/g, "").slice(0, 10)
@@ -55,6 +55,7 @@ export function EditUserDialog({
   currentHomeAddress,
   currentSex,
 }: EditUserDialogProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -71,18 +72,24 @@ export function EditUserDialog({
     const rawPhone = stripPhone(phoneDisplay)
     const rawAltPhone = stripPhone(altPhoneDisplay)
 
-    const result = await updateUserDetails(userId, {
-      name: (fd.get("name") as string).trim(),
-      phone: rawPhone ? `+234${rawPhone}` : "",
-      alternatePhone: rawAltPhone ? `+234${rawAltPhone}` : "",
-      homeAddress: (fd.get("homeAddress") as string).trim(),
-      sex,
-    })
+    const result = await fetch(`/api/admin/users/${userId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "details",
+        name: (fd.get("name") as string).trim(),
+        phone: rawPhone ? `+234${rawPhone}` : "",
+        alternatePhone: rawAltPhone ? `+234${rawAltPhone}` : "",
+        homeAddress: (fd.get("homeAddress") as string).trim(),
+        sex,
+      }),
+    }).then((response) => response.json())
 
     if (!result.success) {
       setError(result.error ?? "Failed to update user.")
     } else {
       setOpen(false)
+      router.refresh()
     }
     setLoading(false)
   }

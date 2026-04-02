@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,15 +14,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Shield } from "lucide-react"
-import { logPiiAccess } from "../actions"
 
 interface PiiDownloadProps {
   submissionId: string
-  actorId: string
   contactResponses: { question: string; value: string }[]
 }
 
-export function PiiDownload({ submissionId, actorId, contactResponses }: PiiDownloadProps) {
+export function PiiDownload({ submissionId, contactResponses }: PiiDownloadProps) {
+  const router = useRouter()
   const [revealed, setRevealed] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
@@ -30,10 +30,17 @@ export function PiiDownload({ submissionId, actorId, contactResponses }: PiiDown
 
   function handleReveal() {
     startTransition(async () => {
-      await logPiiAccess(actorId, submissionId)
+      const result = await fetch(`/api/admin/submissions/${submissionId}/pii-access`, {
+        method: "POST",
+      }).then((response) => response.json())
+      if (!result.success) {
+        toast.error(result.error ?? "Failed to log PII access")
+        return
+      }
       setRevealed(true)
       setOpen(false)
       toast.success("PII access logged in audit trail")
+      router.refresh()
     })
   }
 

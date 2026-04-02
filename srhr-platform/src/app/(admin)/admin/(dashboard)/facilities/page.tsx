@@ -15,7 +15,6 @@ import {
 import { AdminHeaderAction } from "@/components/admin-header-action"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { createFacility, updateFacility, deleteFacility } from "./actions"
 import { CreateFacilityDialog, EditFacilityDialog } from "./facility-dialog"
 import { DeleteFacilityButton } from "./facility-actions"
 
@@ -53,7 +52,7 @@ export default async function FacilitiesPage() {
       <div className="shrink-0 space-y-4 border-b p-6 pb-4">
         {isSuperAdmin && (
           <AdminHeaderAction>
-            <CreateFacilityDialog onCreate={createFacility} />
+            <CreateFacilityDialog />
           </AdminHeaderAction>
         )}
 
@@ -131,11 +130,10 @@ export default async function FacilitiesPage() {
                   {isSuperAdmin && (
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <EditFacilityDialog facility={f} onUpdate={updateFacility} />
+                        <EditFacilityDialog facility={f} />
                         <DeleteFacilityButton
                           facilityId={f.id}
                           facilityName={f.name}
-                          onDelete={deleteFacility}
                         />
                       </div>
                     </TableCell>

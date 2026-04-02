@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { changePassword } from "@/app/actions/change-password"
 
 export function ChangePasswordForm() {
+  const router = useRouter()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -31,18 +32,21 @@ export function ChangePasswordForm() {
     }
 
     startTransition(async () => {
-      const result = await changePassword({
-        currentPassword,
-        newPassword,
+      const response = await fetch("/api/account/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
       })
+      const result = await response.json()
 
       if (result.success) {
         toast.success("Password changed successfully")
         setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")
+        router.refresh()
       } else {
-        toast.error(result.error)
+        toast.error(result.error ?? "Failed to change password")
       }
     })
   }

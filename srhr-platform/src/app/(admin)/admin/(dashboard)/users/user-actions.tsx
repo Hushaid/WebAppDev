@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,12 +43,6 @@ const ROLES = [
 type UserRole = (typeof ROLES)[number]
 type UserStatus = "active" | "inactive" | "suspended"
 
-import {
-  updateUserRole,
-  updateUserStatus,
-  deleteUser as deleteUserAction,
-} from "./actions"
-
 interface UserActionsProps {
   userId: string
   userName: string
@@ -65,6 +60,7 @@ export function UserActions({
   callerRole,
   callerId,
 }: UserActionsProps) {
+  const router = useRouter()
   const availableRoles = callerRole === "super_admin"
     ? ROLES
     : ROLES.filter((r) => r !== "super_admin")
@@ -90,11 +86,19 @@ export function UserActions({
     }
     startRoleTransition(async () => {
       try {
-        await updateUserRole(userId, selectedRole as UserRole)
+        const result = await fetch(`/api/admin/users/${userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "role", role: selectedRole as UserRole }),
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to update role")
+        }
         toast.success(`Role updated to ${selectedRole.replace(/_/g, " ")}`, {
           description: userName,
         })
         setRoleOpen(false)
+        router.refresh()
       } catch {
         toast.error("Failed to update role")
       }
@@ -105,11 +109,19 @@ export function UserActions({
     const newStatus: UserStatus = currentStatus === "active" ? "suspended" : "active"
     startStatusTransition(async () => {
       try {
-        await updateUserStatus(userId, newStatus)
+        const result = await fetch(`/api/admin/users/${userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "status", status: newStatus }),
+        }).then((response) => response.json())
+        if (!result.success) {
+          throw new Error(result.error ?? "Failed to update status")
+        }
         toast.success(
           newStatus === "suspended" ? "User suspended" : "User activated",
           { description: userName },
         )
+        router.refresh()
       } catch {
         toast.error("Failed to update status")
       }
@@ -118,9 +130,12 @@ export function UserActions({
 
   function handleDelete() {
     startDeleteTransition(async () => {
-      const result = await deleteUserAction(userId)
+      const result = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      }).then((response) => response.json())
       if (result.success) {
         toast.success("User deleted", { description: userName })
+        router.refresh()
       } else {
         toast.error(result.error ?? "Failed to delete user")
       }

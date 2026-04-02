@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button"
 
 export interface FilterValues {
   diseaseGroup: string
+  sex: string
+  ageGroup: string
+  location: string
   riskLevel: string
   dateFrom: string
   dateTo: string
@@ -20,18 +23,27 @@ export interface FilterValues {
 
 interface IrixFiltersProps {
   filters: FilterValues
+  locationOptions: string[]
   onChange: (filters: FilterValues) => void
   onReset: () => void
 }
 
 export const DEFAULT_FILTERS: FilterValues = {
   diseaseGroup: "all",
+  sex: "all",
+  ageGroup: "all",
+  location: "all",
   riskLevel: "all",
   dateFrom: "",
   dateTo: "",
 }
 
-export function IrixFilters({ filters, onChange, onReset }: IrixFiltersProps) {
+export function IrixFilters({
+  filters,
+  locationOptions,
+  onChange,
+  onReset,
+}: IrixFiltersProps) {
   function update(key: keyof FilterValues, value: string) {
     onChange({ ...filters, [key]: value })
   }
@@ -52,6 +64,61 @@ export function IrixFilters({ filters, onChange, onReset }: IrixFiltersProps) {
             <SelectItem value="sti">Infection Risk</SelectItem>
             <SelectItem value="maternal_health">Maternal Health</SelectItem>
             <SelectItem value="community_wellbeing">Community Well-being</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="sex-filter">Sex</Label>
+        <Select
+          value={filters.sex}
+          onValueChange={(v) => update("sex", v)}
+        >
+          <SelectTrigger id="sex-filter" className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sexes</SelectItem>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="age-group-filter">Age</Label>
+        <Select
+          value={filters.ageGroup}
+          onValueChange={(v) => update("ageGroup", v)}
+        >
+          <SelectTrigger id="age-group-filter" className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Ages</SelectItem>
+            <SelectItem value="15_24">15–24 years</SelectItem>
+            <SelectItem value="25_34">25–34 years</SelectItem>
+            <SelectItem value="35_plus">35 years or older</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="location-filter">Location</Label>
+        <Select
+          value={filters.location}
+          onValueChange={(v) => update("location", v)}
+        >
+          <SelectTrigger id="location-filter" className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Locations</SelectItem>
+            {locationOptions.map((location) => (
+              <SelectItem key={location} value={location}>
+                {location}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
