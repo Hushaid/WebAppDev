@@ -12,9 +12,6 @@ import {
   fieldWorkerCodes,
 } from "@/lib/db/schema"
 import { eq, desc } from "drizzle-orm"
-
-/** Roles that a plain admin is not allowed to delete (only super_admin can) */
-const PROTECTED_ROLES = ["admin", "super_admin"]
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
