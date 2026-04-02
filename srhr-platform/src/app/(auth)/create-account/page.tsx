@@ -15,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { updateProfileAfterSignup } from "./actions"
 
 /** Format 10 raw digits as "803 456 7890" for display */
 function formatNigerianPhone(raw: string): string {
@@ -112,6 +111,9 @@ export default function CreateAccountPage() {
       name,
       email,
       password,
+      sex,
+      phone: rawPhone ? `+234${rawPhone}` : undefined,
+      homeAddress: homeAddress || undefined,
     })
 
     if (authError) {
@@ -119,13 +121,6 @@ export default function CreateAccountPage() {
       setLoading(false)
       return
     }
-
-    // Save additional profile fields — store phone as full +234 format
-    await updateProfileAfterSignup(email, {
-      sex,
-      phone: rawPhone ? `+234${rawPhone}` : undefined,
-      homeAddress: homeAddress || undefined,
-    })
 
     setSubmittedEmail(email)
     setVerificationSent(true)

@@ -1,7 +1,8 @@
 "use client"
 
 import { createAuthClient } from "better-auth/react"
-import { twoFactorClient } from "better-auth/client/plugins"
+import { inferAdditionalFields, twoFactorClient } from "better-auth/client/plugins"
+import type { auth } from "@/lib/auth"
 
 // Use current origin when available (same-origin = no CORS). Fallback to env for SSR.
 const baseURL =
@@ -11,7 +12,7 @@ const baseURL =
 
 export const authClient = createAuthClient({
   baseURL,
-  plugins: [twoFactorClient()],
+  plugins: [twoFactorClient(), inferAdditionalFields<typeof auth>()],
 })
 
 export const { signIn, signUp, signOut, useSession } = authClient

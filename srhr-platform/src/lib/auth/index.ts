@@ -241,6 +241,18 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
+      sex: {
+        type: "string",
+        required: false,
+      },
+      phone: {
+        type: "string",
+        required: false,
+      },
+      homeAddress: {
+        type: "string",
+        required: false,
+      },
       role: {
         type: "string",
         required: true,
