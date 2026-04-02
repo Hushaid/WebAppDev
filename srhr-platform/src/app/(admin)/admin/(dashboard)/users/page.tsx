@@ -70,7 +70,7 @@ export default async function UsersPage({
         </header>
         <div className="mt-4">
           <Suspense>
-            <UserRoleFilter currentRole={filterRole} currentSex={filterSex} />
+            <UserRoleFilter currentRole={filterRole} currentSex={filterSex} showSexFilter={filterRole === "personal_user"} />
           </Suspense>
         </div>
       </div>

@@ -24,7 +24,7 @@ const SEX_OPTIONS = [
   { value: "female", label: "Female" },
 ]
 
-export function UserRoleFilter({ currentRole, currentSex }: { currentRole: string; currentSex: string }) {
+export function UserRoleFilter({ currentRole, currentSex, showSexFilter }: { currentRole: string; currentSex: string; showSexFilter: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -52,16 +52,18 @@ export function UserRoleFilter({ currentRole, currentSex }: { currentRole: strin
           ))}
         </SelectContent>
       </Select>
-      <Select value={currentSex} onValueChange={(v) => pushFilters({ sex: v })}>
-        <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Filter by sex" />
-        </SelectTrigger>
-        <SelectContent>
-          {SEX_OPTIONS.map((s) => (
-            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {showSexFilter && (
+        <Select value={currentSex} onValueChange={(v) => pushFilters({ sex: v })}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Filter by sex" />
+          </SelectTrigger>
+          <SelectContent>
+            {SEX_OPTIONS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   )
 }
