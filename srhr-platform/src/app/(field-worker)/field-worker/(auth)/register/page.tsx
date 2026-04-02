@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { validateAccessCode, registerFieldWorker } from "./actions"
 
 export default function FieldWorkerRegisterPage() {
   const router = useRouter()
@@ -29,7 +28,12 @@ export default function FieldWorkerRegisterPage() {
     setError("")
     setLoading(true)
 
-    const result = await validateAccessCode(accessCode)
+    const res = await fetch("/api/field-worker/register/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: accessCode }),
+    })
+    const result = await res.json()
 
     if (!result.valid) {
       setError(result.error ?? "Invalid code.")
@@ -64,7 +68,12 @@ export default function FieldWorkerRegisterPage() {
       return
     }
 
-    const result = await registerFieldWorker({ name, email, password, codeId })
+    const res = await fetch("/api/field-worker/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, codeId }),
+    })
+    const result = await res.json()
 
     if (!result.success) {
       setError(result.error ?? "Registration failed.")
