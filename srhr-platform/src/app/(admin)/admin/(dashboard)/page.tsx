@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
+import { reverseGeocode } from "@/lib/utils/reverse-geocode"
 
 async function getDashboardStats() {
   const now = new Date()
@@ -83,6 +84,16 @@ async function getDashboardStats() {
     .orderBy(desc(sql`max(${submissions.createdAt})`))
     .limit(20)
 
+  // Resolve location names for field workers with GPS data
+  const fieldWorkerLocationsWithNames = await Promise.all(
+    fieldWorkerLocations
+      .filter((fw) => fw.gpsLat && fw.gpsLng)
+      .map(async (fw) => ({
+        ...fw,
+        locationName: await reverseGeocode(parseFloat(fw.gpsLat!), parseFloat(fw.gpsLng!)),
+      })),
+  )
+
   // Risk type breakdown
   const riskBreakdown = await db
     .select({
@@ -120,7 +131,7 @@ async function getDashboardStats() {
     riskBreakdown: riskBreakdown[0] ?? { stiHigh: 0, stiMedium: 0, maternalHigh: 0, maternalMedium: 0, communityHigh: 0, communityMedium: 0 },
     fieldWorkerActivity,
     roleCounts,
-    fieldWorkerLocations,
+    fieldWorkerLocations: fieldWorkerLocationsWithNames,
   }
 }
 
@@ -341,23 +352,24 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {stats.fieldWorkerLocations
-                .filter((fw) => fw.gpsLat && fw.gpsLng)
-                .map((fw) => (
+              {stats.fieldWorkerLocations.map((fw) => (
                   <div key={`${fw.id}-${fw.gpsLat}`} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
                       <p className="text-sm font-medium">{fw.name ?? "Unnamed"}</p>
+                      {fw.locationName && (
+                        <p className="text-xs font-medium text-foreground/70">{fw.locationName}</p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {parseFloat(fw.gpsLat!).toFixed(4)}, {parseFloat(fw.gpsLng!).toFixed(4)}
                       </p>
                     </div>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="shrink-0 text-xs">
                       {new Date(fw.lastSubmission).toLocaleDateString()}
                     </Badge>
                   </div>
                 ))}
             </div>
-            {stats.fieldWorkerLocations.filter((fw) => fw.gpsLat && fw.gpsLng).length === 0 && (
+            {stats.fieldWorkerLocations.length === 0 && (
               <p className="text-sm text-muted-foreground">No GPS data captured from field workers yet.</p>
             )}
           </CardContent>
