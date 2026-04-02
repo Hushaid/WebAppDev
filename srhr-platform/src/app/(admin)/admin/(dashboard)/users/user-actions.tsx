@@ -42,8 +42,11 @@ const ROLES = [
 type UserRole = (typeof ROLES)[number]
 type UserStatus = "active" | "inactive" | "suspended"
 
-/** Roles that a plain admin cannot delete */
-const PROTECTED_ROLES = ["admin", "super_admin"]
+import {
+  updateUserRole,
+  updateUserStatus,
+  deleteUser as deleteUserAction,
+} from "./actions"
 
 interface UserActionsProps {
   userId: string
@@ -52,9 +55,6 @@ interface UserActionsProps {
   currentStatus: string
   callerRole: string
   callerId: string
-  updateRole: (userId: string, role: UserRole) => Promise<void>
-  updateStatus: (userId: string, status: UserStatus) => Promise<void>
-  deleteUser: (userId: string) => Promise<{ success: boolean; error?: string }>
 }
 
 export function UserActions({
@@ -64,9 +64,6 @@ export function UserActions({
   currentStatus,
   callerRole,
   callerId,
-  updateRole,
-  updateStatus,
-  deleteUser,
 }: UserActionsProps) {
   const availableRoles = callerRole === "super_admin"
     ? ROLES
@@ -93,7 +90,7 @@ export function UserActions({
     }
     startRoleTransition(async () => {
       try {
-        await updateRole(userId, selectedRole as UserRole)
+        await updateUserRole(userId, selectedRole as UserRole)
         toast.success(`Role updated to ${selectedRole.replace(/_/g, " ")}`, {
           description: userName,
         })
@@ -108,7 +105,7 @@ export function UserActions({
     const newStatus: UserStatus = currentStatus === "active" ? "suspended" : "active"
     startStatusTransition(async () => {
       try {
-        await updateStatus(userId, newStatus)
+        await updateUserStatus(userId, newStatus)
         toast.success(
           newStatus === "suspended" ? "User suspended" : "User activated",
           { description: userName },
@@ -121,7 +118,7 @@ export function UserActions({
 
   function handleDelete() {
     startDeleteTransition(async () => {
-      const result = await deleteUser(userId)
+      const result = await deleteUserAction(userId)
       if (result.success) {
         toast.success("User deleted", { description: userName })
       } else {
