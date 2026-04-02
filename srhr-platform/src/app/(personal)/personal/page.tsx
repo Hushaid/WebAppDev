@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { headers } from "next/headers"
+import { getTranslations } from "next-intl/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { submissions, riskClassifications } from "@/lib/db/schema"
@@ -22,6 +23,7 @@ function riskVariant(level: string | null) {
 }
 
 export default async function PersonalHomePage() {
+  const t = await getTranslations("personal")
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
   const userName = session?.user?.name ?? ""
@@ -68,25 +70,25 @@ export default async function PersonalHomePage() {
       <header>
         <hgroup>
           <h1 className="text-2xl font-bold">
-            Welcome{userName ? `, ${userName}` : ""}
+            {userName ? t("welcomeWithName", { name: userName }) : t("welcome")}
           </h1>
           <p className="text-muted-foreground">
-            Your confidential health assessment dashboard. All your data is encrypted and private.
+            {t("description")}
           </p>
         </hgroup>
       </header>
 
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>{t("quickActions")}</CardTitle>
         </CardHeader>
         <CardContent className="flex gap-3">
           <Button asChild>
-            <Link href="/personal/questionnaire">Take assessment</Link>
+            <Link href="/personal/questionnaire">{t("takeAssessment")}</Link>
           </Button>
           {latestSubmission && (
             <Button variant="outline" asChild>
-              <Link href={`/personal/history/${latestSubmission.id}`}>View last result</Link>
+              <Link href={`/personal/history/${latestSubmission.id}`}>{t("viewLastResult")}</Link>
             </Button>
           )}
         </CardContent>
@@ -96,13 +98,13 @@ export default async function PersonalHomePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              Latest Result
+              {t("latestResult")}
               <Badge variant={riskVariant(latestSubmission.overallRiskLevel)} className="text-sm">
                 {latestSubmission.overallRiskLevel.toUpperCase()}
               </Badge>
             </CardTitle>
             <CardDescription>
-              Taken on{" "}
+              {t("takenOn")}{" "}
               <time dateTime={latestSubmission.createdAt.toISOString()}>
                 {latestSubmission.createdAt.toLocaleDateString(undefined, {
                   year: "numeric",
@@ -110,12 +112,12 @@ export default async function PersonalHomePage() {
                   day: "numeric",
                 })}
               </time>
-              {" · "}Aggregate score: {latestSubmission.aggregateScore}
+              {" · "}{t("aggregateScore")}: {latestSubmission.aggregateScore}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-4 text-sm">
-              <dt className="text-muted-foreground">Infection Risk</dt>
+              <dt className="text-muted-foreground">{t("infectionRisk")}</dt>
               <dd className="text-end">
                 <Badge variant={riskVariant(latestSubmission.stiRiskLevel)}>
                   {latestSubmission.stiRiskLevel} ({latestSubmission.stiScore})
@@ -124,7 +126,7 @@ export default async function PersonalHomePage() {
 
               {latestSubmission.maternalRiskLevel && (
                 <>
-                  <dt className="text-muted-foreground">Maternal Health</dt>
+                  <dt className="text-muted-foreground">{t("maternalHealth")}</dt>
                   <dd className="text-end">
                     <Badge variant={riskVariant(latestSubmission.maternalRiskLevel)}>
                       {latestSubmission.maternalRiskLevel} ({latestSubmission.maternalScore})
@@ -133,7 +135,7 @@ export default async function PersonalHomePage() {
                 </>
               )}
 
-              <dt className="text-muted-foreground">Community Well-being</dt>
+              <dt className="text-muted-foreground">{t("communityWellbeing")}</dt>
               <dd className="text-end">
                 <Badge variant={riskVariant(latestSubmission.communityWellbeingRiskLevel)}>
                   {latestSubmission.communityWellbeingRiskLevel} ({latestSubmission.communityWellbeingScore})
@@ -143,7 +145,7 @@ export default async function PersonalHomePage() {
 
             <div className="mt-4">
               <Link href="/personal/history" className="text-sm text-primary hover:underline">
-                View all assessments
+                {t("viewAllAssessments")}
               </Link>
             </div>
           </CardContent>
@@ -151,12 +153,11 @@ export default async function PersonalHomePage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Assessment History</CardTitle>
+            <CardTitle>{t("assessmentHistory")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              You have not taken any assessments yet. Complete your first
-              health assessment to receive a personalised risk profile and facility recommendations.
+              {t("noAssessmentsYet")}
             </p>
           </CardContent>
         </Card>

@@ -58,7 +58,10 @@
     "cooldownAfter": "Za ku iya yin wani gwaji bayan {time}.",
     "viewLastResults": "Duba sakamakon ku na ƙarshe",
     "pageDescription": "Amsa tambayoyin da ke ƙasa don samun gwajin haɗarin lafiya na sirri. An ɓoye bayananku kuma suna da sirri.",
-    "submittingAnswers": "Ana aika amsoshinku..."
+    "submittingAnswers": "Ana aika amsoshinku...",
+    "selectOption": "Zaɓi ɗaya daga cikin zaɓuɓɓuka",
+    "enterResponse": "Da fatan za a shigar da amsa kafin a ci gaba.",
+    "selectResponse": "Da fatan za a zaɓi amsa kafin a ci gaba."
   },
   "risk": {
     "low": "Ƙaramin Haɗari",
@@ -97,6 +100,62 @@
     "alerts": "Sanarwa",
     "auditLog": "Bayanan Duba",
     "settings": "Saituna"
+  },
+  "personal": {
+    "welcome": "Barka da zuwa",
+    "welcomeWithName": "Barka da zuwa, {name}",
+    "description": "Dashboard ɗin tantance lafiyar ku na sirri. An ɓoye duk bayananku kuma suna da sirri.",
+    "quickActions": "Ayyuka na Gaggawa",
+    "takeAssessment": "Yi tantancewa",
+    "viewLastResult": "Duba sakamakon baya",
+    "latestResult": "Sakamakon Kwanan Nan",
+    "takenOn": "An yi shi a",
+    "aggregateScore": "Jimillar maki",
+    "infectionRisk": "Haɗarin kamuwa da cuta",
+    "maternalHealth": "Lafiyar uwa",
+    "communityWellbeing": "Jin daɗin al'umma",
+    "viewAllAssessments": "Duba dukkan tantancewa",
+    "assessmentHistory": "Tarihin Tantancewa",
+    "noAssessmentsYet": "Ba ku yi wata tantancewa ba tukuna. Kammala ta farko don samun bayanin haɗarin ku da shawarwarin cibiyoyin lafiya.",
+    "nav": {
+      "dashboard": "Dashboard",
+      "assessment": "Tantancewa",
+      "history": "Tarihi",
+      "settings": "Saituna",
+      "menu": "Menu"
+    }
+  },
+  "fieldWorker": {
+    "dashboardTitle": "Dashboard na Ma'aikacin Filin",
+    "welcomeWithName": "Barka da zuwa, {name}",
+    "description": "Ayyukan tantancewarku a taƙaice. Kowace tantancewa da kuka yi na taimakawa gano haɗurran lafiya a cikin al'umma.",
+    "newAssessment": "Sabuwar tantancewa",
+    "questionnaireDescription": "Kammala tantance haɗarin lafiya ga mutumin da kuke taimakawa.",
+    "noAssessmentsYetTitle": "Babu tantancewa tukuna",
+    "noAssessmentsYetBody": "Ba ku gudanar da wata tantancewa ba tukuna. Fara ta farko domin taimakawa gano haɗurran lafiya a cikin al'umma.",
+    "startFirstAssessment": "Fara tantancewa ta farko",
+    "submissions": "abubuwan da aka aika",
+    "total": "Jimla",
+    "withLocationCaptured": "{count} tare da bayanin wuri",
+    "locationCaptured": "An kama bayanin wuri",
+    "waitingForLocationAccess": "Ana jiran izinin wuri… Da fatan za a ba da izinin wuri idan an tambaya.",
+    "locationRequiredTitle": "Ana buƙatar izinin wuri",
+    "locationRequiredBody": "Ana buƙatar izinin wuri don aika tantancewa. Ana amfani da shi ne don hana tattara bayanai sau biyu. Da fatan za a kunna izinin wuri a saitunan burauzarku sannan ku sake loda shafin.",
+    "reloadPage": "Sake loda shafi",
+    "recentSubmissionDetectedTitle": "An gano sabuwar aika bayanai",
+    "recentSubmissionDetectedBody": "An riga an yi aika bayanai daga wannan wuri cikin {minutes} {unit} da suka gabata. Don hana tattara bayanai sau biyu, ba za ku iya fara sabuwar tantancewa daga nan yanzu ba.",
+    "startNewAssessmentAfter": "Za ku iya fara sabuwar tantancewa bayan {time}, ko kuma ku {move}.",
+    "moveDifferentLocation": "matsawa zuwa wani wuri daban",
+    "duplicateAlert": "An gano aika bayanai sau biyu. Da fatan za ku matsa zuwa wani wuri daban kafin sake aikawa.",
+    "minute": "minti",
+    "minutes": "mintuna",
+    "nav": {
+      "dashboard": "Dashboard",
+      "newAssessment": "Sabuwar Tantancewa",
+      "history": "Tarihi",
+      "settings": "Saituna",
+      "menu": "Menu"
+    }
   },
   "questions": {
     "Q1": {

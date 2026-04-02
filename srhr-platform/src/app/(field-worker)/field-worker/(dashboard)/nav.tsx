@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Menu } from "lucide-react"
@@ -14,16 +15,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
-const links = [
-  { href: "/field-worker", label: "Dashboard" },
-  { href: "/field-worker/questionnaire", label: "New Assessment" },
-  { href: "/field-worker/history", label: "History" },
-  { href: "/field-worker/settings", label: "Settings" },
-]
-
 export function FieldWorkerNav() {
+  const t = useTranslations("fieldWorker")
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const links = [
+    { href: "/field-worker", label: t("nav.dashboard") },
+    { href: "/field-worker/questionnaire", label: t("nav.newAssessment") },
+    { href: "/field-worker/history", label: t("nav.history") },
+    { href: "/field-worker/settings", label: t("nav.settings") },
+  ]
 
   function isActive(href: string) {
     return href === "/field-worker"
@@ -61,7 +62,7 @@ export function FieldWorkerNav() {
         </SheetTrigger>
         <SheetContent side="left" className="w-64">
           <SheetHeader>
-            <SheetTitle>Menu</SheetTitle>
+            <SheetTitle>{t("nav.menu")}</SheetTitle>
           </SheetHeader>
           <nav className="mt-4">
             <ul className="space-y-1">

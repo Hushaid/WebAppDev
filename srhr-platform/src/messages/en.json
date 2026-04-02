@@ -58,7 +58,10 @@
     "cooldownAfter": "You can take another assessment after {time}.",
     "viewLastResults": "View your last results",
     "pageDescription": "Answer the questions below to receive a confidential health risk assessment. Your data is encrypted and private.",
-    "submittingAnswers": "Submitting your answers..."
+    "submittingAnswers": "Submitting your answers...",
+    "selectOption": "Select an option",
+    "enterResponse": "Please enter a response before continuing.",
+    "selectResponse": "Please select an option before continuing."
   },
   "risk": {
     "low": "Low Risk",
@@ -97,6 +100,62 @@
     "alerts": "Alerts",
     "auditLog": "Audit Log",
     "settings": "Settings"
+  },
+  "personal": {
+    "welcome": "Welcome",
+    "welcomeWithName": "Welcome, {name}",
+    "description": "Your confidential health assessment dashboard. All your data is encrypted and private.",
+    "quickActions": "Quick Actions",
+    "takeAssessment": "Take assessment",
+    "viewLastResult": "View last result",
+    "latestResult": "Latest Result",
+    "takenOn": "Taken on",
+    "aggregateScore": "Aggregate score",
+    "infectionRisk": "Infection Risk",
+    "maternalHealth": "Maternal Health",
+    "communityWellbeing": "Community Well-being",
+    "viewAllAssessments": "View all assessments",
+    "assessmentHistory": "Assessment History",
+    "noAssessmentsYet": "You have not taken any assessments yet. Complete your first health assessment to receive a personalised risk profile and facility recommendations.",
+    "nav": {
+      "dashboard": "Dashboard",
+      "assessment": "Assessment",
+      "history": "History",
+      "settings": "Settings",
+      "menu": "Menu"
+    }
+  },
+  "fieldWorker": {
+    "dashboardTitle": "Field Worker Dashboard",
+    "welcomeWithName": "Welcome, {name}",
+    "description": "Your assessment activity at a glance. Each assessment you conduct helps identify health risks in the community.",
+    "newAssessment": "New assessment",
+    "questionnaireDescription": "Complete the health risk assessment for the individual you are assisting.",
+    "noAssessmentsYetTitle": "No assessments yet",
+    "noAssessmentsYetBody": "You haven't conducted any health assessments. Start your first one to help identify health risks in the community.",
+    "startFirstAssessment": "Start your first assessment",
+    "submissions": "submissions",
+    "total": "Total",
+    "withLocationCaptured": "{count} with location captured",
+    "locationCaptured": "Location captured",
+    "waitingForLocationAccess": "Waiting for location access… Please allow location permission when prompted.",
+    "locationRequiredTitle": "Location access required",
+    "locationRequiredBody": "Location permission is required to submit an assessment. This is used to prevent duplicate data collection. Please enable location access in your browser settings and reload the page.",
+    "reloadPage": "Reload page",
+    "recentSubmissionDetectedTitle": "Recent submission detected",
+    "recentSubmissionDetectedBody": "A submission was already recorded from this location within the last {minutes} {unit}. To prevent duplicate data collection, you cannot start a new assessment from here yet.",
+    "startNewAssessmentAfter": "You can start a new assessment after {time}, or {move}.",
+    "moveDifferentLocation": "move to a different location",
+    "duplicateAlert": "Duplicate submission detected. Please move to a new location before submitting again.",
+    "minute": "minute",
+    "minutes": "minutes",
+    "nav": {
+      "dashboard": "Dashboard",
+      "newAssessment": "New Assessment",
+      "history": "History",
+      "settings": "Settings",
+      "menu": "Menu"
+    }
   },
   "questions": {
     "Q1": {

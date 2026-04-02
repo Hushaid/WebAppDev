@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -153,6 +154,8 @@ export function QuestionCard({
   showError,
   optional,
 }: QuestionCardProps) {
+  const t = useTranslations("questionnaire")
+
   return (
     <Card className={showError ? "border-destructive" : undefined}>
       <CardHeader>
@@ -178,7 +181,7 @@ export function QuestionCard({
         {type === "select" && options && (
           <Select value={value} onValueChange={onChange}>
             <SelectTrigger id={questionId}>
-              <SelectValue placeholder="Select an option" />
+              <SelectValue placeholder={t("selectOption")} />
             </SelectTrigger>
             <SelectContent>
               {options.map((opt) => (
@@ -215,8 +218,8 @@ export function QuestionCard({
         {showError && (
           <p className="mt-3 text-sm font-medium text-destructive">
             {type === "text"
-              ? "Please enter a response before continuing."
-              : "Please select an option before continuing."}
+              ? t("enterResponse")
+              : t("selectResponse")}
           </p>
         )}
       </CardContent>

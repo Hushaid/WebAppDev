@@ -1,6 +1,8 @@
 "use client"
 
+import { useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
 import { Globe } from "lucide-react"
 import {
   Select,
@@ -18,23 +20,18 @@ const languages = [
 
 export function LanguageSelector() {
   const router = useRouter()
+  const locale = useLocale()
+  const [isPending, startTransition] = useTransition()
 
-  function handleChange(locale: string) {
-    document.cookie = `locale=${locale};path=/;max-age=${60 * 60 * 24 * 365}`
-    router.refresh()
+  function handleChange(nextLocale: string) {
+    document.cookie = `locale=${nextLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`
+    startTransition(() => {
+      router.refresh()
+    })
   }
 
-  // Read current locale from cookie
-  const current =
-    (typeof document !== "undefined" &&
-      document.cookie
-        .split("; ")
-        .find((c) => c.startsWith("locale="))
-        ?.split("=")[1]) ||
-    "en"
-
   return (
-    <Select defaultValue={current} onValueChange={handleChange}>
+    <Select value={locale} onValueChange={handleChange} disabled={isPending}>
       <SelectTrigger className="w-[130px] h-9 text-sm">
         <Globe className="size-3.5 mr-1.5 shrink-0" />
         <SelectValue />

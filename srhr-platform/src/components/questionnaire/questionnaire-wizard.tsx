@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { useMessages, useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { QuestionCard } from "./question-card"
@@ -47,24 +48,11 @@ export function QuestionnaireWizard({
   const [responses, setResponses] = useState<QuestionnaireResponse>({})
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showError, setShowError] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [messages, setMessages] = useState<Record<string, any> | null>(null)
-
-  // Load translation messages based on locale cookie
-  useEffect(() => {
-    const locale =
-      document.cookie
-        .split("; ")
-        .find((c) => c.startsWith("locale="))
-        ?.split("=")[1] || "en"
-
-    import(`@/messages/${locale}.json`)
-      .then((mod) => setMessages(mod.default))
-      .catch(() => {
-        // Fallback to English if locale file doesn't exist
-        import("@/messages/en.json").then((mod) => setMessages(mod.default))
-      })
-  }, [])
+  const messages = useMessages() as unknown as Parameters<
+    typeof localizeDemographicQuestions
+  >[1]
+  const t = useTranslations("questionnaire")
+  const tCommon = useTranslations("common")
 
   const sex = (responses["Q3"] as Sex) || null
 
@@ -234,27 +222,23 @@ export function QuestionnaireWizard({
   // Consent declined — stop the survey
   const consentDeclined = responses["Q1"] === "no"
 
-  // Translated UI labels (fallback to English)
-  const t = messages?.questionnaire as Record<string, string> | undefined
-  const tCommon = messages?.common as Record<string, string> | undefined
-
   if (!currentQuestion) {
-    return <p className="text-muted-foreground">{tCommon?.loading ?? "Loading..."}</p>
+    return <p className="text-muted-foreground">{tCommon("loading")}</p>
   }
 
   if (consentDeclined && safeIndex > 0) {
     return (
       <section className="space-y-6">
         <div className="rounded-lg border p-6 text-center space-y-4">
-          <h3 className="text-lg font-semibold">{t?.surveyEndedTitle ?? "Survey Ended"}</h3>
+          <h3 className="text-lg font-semibold">{t("surveyEndedTitle")}</h3>
           <p className="text-muted-foreground">
-            {t?.surveyEndedMessage ?? "Thank you for your time. Since consent was not given, the survey cannot continue. Your privacy is respected and no data has been collected."}
+            {t("surveyEndedMessage")}
           </p>
           <Button variant="outline" onClick={() => {
             setResponses({})
             setCurrentIndex(0)
           }}>
-            {t?.startOver ?? "Start Over"}
+            {t("startOver")}
           </Button>
         </div>
       </section>
@@ -266,7 +250,7 @@ export function QuestionnaireWizard({
       <header className="space-y-2">
         <Progress value={progress} className="h-2" />
         <p className="text-sm text-muted-foreground">
-          {(t?.progress ?? "Question {current} of {total}")
+          {t("progress")
             .replace("{current}", String(safeIndex + 1))
             .replace("{total}", String(totalQuestions))}
         </p>
@@ -291,10 +275,10 @@ export function QuestionnaireWizard({
           onClick={handleBack}
           disabled={safeIndex === 0}
         >
-          {tCommon?.back ?? "Back"}
+          {tCommon("back")}
         </Button>
         <Button onClick={handleNext}>
-          {isLast ? (tCommon?.submit ?? "Submit") : (tCommon?.next ?? "Next")}
+          {isLast ? tCommon("submit") : tCommon("next")}
         </Button>
       </nav>
     </section>

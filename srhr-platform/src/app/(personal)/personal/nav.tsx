@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Menu } from "lucide-react"
@@ -14,16 +15,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
-const links = [
-  { href: "/personal", label: "Dashboard" },
-  { href: "/personal/questionnaire", label: "Assessment" },
-  { href: "/personal/history", label: "History" },
-  { href: "/personal/settings", label: "Settings" },
-]
-
 export function PersonalNav() {
+  const t = useTranslations("personal")
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const links = [
+    { href: "/personal", label: t("nav.dashboard") },
+    { href: "/personal/questionnaire", label: t("nav.assessment") },
+    { href: "/personal/history", label: t("nav.history") },
+    { href: "/personal/settings", label: t("nav.settings") },
+  ]
 
   function isActive(href: string) {
     if (href === "/personal") return pathname === "/personal"
@@ -60,7 +61,7 @@ export function PersonalNav() {
         </SheetTrigger>
         <SheetContent side="left" className="w-64">
           <SheetHeader>
-            <SheetTitle>Menu</SheetTitle>
+            <SheetTitle>{t("nav.menu")}</SheetTitle>
           </SheetHeader>
           <nav className="mt-4">
             <ul className="space-y-1">

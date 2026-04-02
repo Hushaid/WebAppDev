@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth/client"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
@@ -17,6 +18,9 @@ type GpsState =
   | { status: "duplicate"; blockedUntil: string; windowMinutes: number }
 
 export default function FieldWorkerQuestionnairePage() {
+  const t = useTranslations("fieldWorker")
+  const tQuestionnaire = useTranslations("questionnaire")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
@@ -103,7 +107,7 @@ export default function FieldWorkerQuestionnairePage() {
       } else if (res.status === 409) {
         // Duplicate submission detected
         const body = await res.json()
-        alert(body.error ?? "Duplicate submission detected. Please move to a new location before submitting again.")
+        alert(body.error ?? t("duplicateAlert"))
         setSubmitting(false)
         return
       } else {
@@ -121,54 +125,55 @@ export default function FieldWorkerQuestionnairePage() {
     <section className="mx-auto max-w-lg space-y-6">
       <header className="space-y-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Health Assessment</h1>
+          <h1 className="text-2xl font-bold">{tQuestionnaire("pageTitle")}</h1>
           <Link href="/field-worker">
             <Button variant="ghost" size="sm">
-              Close
+              {tCommon("close")}
             </Button>
           </Link>
         </div>
         <p className="text-muted-foreground">
           {submitting
-            ? "Submitting assessment..."
-            : "Complete the health risk assessment for the individual you are assisting."}
+            ? tQuestionnaire("submitting")
+            : t("questionnaireDescription")}
         </p>
       </header>
 
       {/* GPS required gate */}
       {gps.status === "pending" && (
         <div className="rounded-lg border p-4 text-sm text-muted-foreground">
-          Waiting for location access… Please allow location permission when prompted.
+          {t("waitingForLocationAccess")}
         </div>
       )}
 
       {gps.status === "denied" && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 space-y-3">
-          <p className="text-sm font-medium text-destructive">Location access required</p>
+          <p className="text-sm font-medium text-destructive">{t("locationRequiredTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Location permission is required to submit an assessment. This is used to prevent
-            duplicate data collection. Please enable location access in your browser settings
-            and reload the page.
+            {t("locationRequiredBody")}
           </p>
           <p className="text-xs text-muted-foreground">Error: {gps.error}</p>
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            Reload page
+            {t("reloadPage")}
           </Button>
         </div>
       )}
 
       {gps.status === "duplicate" && (
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-orange-800">Recent submission detected</p>
+          <p className="text-sm font-medium text-orange-800">{t("recentSubmissionDetectedTitle")}</p>
           <p className="text-sm text-orange-700">
-            A submission was already recorded from this location within the last{" "}
-            {gps.windowMinutes} {gps.windowMinutes === 1 ? "minute" : "minutes"}. To prevent
-            duplicate data collection, you cannot start a new assessment from here yet.
+            {t("recentSubmissionDetectedBody")
+              .replace("{minutes}", String(gps.windowMinutes))
+              .replace("{unit}", gps.windowMinutes === 1 ? t("minute") : t("minutes"))}
           </p>
           <p className="text-sm text-orange-700">
-            You can start a new assessment after{" "}
-            <strong>{new Date(gps.blockedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</strong>,
-            or move to a different location.
+            {t("startNewAssessmentAfter")
+              .replace(
+                "{time}",
+                new Date(gps.blockedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              )
+              .replace("{move}", t("moveDifferentLocation"))}
           </p>
         </div>
       )}

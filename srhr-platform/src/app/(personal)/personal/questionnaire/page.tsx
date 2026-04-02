@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth/client"
 import { QuestionnaireWizard } from "@/components/questionnaire/questionnaire-wizard"
 import type { QuestionnaireCompleteData } from "@/components/questionnaire/types"
@@ -12,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
 export default function PersonalQuestionnairePage() {
+  const t = useTranslations("questionnaire")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
@@ -135,8 +138,8 @@ export default function PersonalQuestionnairePage() {
     return (
       <section className="mx-auto max-w-md space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Health Assessment</h1>
-          <p className="text-muted-foreground">Checking availability...</p>
+          <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
+          <p className="text-muted-foreground">{t("checkingAvailability")}</p>
         </header>
       </section>
     )
@@ -150,27 +153,23 @@ export default function PersonalQuestionnairePage() {
     return (
       <section className="mx-auto max-w-md space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Health Assessment</h1>
+          <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
         </header>
         <Card>
           <CardHeader>
-            <CardTitle>Please wait before retaking</CardTitle>
+            <CardTitle>{t("cooldownTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground">
-              You completed an assessment recently. To keep your results accurate
-              and meaningful, there is a short waiting period between assessments.
+              {t("cooldownBody")}
             </p>
             {endsAt && (
               <p className="text-sm">
-                You can take another assessment after{" "}
-                <time dateTime={endsAt.toISOString()} className="font-medium">
-                  {endsAt.toLocaleString()}
-                </time>
+                {t("cooldownAfter").replace("{time}", endsAt.toLocaleString())}
               </p>
             )}
             <Link href="/personal/result">
-              <Button variant="outline">View your last results</Button>
+              <Button variant="outline">{t("viewLastResults")}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -182,17 +181,17 @@ export default function PersonalQuestionnairePage() {
     <section className="mx-auto max-w-md space-y-6">
       <header className="space-y-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Health Assessment</h1>
+          <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
           <Link href="/personal">
             <Button variant="ghost" size="sm">
-              Close
+              {tCommon("close")}
             </Button>
           </Link>
         </div>
         <p className="text-muted-foreground">
           {submitting
-            ? "Submitting your answers..."
-            : "Answer the questions below to receive a confidential health risk assessment. Your data is encrypted and private."}
+            ? t("submittingAnswers")
+            : t("pageDescription")}
         </p>
       </header>
       {!submitting && (
