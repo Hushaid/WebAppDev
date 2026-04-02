@@ -10,7 +10,16 @@ const nextConfig = {
     // auth DB directly instead of making a self-referential HTTP call.
     nodeMiddleware: true,
     serverActions: {
-      allowedOrigins: ["srhr.localhost", "srhr.localhost:1355", "localhost:3000", "localhost:4139"],
+      allowedOrigins: [
+        "srhr.localhost",
+        "srhr.localhost:80",
+        "srhr.localhost:443",
+        "srhr.localhost:1355",
+        "srhr.localhost:3000",
+        "srhr.localhost:4139",
+        "localhost:3000",
+        "localhost:4139",
+      ],
     },
   },
   async headers() {
