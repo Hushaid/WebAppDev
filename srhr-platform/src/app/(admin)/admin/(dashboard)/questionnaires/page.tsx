@@ -183,45 +183,6 @@ export default async function QuestionnairesPage() {
             </div>
           </AccordionContent>
         </AccordionItem>
-
-        {/* Other questions (Q44-Q45, PS1-PS5) — now editable */}
-        <AccordionItem value="other">
-          <AccordionTrigger className="text-lg font-semibold">
-            <span className="flex flex-wrap items-center gap-2">
-              Closing &amp; Post-survey Questions
-              <Badge variant="secondary">Q44–Q45, PS1–PS5</Badge>
-              <Badge variant="outline">Not scored</Badge>
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">ID</TableHead>
-                    <TableHead>Question Text</TableHead>
-                    <TableHead className="w-20">Type</TableHead>
-                    <TableHead className="w-20 text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {otherQuestions.map((q) => (
-                    <TableRow key={q.id}>
-                      <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
-                      <TableCell className="whitespace-normal break-words text-sm">{q.text}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{q.type}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
 
       {/* Scored questions by group */}
@@ -286,6 +247,47 @@ export default async function QuestionnairesPage() {
             </AccordionItem>
           )
         })}
+      </Accordion>
+
+      {/* Closing & Post-survey questions (Q44-Q45, PS1-PS5) — now editable */}
+      <Accordion type="single" collapsible>
+        <AccordionItem value="other">
+          <AccordionTrigger className="text-lg font-semibold">
+            <span className="flex flex-wrap items-center gap-2">
+              Closing &amp; Post-survey Questions
+              <Badge variant="secondary">Q44–Q45, PS1–PS5</Badge>
+              <Badge variant="outline">Not scored</Badge>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">ID</TableHead>
+                    <TableHead>Question Text</TableHead>
+                    <TableHead className="w-20">Type</TableHead>
+                    <TableHead className="w-20 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {otherQuestions.map((q) => (
+                    <TableRow key={q.id}>
+                      <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
+                      <TableCell className="whitespace-normal break-words text-sm">{q.text}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{q.type}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
 
     </section>
