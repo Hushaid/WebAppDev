@@ -63,18 +63,19 @@ export default async function QuestionnairesPage() {
   const { questions } = data
 
   const scoredQuestions = questions.filter((q) => q.diseaseGroup !== null)
-  const demographicQuestions = questions.filter(
-    (q) =>
-      q.diseaseGroup === null &&
-      q.questionNumber.startsWith("Q") &&
-      parseInt(q.questionNumber.slice(1)) <= 10,
-  )
-  const otherQuestions = questions.filter(
-    (q) =>
-      q.diseaseGroup === null &&
-      !demographicQuestions.includes(q) &&
-      (q.questionNumber.startsWith("Q") || q.questionNumber.startsWith("PS")),
-  )
+
+  // Classify unscored questions by sortOrder position relative to scored block,
+  // not by questionNumber, so admin-inserted questions land in the right section.
+  const firstScoredSort = scoredQuestions.length > 0
+    ? Math.min(...scoredQuestions.map((q) => q.sortOrder))
+    : Infinity
+  const lastScoredSort = scoredQuestions.length > 0
+    ? Math.max(...scoredQuestions.map((q) => q.sortOrder))
+    : -Infinity
+
+  const unscoredQuestions = questions.filter((q) => q.diseaseGroup === null)
+  const demographicQuestions = unscoredQuestions.filter((q) => q.sortOrder < firstScoredSort)
+  const otherQuestions = unscoredQuestions.filter((q) => q.sortOrder > lastScoredSort)
 
   const groups: DiseaseGroup[] = ["sti", "maternal_health", "community_wellbeing"]
 
@@ -100,7 +101,7 @@ export default async function QuestionnairesPage() {
           </p>
         </hgroup>
         <div className="flex items-center gap-2">
-          <AddQuestionDialog />
+          <AddQuestionDialog existingQuestions={questions.map((q) => ({ questionNumber: q.questionNumber, sortOrder: q.sortOrder, diseaseGroup: q.diseaseGroup ?? null }))} />
           <Link href="/admin/questionnaires/preview">
             <Button variant="outline">
               <Eye className="mr-2 h-4 w-4" />
@@ -183,45 +184,6 @@ export default async function QuestionnairesPage() {
             </div>
           </AccordionContent>
         </AccordionItem>
-
-        {/* Other questions (Q44-Q45, PS1-PS5) — now editable */}
-        <AccordionItem value="other">
-          <AccordionTrigger className="text-lg font-semibold">
-            <span className="flex flex-wrap items-center gap-2">
-              Closing &amp; Post-survey Questions
-              <Badge variant="secondary">Q44–Q45, PS1–PS5</Badge>
-              <Badge variant="outline">Not scored</Badge>
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">ID</TableHead>
-                    <TableHead>Question Text</TableHead>
-                    <TableHead className="w-20">Type</TableHead>
-                    <TableHead className="w-20 text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {otherQuestions.map((q) => (
-                    <TableRow key={q.id}>
-                      <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
-                      <TableCell className="whitespace-normal break-words text-sm">{q.text}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{q.type}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
 
       {/* Scored questions by group */}
@@ -286,6 +248,47 @@ export default async function QuestionnairesPage() {
             </AccordionItem>
           )
         })}
+      </Accordion>
+
+      {/* Closing & Post-survey questions (Q44-Q45, PS1-PS5) — now editable */}
+      <Accordion type="single" collapsible>
+        <AccordionItem value="other">
+          <AccordionTrigger className="text-lg font-semibold">
+            <span className="flex flex-wrap items-center gap-2">
+              Closing &amp; Post-survey Questions
+              <Badge variant="secondary">Q44–Q45, PS1–PS5</Badge>
+              <Badge variant="outline">Not scored</Badge>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">ID</TableHead>
+                    <TableHead>Question Text</TableHead>
+                    <TableHead className="w-20">Type</TableHead>
+                    <TableHead className="w-20 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {otherQuestions.map((q) => (
+                    <TableRow key={q.id}>
+                      <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
+                      <TableCell className="whitespace-normal break-words text-sm">{q.text}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{q.type}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
 
     </section>

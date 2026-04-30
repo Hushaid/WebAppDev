@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { useMessages, useTranslations } from "next-intl"
+import { useMessages, useTranslations, useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { QuestionCard } from "./question-card"
@@ -44,7 +44,13 @@ type WizardQuestion = {
 type DbQuestion = {
   questionNumber: string
   text: string
+  type: string
   options?: { label: string; value: string; score: number }[] | null
+  sortOrder?: number
+  translations?: {
+    pcm?: { text: string; options?: Record<string, string> }
+    ha?: { text: string; options?: Record<string, string> }
+  } | null
 }
 
 export function QuestionnaireWizard({
@@ -56,20 +62,28 @@ export function QuestionnaireWizard({
   const [showError, setShowError] = useState(false)
   // DB question overrides: questionId → { text, options }
   const [dbOverrides, setDbOverrides] = useState<Map<string, DbQuestion>>(new Map())
+  // DB question order: questionNumber[] sorted by sortOrder
+  const [dbOrder, setDbOrder] = useState<string[]>([])
+  const locale = useLocale()
   const messages = useMessages() as unknown as Parameters<
     typeof localizeDemographicQuestions
   >[1]
   const t = useTranslations("questionnaire")
   const tCommon = useTranslations("common")
 
-  // Fetch current question text/options from DB so admin edits reflect immediately
+  // Fetch current question text/options/order from DB so admin edits reflect immediately
   useEffect(() => {
     fetch("/api/questionnaire/questions")
       .then((r) => r.ok ? r.json() : [])
       .then((rows: DbQuestion[]) => {
         const map = new Map<string, DbQuestion>()
-        for (const row of rows) map.set(row.questionNumber, row)
+        const order: string[] = []
+        for (const row of rows) {
+          map.set(row.questionNumber, row)
+          order.push(row.questionNumber)
+        }
         setDbOverrides(map)
+        setDbOrder(order)
       })
       .catch(() => {/* fallback to static config on network error */})
   }, [])
@@ -82,63 +96,68 @@ export function QuestionnaireWizard({
     return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
+      const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
       return {
         ...q,
-        text: db.text,
+        text: tr?.text ?? db.text,
         options: db.options?.length
-          ? db.options.map((o) => ({ label: o.label, value: o.value }))
+          ? db.options.map((o) => ({ label: tr?.options?.[o.value] ?? o.label, value: o.value }))
           : q.options,
       }
     })
-  }, [messages, dbOverrides])
+  }, [messages, dbOverrides, locale])
 
   const localizedScored = useMemo(() => {
     const i18n = messages ? localizeScoredQuestions(SCORED_QUESTIONS, messages) : SCORED_QUESTIONS
     return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
+      const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
       return {
         ...q,
-        text: db.text,
+        text: tr?.text ?? db.text,
         options: db.options?.length
           ? q.options.map((staticOpt) => {
               const dbOpt = db.options!.find((o) => o.value === staticOpt.value)
-              return dbOpt ? { ...staticOpt, label: dbOpt.label } : staticOpt
+              if (!dbOpt) return staticOpt
+              return { ...staticOpt, label: tr?.options?.[dbOpt.value] ?? dbOpt.label }
             })
           : q.options,
       }
     })
-  }, [messages, dbOverrides])
+  }, [messages, dbOverrides, locale])
 
   const localizedClosing = useMemo(() => {
     const i18n = messages ? localizeDemographicQuestions(CLOSING_QUESTIONS, messages) : CLOSING_QUESTIONS
     return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
+      const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
       return {
         ...q,
-        text: db.text,
+        text: tr?.text ?? db.text,
         options: db.options?.length
-          ? db.options.map((o) => ({ label: o.label, value: o.value }))
+          ? db.options.map((o) => ({ label: tr?.options?.[o.value] ?? o.label, value: o.value }))
           : q.options,
       }
     })
-  }, [messages, dbOverrides])
+  }, [messages, dbOverrides, locale])
 
   const localizedPostSurvey = useMemo(() => {
     const i18n = messages ? localizeDemographicQuestions(POST_SURVEY_QUESTIONS, messages) : POST_SURVEY_QUESTIONS
     return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
+      const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
       return {
         ...q,
-        text: db.text,
+        text: tr?.text ?? db.text,
         options: db.options?.length
-          ? db.options.map((o) => ({ label: o.label, value: o.value }))
+          ? db.options.map((o) => ({ label: tr?.options?.[o.value] ?? o.label, value: o.value }))
           : q.options,
       }
     })
-  }, [messages, dbOverrides])
+  }, [messages, dbOverrides, locale])
 
   // Build the full question list, applying skip logic
   const visibleQuestions = useMemo(() => {
@@ -209,8 +228,44 @@ export function QuestionnaireWizard({
       })
     }
 
+    // Inject questions that exist only in the DB (created via admin) and are not
+    // in any static config list, so they appear in the wizard at the right position.
+    if (dbOrder.length > 0) {
+      const allIds = new Set(allQuestions.map((q) => q.id))
+      for (const qId of dbOrder) {
+        if (!allIds.has(qId)) {
+          const db = dbOverrides.get(qId)
+          if (db) {
+            const wizType: WizardQuestion["type"] =
+              db.type === "multiple_choice" ? "checkbox" :
+              db.type === "text" ? "text" : "radio"
+            const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
+            allQuestions.push({
+              id: qId,
+              text: tr?.text ?? db.text,
+              type: wizType,
+              options: db.options?.length
+                ? db.options.map((o) => ({ label: tr?.options?.[o.value] ?? o.label, value: o.value }))
+                : undefined,
+              optional: OPTIONAL_QUESTION_IDS.has(qId),
+            })
+          }
+        }
+      }
+    }
+
+    // Re-order by DB sortOrder when available so admin position changes reflect live
+    if (dbOrder.length > 0) {
+      const orderMap = new Map(dbOrder.map((id, i) => [id, i]))
+      allQuestions.sort((a, b) => {
+        const ai = orderMap.get(a.id) ?? 99999
+        const bi = orderMap.get(b.id) ?? 99999
+        return ai - bi
+      })
+    }
+
     return allQuestions
-  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey])
+  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey, dbOrder, dbOverrides, locale])
 
   const totalQuestions = visibleQuestions.length
   // Clamp index if the list shrank due to skip logic changes

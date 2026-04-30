@@ -23,6 +23,8 @@ export async function GET() {
       text: questions.text,
       type: questions.type,
       options: questions.options,
+      sortOrder: questions.sortOrder,
+      translations: questions.translations,
     })
     .from(questions)
     .where(eq(questions.questionnaireId, questionnaire.id))

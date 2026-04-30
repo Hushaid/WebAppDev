@@ -16,7 +16,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -33,7 +35,7 @@ import { createQuestion } from "./actions"
 import { toast } from "sonner"
 
 type QuestionType = "single_choice" | "multiple_choice" | "yes_no" | "text"
-type DiseaseGroup = "sti" | "maternal_health" | "community_wellbeing" | ""
+type DiseaseGroup = "sti" | "maternal_health" | "community_wellbeing" | "none"
 
 interface OptionRow {
   label: string
@@ -41,7 +43,17 @@ interface OptionRow {
   score: number
 }
 
-export function AddQuestionDialog() {
+interface ExistingQuestion {
+  questionNumber: string
+  sortOrder: number
+  diseaseGroup: string | null
+}
+
+interface AddQuestionDialogProps {
+  existingQuestions: ExistingQuestion[]
+}
+
+export function AddQuestionDialog({ existingQuestions }: AddQuestionDialogProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -50,7 +62,8 @@ export function AddQuestionDialog() {
   const [questionNumber, setQuestionNumber] = useState("")
   const [text, setText] = useState("")
   const [type, setType] = useState<QuestionType>("single_choice")
-  const [diseaseGroup, setDiseaseGroup] = useState<DiseaseGroup>("")
+  const [diseaseGroup, setDiseaseGroup] = useState<DiseaseGroup>("none")
+  const [insertAfter, setInsertAfter] = useState<string>("end")
   const [options, setOptions] = useState<OptionRow[]>([
     { label: "", value: "option_1", score: 0 },
   ])
@@ -84,31 +97,35 @@ export function AddQuestionDialog() {
 
   function handleSave() {
     setError(null)
-    if (!questionNumber.trim()) { setError("Question number is required (e.g. Q46)"); return }
+    if (!questionNumber.trim()) { setError("Question ID is required (e.g. Q46)"); return }
     if (!text.trim()) { setError("Question text is required"); return }
     if (needsOptions && options.some((o) => !o.label.trim())) {
       setError("All option labels are required")
       return
     }
 
+    const selectedQuestion = existingQuestions.find((q) => q.questionNumber === insertAfter)
+    const insertAfterSortOrder = selectedQuestion?.sortOrder ?? null
+
     startTransition(async () => {
       const result = await createQuestion({
         questionNumber: questionNumber.trim(),
         text: text.trim(),
         type,
-        diseaseGroup: diseaseGroup || null,
+        diseaseGroup: diseaseGroup === "none" ? null : diseaseGroup,
         options: needsOptions ? options.filter((o) => o.label.trim()) : [],
+        insertAfterSortOrder,
       })
 
       if (result.success) {
         setOpen(false)
         router.refresh()
         toast.success(`Question ${questionNumber} added`)
-        // Reset
         setQuestionNumber("")
         setText("")
         setType("single_choice")
-        setDiseaseGroup("")
+        setDiseaseGroup("none")
+        setInsertAfter("end")
         setOptions([{ label: "", value: "option_1", score: 0 }])
       } else {
         setError(result.error ?? "Failed to create question")
@@ -135,10 +152,10 @@ export function AddQuestionDialog() {
               <Label>Question ID</Label>
               <Input
                 value={questionNumber}
-                onChange={(e) => setQuestionNumber(e.target.value)}
+                onChange={(e) => setQuestionNumber(e.target.value.toUpperCase())}
                 placeholder="e.g. Q46"
               />
-              <p className="text-xs text-muted-foreground">Unique identifier (Q46, PS6…)</p>
+              <p className="text-xs text-muted-foreground">Unique identifier — cannot be changed later</p>
             </div>
             <div className="space-y-1.5">
               <Label>Type</Label>
@@ -157,13 +174,57 @@ export function AddQuestionDialog() {
           </div>
 
           <div className="space-y-1.5">
+            <Label>Position</Label>
+            <Select value={insertAfter} onValueChange={setInsertAfter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="end">At the end</SelectItem>
+                {(() => {
+                  const isDemographic = (q: ExistingQuestion) =>
+                    q.diseaseGroup === null &&
+                    q.questionNumber.startsWith("Q") &&
+                    parseInt(q.questionNumber.slice(1)) <= 10
+                  const isOther = (q: ExistingQuestion) =>
+                    q.diseaseGroup === null && !isDemographic(q)
+
+                  const sections: { label: string; filter: (q: ExistingQuestion) => boolean }[] = [
+                    { label: "Demographic (Q1–Q10)", filter: isDemographic },
+                    { label: "Infection Risk (STI)", filter: (q) => q.diseaseGroup === "sti" },
+                    { label: "Maternal Health", filter: (q) => q.diseaseGroup === "maternal_health" },
+                    { label: "Community Well-being", filter: (q) => q.diseaseGroup === "community_wellbeing" },
+                    { label: "Closing & Post-survey", filter: isOther },
+                  ]
+
+                  return sections.map(({ label, filter }) => {
+                    const qs = existingQuestions.filter(filter)
+                    if (qs.length === 0) return null
+                    return (
+                      <SelectGroup key={label}>
+                        <SelectLabel>{label}</SelectLabel>
+                        {qs.map((q) => (
+                          <SelectItem key={q.questionNumber} value={q.questionNumber}>
+                            After {q.questionNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )
+                  })
+                })()}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Where this question appears in the questionnaire</p>
+          </div>
+
+          <div className="space-y-1.5">
             <Label>Disease Group (optional)</Label>
             <Select value={diseaseGroup} onValueChange={(v) => setDiseaseGroup(v as DiseaseGroup)}>
               <SelectTrigger>
                 <SelectValue placeholder="None (not scored)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None (not scored)</SelectItem>
+                <SelectItem value="none">None (not scored)</SelectItem>
                 <SelectItem value="sti">Infection Risk (STI)</SelectItem>
                 <SelectItem value="maternal_health">Maternal Health</SelectItem>
                 <SelectItem value="community_wellbeing">Community Well-being</SelectItem>
