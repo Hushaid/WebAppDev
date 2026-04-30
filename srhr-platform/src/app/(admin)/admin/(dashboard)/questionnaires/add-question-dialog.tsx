@@ -33,7 +33,7 @@ import { createQuestion } from "./actions"
 import { toast } from "sonner"
 
 type QuestionType = "single_choice" | "multiple_choice" | "yes_no" | "text"
-type DiseaseGroup = "sti" | "maternal_health" | "community_wellbeing" | ""
+type DiseaseGroup = "sti" | "maternal_health" | "community_wellbeing" | "none"
 
 interface OptionRow {
   label: string
@@ -50,7 +50,7 @@ export function AddQuestionDialog() {
   const [questionNumber, setQuestionNumber] = useState("")
   const [text, setText] = useState("")
   const [type, setType] = useState<QuestionType>("single_choice")
-  const [diseaseGroup, setDiseaseGroup] = useState<DiseaseGroup>("")
+  const [diseaseGroup, setDiseaseGroup] = useState<DiseaseGroup>("none")
   const [options, setOptions] = useState<OptionRow[]>([
     { label: "", value: "option_1", score: 0 },
   ])
@@ -96,7 +96,7 @@ export function AddQuestionDialog() {
         questionNumber: questionNumber.trim(),
         text: text.trim(),
         type,
-        diseaseGroup: diseaseGroup || null,
+        diseaseGroup: diseaseGroup === "none" ? null : diseaseGroup,
         options: needsOptions ? options.filter((o) => o.label.trim()) : [],
       })
 
@@ -108,7 +108,7 @@ export function AddQuestionDialog() {
         setQuestionNumber("")
         setText("")
         setType("single_choice")
-        setDiseaseGroup("")
+        setDiseaseGroup("none")
         setOptions([{ label: "", value: "option_1", score: 0 }])
       } else {
         setError(result.error ?? "Failed to create question")
@@ -163,7 +163,7 @@ export function AddQuestionDialog() {
                 <SelectValue placeholder="None (not scored)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None (not scored)</SelectItem>
+                <SelectItem value="none">None (not scored)</SelectItem>
                 <SelectItem value="sti">Infection Risk (STI)</SelectItem>
                 <SelectItem value="maternal_health">Maternal Health</SelectItem>
                 <SelectItem value="community_wellbeing">Community Well-being</SelectItem>
