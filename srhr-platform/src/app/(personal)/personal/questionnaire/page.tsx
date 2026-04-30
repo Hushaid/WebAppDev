@@ -31,7 +31,11 @@ export default function PersonalQuestionnairePage() {
     cooldownEndsAt?: string
   }>({ blocked: false })
   const [checking, setChecking] = useState(true)
-  const [gps, setGps] = useState<GpsState>({ status: "idle" })
+  const [gps, setGps] = useState<GpsState>(() =>
+    typeof navigator !== "undefined" && !navigator.geolocation
+      ? { status: "denied", error: "Geolocation is not supported by this browser." }
+      : { status: "idle" },
+  )
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
 
   // fromButton: true → on failure show the denied error panel
@@ -57,10 +61,7 @@ export default function PersonalQuestionnairePage() {
   // On mount check if permission already granted — auto-request without button friction.
   // If "prompt" or unknown, require a user gesture so the browser shows its dialog.
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setGps({ status: "denied", error: "Geolocation is not supported by this browser." })
-      return
-    }
+    if (!navigator.geolocation) return // already set as denied in useState initializer
     if (!navigator.permissions) return
     navigator.permissions
       .query({ name: "geolocation" })
