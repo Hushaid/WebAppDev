@@ -76,9 +76,10 @@ export function QuestionnaireWizard({
 
   const sex = (responses["Q3"] as Sex) || null
 
-  // Apply DB overrides then i18n translations to question configs
+  // Apply i18n first, then DB overrides on top so admin edits always win over translations
   const localizedDemographic = useMemo(() => {
-    const withDb = DEMOGRAPHIC_QUESTIONS.map((q) => {
+    const i18n = messages ? localizeDemographicQuestions(DEMOGRAPHIC_QUESTIONS, messages) : DEMOGRAPHIC_QUESTIONS
+    return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
       return {
@@ -89,11 +90,11 @@ export function QuestionnaireWizard({
           : q.options,
       }
     })
-    return messages ? localizeDemographicQuestions(withDb, messages) : withDb
   }, [messages, dbOverrides])
 
   const localizedScored = useMemo(() => {
-    const withDb = SCORED_QUESTIONS.map((q) => {
+    const i18n = messages ? localizeScoredQuestions(SCORED_QUESTIONS, messages) : SCORED_QUESTIONS
+    return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
       return {
@@ -107,11 +108,11 @@ export function QuestionnaireWizard({
           : q.options,
       }
     })
-    return messages ? localizeScoredQuestions(withDb, messages) : withDb
   }, [messages, dbOverrides])
 
   const localizedClosing = useMemo(() => {
-    const withDb = CLOSING_QUESTIONS.map((q) => {
+    const i18n = messages ? localizeDemographicQuestions(CLOSING_QUESTIONS, messages) : CLOSING_QUESTIONS
+    return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
       return {
@@ -122,11 +123,11 @@ export function QuestionnaireWizard({
           : q.options,
       }
     })
-    return messages ? localizeDemographicQuestions(withDb, messages) : withDb
   }, [messages, dbOverrides])
 
   const localizedPostSurvey = useMemo(() => {
-    const withDb = POST_SURVEY_QUESTIONS.map((q) => {
+    const i18n = messages ? localizeDemographicQuestions(POST_SURVEY_QUESTIONS, messages) : POST_SURVEY_QUESTIONS
+    return i18n.map((q) => {
       const db = dbOverrides.get(q.id)
       if (!db) return q
       return {
@@ -137,7 +138,6 @@ export function QuestionnaireWizard({
           : q.options,
       }
     })
-    return messages ? localizeDemographicQuestions(withDb, messages) : withDb
   }, [messages, dbOverrides])
 
   // Build the full question list, applying skip logic
