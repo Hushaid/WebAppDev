@@ -27,7 +27,11 @@ export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
-  const [gps, setGps] = useState<GpsState>({ status: "idle" })
+  const [gps, setGps] = useState<GpsState>(() =>
+    typeof navigator !== "undefined" && !navigator.geolocation
+      ? { status: "denied", error: "Geolocation is not supported by this browser." }
+      : { status: "idle" },
+  )
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
 
   // fromButton: true → on failure show the denied error panel
@@ -84,10 +88,7 @@ export default function FieldWorkerQuestionnairePage() {
   // shows its permission dialog (some desktop browsers suppress auto-requests).
   useEffect(() => {
     if (!session) return
-    if (!navigator.geolocation) {
-      setGps({ status: "denied", error: "Geolocation is not supported by this browser." })
-      return
-    }
+    if (!navigator.geolocation) return // already set as denied in useState initializer
 
     if (!navigator.permissions) {
       // Permissions API not available — fall back to showing the button
