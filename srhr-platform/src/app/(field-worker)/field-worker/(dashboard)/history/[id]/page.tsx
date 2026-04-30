@@ -66,10 +66,8 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
     .where(eq(questionResponses.submissionId, id))
 
   return (
-    <div className="-m-4 flex h-[calc(100%+32px)] flex-col">
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto p-4 pb-20">
-        <section className="space-y-6">
+    <>
+      <section className="space-y-6 pb-24">
           <header>
             <h1 className="text-2xl font-bold">Submission Detail</h1>
             <p className="text-muted-foreground">
@@ -181,16 +179,14 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
               </div>
             </CardContent>
           </Card>
-        </section>
-      </div>
+      </section>
 
-      {/* Fixed action bar */}
       <SubmissionActions
         submissionId={submission.id}
         initialFlagged={submission.flaggedForReview}
         initialReferred={submission.referred}
         isHighOrMedium={isHighOrMedium}
       />
-    </div>
+    </>
   )
 }

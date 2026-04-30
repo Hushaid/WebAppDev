@@ -25,8 +25,8 @@ export function SubmissionActions({
   const [referring, setReferring] = useState(false)
 
   return (
-    <div className="border-t bg-background px-4 py-3">
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
+    <div className="fixed bottom-0 left-0 right-0 z-10 border-t bg-background px-4 py-3">
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-2">
         <Button variant="outline" asChild>
           <Link href="/field-worker/history">Back to history</Link>
         </Button>

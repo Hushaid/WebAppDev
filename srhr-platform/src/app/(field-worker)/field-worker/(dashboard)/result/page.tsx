@@ -57,13 +57,35 @@ export default function FieldWorkerResultPage() {
   const [flagging, setFlagging] = useState(false)
   const [referred, setReferred] = useState(false)
   const [referring, setReferring] = useState(false)
+  const [isHighOrMedium, setIsHighOrMedium] = useState(false)
 
   useEffect(() => {
     const stored = sessionStorage.getItem("lastRiskResult")
-    if (stored) setRisk(JSON.parse(stored))
+    if (stored) {
+      const parsed: RiskData = JSON.parse(stored)
+      setRisk(parsed)
+      setIsHighOrMedium(parsed.overallRiskLevel === "high" || parsed.overallRiskLevel === "medium")
+    }
 
     const storedId = sessionStorage.getItem("lastSubmissionId")
-    if (storedId) setSubmissionId(storedId)
+    if (storedId) {
+      setSubmissionId(storedId)
+      // Fetch current DB state so flag/refer buttons reflect what already happened
+      fetch(`/api/submissions/${storedId}/state`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data) {
+            setFlagged(data.flaggedForReview)
+            setReferred(data.referred)
+            if (data.overallRiskLevel) {
+              setIsHighOrMedium(
+                data.overallRiskLevel === "high" || data.overallRiskLevel === "medium",
+              )
+            }
+          }
+        })
+        .catch(() => {/* non-critical */})
+    }
 
     async function loadFacilities() {
       try {
@@ -98,112 +120,104 @@ export default function FieldWorkerResultPage() {
     )
   }
 
-  const isHighOrMedium = risk.overallRiskLevel === "high" || risk.overallRiskLevel === "medium"
-
   return (
-    <div className="-m-4 flex h-[calc(100%+32px)] flex-col">
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
-        <section className="mx-auto max-w-2xl space-y-6">
-          <header>
-            <h1 className="text-2xl font-bold">Assessment Result</h1>
-            {submissionId && (
-              <p className="text-xs text-muted-foreground">
-                ID: {submissionId.slice(0, 8)}...
-              </p>
-            )}
-          </header>
+    <>
+      {/* Scrollable content with bottom padding to clear the fixed bar */}
+      <section className="mx-auto max-w-2xl space-y-6 pb-24">
+        <header>
+          <h1 className="text-2xl font-bold">Assessment Result</h1>
+          {submissionId && (
+            <p className="text-xs text-muted-foreground">
+              ID: {submissionId.slice(0, 8)}...
+            </p>
+          )}
+        </header>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Risk Classification
-                <Badge variant={riskVariant(risk.overallRiskLevel)} className="text-sm">
-                  {risk.overallRiskLevel.toUpperCase()}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Risk Classification
+              <Badge variant={riskVariant(risk.overallRiskLevel)} className="text-sm">
+                {risk.overallRiskLevel.toUpperCase()}
+              </Badge>
+            </CardTitle>
+            <CardDescription>Aggregate score: {risk.aggregateScore}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-4 text-sm">
+              <dt className="text-muted-foreground">Infection Risk</dt>
+              <dd className="text-end">
+                <Badge variant={riskVariant(risk.stiRiskLevel)}>
+                  {risk.stiRiskLevel} ({risk.stiScore})
                 </Badge>
-              </CardTitle>
-              <CardDescription>
-                Aggregate score: {risk.aggregateScore}
-              </CardDescription>
-            </CardHeader>
+              </dd>
+
+              {risk.maternalRiskLevel && (
+                <>
+                  <dt className="text-muted-foreground">Maternal Health</dt>
+                  <dd className="text-end">
+                    <Badge variant={riskVariant(risk.maternalRiskLevel)}>
+                      {risk.maternalRiskLevel} ({risk.maternalScore})
+                    </Badge>
+                  </dd>
+                </>
+              )}
+
+              <dt className="text-muted-foreground">Community Well-being</dt>
+              <dd className="text-end">
+                <Badge variant={riskVariant(risk.communityWellbeingRiskLevel)}>
+                  {risk.communityWellbeingRiskLevel} ({risk.communityWellbeingScore})
+                </Badge>
+              </dd>
+            </dl>
+          </CardContent>
+        </Card>
+
+        <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Nearest facilities for referral</CardTitle>
+            <CardDescription>
+              {loading
+                ? "Loading nearby facilities..."
+                : facilities.length > 0
+                  ? "You can recommend these facilities to the person you assessed."
+                  : "No nearby facilities found. Refer them to their local health centre."}
+            </CardDescription>
+          </CardHeader>
+          {facilities.length > 0 && (
             <CardContent>
-              <dl className="grid grid-cols-2 gap-4 text-sm">
-                <dt className="text-muted-foreground">Infection Risk</dt>
-                <dd className="text-end">
-                  <Badge variant={riskVariant(risk.stiRiskLevel)}>
-                    {risk.stiRiskLevel} ({risk.stiScore})
-                  </Badge>
-                </dd>
-
-                {risk.maternalRiskLevel && (
-                  <>
-                    <dt className="text-muted-foreground">Maternal Health</dt>
-                    <dd className="text-end">
-                      <Badge variant={riskVariant(risk.maternalRiskLevel)}>
-                        {risk.maternalRiskLevel} ({risk.maternalScore})
-                      </Badge>
-                    </dd>
-                  </>
-                )}
-
-                <dt className="text-muted-foreground">Community Well-being</dt>
-                <dd className="text-end">
-                  <Badge variant={riskVariant(risk.communityWellbeingRiskLevel)}>
-                    {risk.communityWellbeingRiskLevel} ({risk.communityWellbeingScore})
-                  </Badge>
-                </dd>
-              </dl>
+              <ul className="space-y-3">
+                {facilities.map((f) => (
+                  <li
+                    key={f.id}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <hgroup>
+                      <h3 className="font-medium">{f.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {f.type}
+                        {f.ward ? ` · ${f.ward}` : ""}
+                        {f.lga ? `, ${f.lga}` : ""}
+                      </p>
+                    </hgroup>
+                    {f.distance_km !== undefined && (
+                      <Badge variant="outline">{f.distance_km.toFixed(1)} km</Badge>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </CardContent>
-          </Card>
+          )}
+        </Card>
 
-          <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
+        <EmergencyContacts />
+      </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Nearest facilities for referral</CardTitle>
-              <CardDescription>
-                {loading
-                  ? "Loading nearby facilities..."
-                  : facilities.length > 0
-                    ? "You can recommend these facilities to the person you assessed."
-                    : "No nearby facilities found. Refer them to their local health centre."}
-              </CardDescription>
-            </CardHeader>
-            {facilities.length > 0 && (
-              <CardContent>
-                <ul className="space-y-3">
-                  {facilities.map((f) => (
-                    <li
-                      key={f.id}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <hgroup>
-                        <h3 className="font-medium">{f.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {f.type}
-                          {f.ward ? ` · ${f.ward}` : ""}
-                          {f.lga ? `, ${f.lga}` : ""}
-                        </p>
-                      </hgroup>
-                      {f.distance_km !== undefined && (
-                        <Badge variant="outline">
-                          {f.distance_km.toFixed(1)} km
-                        </Badge>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            )}
-          </Card>
-
-          <EmergencyContacts />
-        </section>
-      </div>
-
-      {/* Fixed action bar */}
-      <div className="border-t bg-background px-4 py-3">
-        <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-2">
+      {/* Fixed action bar — always visible at bottom of viewport */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 border-t bg-background px-4 py-3">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-2">
           <Button asChild>
             <Link href="/field-worker/questionnaire">New assessment</Link>
           </Button>
@@ -287,6 +301,6 @@ export default function FieldWorkerResultPage() {
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }
