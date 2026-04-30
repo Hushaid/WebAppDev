@@ -37,6 +37,10 @@ export const questions = pgTable("questions", {
     skipWhen: string[]
     skipTargets: string[]
   } | null>(),
+  translations: jsonb("translations").$type<{
+    pcm?: { text: string; options?: Record<string, string> }
+    ha?: { text: string; options?: Record<string, string> }
+  } | null>(),
   sortOrder: integer("sort_order").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

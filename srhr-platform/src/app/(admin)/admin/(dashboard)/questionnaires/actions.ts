@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
+import { translateQuestion } from "@/lib/ai/translate-question"
 
 export async function getQuestionnaireWithQuestions() {
   // Get the published questionnaire
@@ -55,6 +56,23 @@ export async function updateQuestion(
   }
   if (data.conditionalLogic !== undefined) {
     updates.conditionalLogic = data.conditionalLogic
+  }
+
+  // Re-translate when text or options change
+  const needsTranslation = data.text !== undefined || data.options !== undefined
+  if (needsTranslation) {
+    const [current] = await db
+      .select({ text: questions.text, options: questions.options })
+      .from(questions)
+      .where(eq(questions.id, questionId))
+      .limit(1)
+    const translationText = data.text ?? current?.text ?? ""
+    const translationOptions = (data.options ?? current?.options ?? []).map((o) => ({
+      value: o.value,
+      label: o.label,
+    }))
+    const translations = await translateQuestion(translationText, translationOptions).catch(() => ({}))
+    if (Object.keys(translations).length > 0) updates.translations = translations
   }
 
   await db
@@ -154,7 +172,7 @@ export async function createQuestion(data: {
     sortOrder = maxSort + 10
   }
 
-  await db.insert(questions).values({
+  const [inserted] = await db.insert(questions).values({
     questionnaireId: questionnaire.id,
     questionNumber: data.questionNumber.trim(),
     text: data.text.trim(),
@@ -164,13 +182,24 @@ export async function createQuestion(data: {
     scoreWeight: data.options ? Math.max(0, ...data.options.map((o) => o.score)) : 0,
     conditionalLogic: null,
     sortOrder,
-  })
+  }).returning({ id: questions.id })
+
+  // Auto-translate to Pidgin and Hausa (awaited so translations are ready immediately)
+  if (inserted?.id) {
+    const translations = await translateQuestion(
+      data.text.trim(),
+      (data.options ?? []).map((o) => ({ value: o.value, label: o.label })),
+    ).catch(() => ({}))
+    if (Object.keys(translations).length > 0) {
+      await db.update(questions).set({ translations }).where(eq(questions.id, inserted.id))
+    }
+  }
 
   logAudit({
     actorId: session?.user?.id,
     action: "create",
     entityType: "question",
-    entityId: data.questionNumber,
+    entityId: inserted?.id ?? data.questionNumber,
   }).catch(console.error)
 
   revalidatePath("/admin/questionnaires")
