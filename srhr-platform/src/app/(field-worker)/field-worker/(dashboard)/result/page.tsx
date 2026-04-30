@@ -11,6 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
 import { Flag, UserCheck } from "lucide-react"
 import Link from "next/link"
@@ -175,42 +181,44 @@ export default function FieldWorkerResultPage() {
 
         <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Nearest facilities for referral</CardTitle>
-            <CardDescription>
-              {loading
-                ? "Loading nearby facilities..."
-                : facilities.length > 0
-                  ? "You can recommend these facilities to the person you assessed."
-                  : "No nearby facilities found. Refer them to their local health centre."}
-            </CardDescription>
-          </CardHeader>
-          {facilities.length > 0 && (
-            <CardContent>
-              <ul className="space-y-3">
-                {facilities.map((f) => (
-                  <li
-                    key={f.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <hgroup>
-                      <h3 className="font-medium">{f.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {f.type}
-                        {f.ward ? ` · ${f.ward}` : ""}
-                        {f.lga ? `, ${f.lga}` : ""}
-                      </p>
-                    </hgroup>
-                    {f.distance_km !== undefined && (
-                      <Badge variant="outline">{f.distance_km.toFixed(1)} km</Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          )}
-        </Card>
+        <Accordion type="single" collapsible className="rounded-lg border">
+          <AccordionItem value="facilities" className="border-0">
+            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+              <span className="text-base font-semibold">Nearest facilities for referral</span>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-4">
+              <p className="mb-4 text-sm text-muted-foreground">
+                {loading
+                  ? "Loading nearby facilities..."
+                  : facilities.length > 0
+                    ? "You can recommend these facilities to the person you assessed."
+                    : "No nearby facilities found. Refer them to their local health centre."}
+              </p>
+              {facilities.length > 0 && (
+                <ul className="space-y-3">
+                  {facilities.map((f) => (
+                    <li
+                      key={f.id}
+                      className="flex items-center justify-between rounded-lg border p-3"
+                    >
+                      <hgroup>
+                        <h3 className="font-medium">{f.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {f.type}
+                          {f.ward ? ` · ${f.ward}` : ""}
+                          {f.lga ? `, ${f.lga}` : ""}
+                        </p>
+                      </hgroup>
+                      {f.distance_km !== undefined && (
+                        <Badge variant="outline">{f.distance_km.toFixed(1)} km</Badge>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         <EmergencyContacts />
       </section>
