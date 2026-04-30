@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
@@ -10,9 +10,11 @@ import type { QuestionnaireCompleteData } from "@/components/questionnaire/types
 import { captureGps } from "@/lib/utils/geo"
 import { addPendingSubmission } from "@/lib/offline/db"
 import { Button } from "@/components/ui/button"
+import { MapPin } from "lucide-react"
 
 type GpsState =
-  | { status: "pending" }
+  | { status: "idle" }
+  | { status: "requesting" }
   | { status: "granted"; lat: number; lng: number }
   | { status: "denied"; error: string }
   | { status: "duplicate"; blockedUntil: string; windowMinutes: number }
@@ -24,47 +26,74 @@ export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
-  const [gps, setGps] = useState<GpsState>({ status: "pending" })
+  const [gps, setGps] = useState<GpsState>({ status: "idle" })
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
 
-  // Request location permission immediately on page load.
-  // GPS is required for field workers — it enables duplicate detection (FR-023).
-  useEffect(() => {
-    if (!session) return // wait for session to load before dedup check
+  const requestGps = useCallback(async () => {
+    if (!session) return
+    setGps({ status: "requesting" })
+    try {
+      const pos = await captureGps()
+      gpsRef.current = { lat: pos.lat, lng: pos.lng }
+      sessionStorage.setItem("lastGps", JSON.stringify({ lat: pos.lat, lng: pos.lng }))
 
-    captureGps()
-      .then(async (pos) => {
-        gpsRef.current = { lat: pos.lat, lng: pos.lng }
-        sessionStorage.setItem("lastGps", JSON.stringify({ lat: pos.lat, lng: pos.lng }))
-
-        // Check for duplicate submission before allowing the assessment to start
-        const submitterId = session.user?.id
-        if (submitterId) {
-          try {
-            const res = await fetch(
-              `/api/submissions/dedup-check?submitterId=${submitterId}&lat=${pos.lat}&lng=${pos.lng}`,
-            )
-            if (res.ok) {
-              const data = await res.json()
-              if (data.isDuplicate) {
-                setGps({ status: "duplicate", blockedUntil: data.blockedUntil, windowMinutes: data.windowMinutes })
-                return
-              }
+      const submitterId = session.user?.id
+      if (submitterId) {
+        try {
+          const res = await fetch(
+            `/api/submissions/dedup-check?submitterId=${submitterId}&lat=${pos.lat}&lng=${pos.lng}`,
+          )
+          if (res.ok) {
+            const data = await res.json()
+            if (data.isDuplicate) {
+              setGps({ status: "duplicate", blockedUntil: data.blockedUntil, windowMinutes: data.windowMinutes })
+              return
             }
-          } catch {
-            // Network error — allow through, API-level check is the final guard
           }
+        } catch {
+          // Network error — allow through, API-level check is the final guard
         }
-
-        setGps({ status: "granted", lat: pos.lat, lng: pos.lng })
-      })
-      .catch((err: Error) => {
-        setGps({ status: "denied", error: err.message })
-      })
+      }
+      setGps({ status: "granted", lat: pos.lat, lng: pos.lng })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to get location."
+      setGps({ status: "denied", error: message })
+    }
   }, [session])
 
+  // On mount, check if permission was already granted — if so, auto-request
+  // without a button click to avoid unnecessary friction.
+  // If permission is "prompt" or unknown, require a user gesture so the browser
+  // shows its permission dialog (some desktop browsers suppress auto-requests).
+  useEffect(() => {
+    if (!session) return
+    if (!navigator.geolocation) {
+      setGps({ status: "denied", error: "Geolocation is not supported by this browser." })
+      return
+    }
+
+    if (!navigator.permissions) {
+      // Permissions API not available — fall back to showing the button
+      return
+    }
+
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((result) => {
+        if (result.state === "granted") {
+          requestGps()
+        } else if (result.state === "denied") {
+          setGps({ status: "denied", error: "Location permission denied." })
+        }
+        // "prompt" → leave as idle, show the button
+      })
+      .catch(() => {
+        // Permissions API failed — leave as idle, show the button
+      })
+  }, [session, requestGps])
+
   async function handleComplete(data: QuestionnaireCompleteData) {
-    if (!gpsRef.current) return // blocked by UI — should not reach here
+    if (!gpsRef.current) return
 
     setSubmitting(true)
 
@@ -87,13 +116,8 @@ export default function FieldWorkerQuestionnairePage() {
       clientSubmissionId: crypto.randomUUID(),
     }
 
-    // Always store the client-computed risk result so the result page works
-    sessionStorage.setItem(
-      "lastRiskResult",
-      JSON.stringify(data.riskResult),
-    )
+    sessionStorage.setItem("lastRiskResult", JSON.stringify(data.riskResult))
 
-    // Try online submission first, fall back to offline queue
     try {
       const res = await fetch("/api/submissions", {
         method: "POST",
@@ -105,7 +129,6 @@ export default function FieldWorkerQuestionnairePage() {
         const result = await res.json()
         sessionStorage.setItem("lastSubmissionId", result.submissionId)
       } else if (res.status === 409) {
-        // Duplicate submission detected
         const body = await res.json()
         alert(body.error ?? t("duplicateAlert"))
         setSubmitting(false)
@@ -114,7 +137,6 @@ export default function FieldWorkerQuestionnairePage() {
         await addPendingSubmission(payload)
       }
     } catch {
-      // Network error — queue for offline sync
       await addPendingSubmission(payload)
     }
 
@@ -140,7 +162,23 @@ export default function FieldWorkerQuestionnairePage() {
       </header>
 
       {/* GPS required gate */}
-      {gps.status === "pending" && (
+      {gps.status === "idle" && session && (
+        <div className="rounded-lg border p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{t("locationRequiredTitle")}</p>
+              <p className="text-sm text-muted-foreground">{t("locationPermissionPrompt")}</p>
+            </div>
+          </div>
+          <Button onClick={requestGps} className="w-full sm:w-auto">
+            <MapPin className="mr-2 h-4 w-4" />
+            {t("grantLocationAccess")}
+          </Button>
+        </div>
+      )}
+
+      {gps.status === "requesting" && (
         <div className="rounded-lg border p-4 text-sm text-muted-foreground">
           {t("waitingForLocationAccess")}
         </div>

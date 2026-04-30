@@ -138,8 +138,10 @@
     "total": "Total",
     "withLocationCaptured": "{count} with location captured",
     "locationCaptured": "Location captured",
-    "waitingForLocationAccess": "We dey wait for location access… Abeg allow location permission when dem prompt you.",
+    "waitingForLocationAccess": "We dey get your location… Abeg wait small.",
     "locationRequiredTitle": "Location access required",
+    "locationPermissionPrompt": "Dis assessment need your location to stop duplicate submission. Tap the button below to allow location access — your browser go ask you for permission.",
+    "grantLocationAccess": "Grant Location Access",
     "locationRequiredBody": "Location permission na must to submit assessment. Dem dey use am stop duplicate data collection. Abeg enable location access for your browser settings and reload the page.",
     "reloadPage": "Reload page",
     "recentSubmissionDetectedTitle": "Recent submission detected",
@@ -153,6 +155,7 @@
       "dashboard": "Dashboard",
       "newAssessment": "New Assessment",
       "history": "History",
+      "referrals": "Referrals",
       "settings": "Settings",
       "menu": "Menu"
     }

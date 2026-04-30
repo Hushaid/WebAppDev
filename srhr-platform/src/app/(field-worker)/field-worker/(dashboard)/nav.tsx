@@ -23,6 +23,7 @@ export function FieldWorkerNav() {
     { href: "/field-worker", label: t("nav.dashboard") },
     { href: "/field-worker/questionnaire", label: t("nav.newAssessment") },
     { href: "/field-worker/history", label: t("nav.history") },
+    { href: "/field-worker/referrals", label: t("nav.referrals") },
     { href: "/field-worker/settings", label: t("nav.settings") },
   ]
 

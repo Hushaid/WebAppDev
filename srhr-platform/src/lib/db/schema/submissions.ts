@@ -27,6 +27,9 @@ export const submissions = pgTable("submissions", {
   clientSubmissionId: text("client_submission_id").unique(),
   flaggedForReview: boolean("flagged_for_review").default(false).notNull(),
   flaggedAt: timestamp("flagged_at", { withTimezone: true }),
+  referred: boolean("referred").default(false).notNull(),
+  referredAt: timestamp("referred_at", { withTimezone: true }),
+  referralNote: text("referral_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })

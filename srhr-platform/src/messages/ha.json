@@ -138,8 +138,10 @@
     "total": "Jimla",
     "withLocationCaptured": "{count} tare da bayanin wuri",
     "locationCaptured": "An kama bayanin wuri",
-    "waitingForLocationAccess": "Ana jiran izinin wuri… Da fatan za a ba da izinin wuri idan an tambaya.",
+    "waitingForLocationAccess": "Ana nemo wurin ku… Da fatan jira.",
     "locationRequiredTitle": "Ana buƙatar izinin wuri",
+    "locationPermissionPrompt": "Wannan tantancewa na buƙatar wuɗin ku don hana aika bayanai sau biyu. Danna maballin da ke ƙasa don ba da izini — burauzarku zai tambaye ku.",
+    "grantLocationAccess": "Ba Da Izinin Wuri",
     "locationRequiredBody": "Ana buƙatar izinin wuri don aika tantancewa. Ana amfani da shi ne don hana tattara bayanai sau biyu. Da fatan za a kunna izinin wuri a saitunan burauzarku sannan ku sake loda shafin.",
     "reloadPage": "Sake loda shafi",
     "recentSubmissionDetectedTitle": "An gano sabuwar aika bayanai",
@@ -153,6 +155,7 @@
       "dashboard": "Dashboard",
       "newAssessment": "Sabuwar Tantancewa",
       "history": "Tarihi",
+      "referrals": "Tura Zuwa Wani",
       "settings": "Saituna",
       "menu": "Menu"
     }

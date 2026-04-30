@@ -138,8 +138,10 @@
     "total": "Total",
     "withLocationCaptured": "{count} with location captured",
     "locationCaptured": "Location captured",
-    "waitingForLocationAccess": "Waiting for location access… Please allow location permission when prompted.",
+    "waitingForLocationAccess": "Getting your location… Please wait.",
     "locationRequiredTitle": "Location access required",
+    "locationPermissionPrompt": "This assessment requires your location to prevent duplicate submissions. Tap the button below to allow location access — your browser will ask for permission.",
+    "grantLocationAccess": "Grant Location Access",
     "locationRequiredBody": "Location permission is required to submit an assessment. This is used to prevent duplicate data collection. Please enable location access in your browser settings and reload the page.",
     "reloadPage": "Reload page",
     "recentSubmissionDetectedTitle": "Recent submission detected",
@@ -153,6 +155,7 @@
       "dashboard": "Dashboard",
       "newAssessment": "New Assessment",
       "history": "History",
+      "referrals": "Referrals",
       "settings": "Settings",
       "menu": "Menu"
     }

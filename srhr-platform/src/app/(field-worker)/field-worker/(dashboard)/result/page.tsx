@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
-import { Flag } from "lucide-react"
+import { Flag, UserCheck } from "lucide-react"
 import Link from "next/link"
 
 interface RiskData {
@@ -55,6 +55,8 @@ export default function FieldWorkerResultPage() {
   const [loading, setLoading] = useState(true)
   const [flagged, setFlagged] = useState(false)
   const [flagging, setFlagging] = useState(false)
+  const [referred, setReferred] = useState(false)
+  const [referring, setReferring] = useState(false)
 
   useEffect(() => {
     const stored = sessionStorage.getItem("lastRiskResult")
@@ -236,6 +238,41 @@ export default function FieldWorkerResultPage() {
           <Button variant="outline" disabled>
             <Flag className="mr-2 h-4 w-4" />
             Flagged
+          </Button>
+        )}
+        {submissionId && (risk?.overallRiskLevel === "high" || risk?.overallRiskLevel === "medium") && !referred && (
+          <Button
+            variant="outline"
+            disabled={referring}
+            onClick={async () => {
+              setReferring(true)
+              try {
+                const res = await fetch("/api/submissions/refer", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ submissionId }),
+                })
+                if (res.ok) {
+                  setReferred(true)
+                  toast.success("Marked as referred for further support")
+                } else {
+                  toast.error("Failed to record referral")
+                }
+              } catch {
+                toast.error("Failed to record referral")
+              } finally {
+                setReferring(false)
+              }
+            }}
+          >
+            <UserCheck className="mr-2 h-4 w-4" />
+            {referring ? "Recording…" : "Mark as Referred"}
+          </Button>
+        )}
+        {referred && (
+          <Button variant="outline" disabled>
+            <UserCheck className="mr-2 h-4 w-4" />
+            Referred
           </Button>
         )}
       </nav>
