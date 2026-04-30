@@ -44,6 +44,7 @@ type WizardQuestion = {
 type DbQuestion = {
   questionNumber: string
   text: string
+  type: string
   options?: { label: string; value: string; score: number }[] | null
   sortOrder?: number
 }
@@ -217,6 +218,31 @@ export function QuestionnaireWizard({
       })
     }
 
+    // Inject questions that exist only in the DB (created via admin) and are not
+    // in any static config list, so they appear in the wizard at the right position.
+    if (dbOrder.length > 0) {
+      const allIds = new Set(allQuestions.map((q) => q.id))
+      for (const qId of dbOrder) {
+        if (!allIds.has(qId)) {
+          const db = dbOverrides.get(qId)
+          if (db) {
+            const wizType: WizardQuestion["type"] =
+              db.type === "multiple_choice" ? "checkbox" :
+              db.type === "text" ? "text" : "radio"
+            allQuestions.push({
+              id: qId,
+              text: db.text,
+              type: wizType,
+              options: db.options?.length
+                ? db.options.map((o) => ({ label: o.label, value: o.value }))
+                : undefined,
+              optional: OPTIONAL_QUESTION_IDS.has(qId),
+            })
+          }
+        }
+      }
+    }
+
     // Re-order by DB sortOrder when available so admin position changes reflect live
     if (dbOrder.length > 0) {
       const orderMap = new Map(dbOrder.map((id, i) => [id, i]))
@@ -228,7 +254,7 @@ export function QuestionnaireWizard({
     }
 
     return allQuestions
-  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey, dbOrder])
+  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey, dbOrder, dbOverrides])
 
   const totalQuestions = visibleQuestions.length
   // Clamp index if the list shrank due to skip logic changes
