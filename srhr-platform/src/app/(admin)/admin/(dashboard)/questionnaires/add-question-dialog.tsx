@@ -149,7 +149,7 @@ export function AddQuestionDialog({ existingQuestions }: AddQuestionDialogProps)
               <Label>Question ID</Label>
               <Input
                 value={questionNumber}
-                onChange={(e) => setQuestionNumber(e.target.value)}
+                onChange={(e) => setQuestionNumber(e.target.value.toUpperCase())}
                 placeholder="e.g. Q46"
               />
               <p className="text-xs text-muted-foreground">Unique identifier — cannot be changed later</p>
