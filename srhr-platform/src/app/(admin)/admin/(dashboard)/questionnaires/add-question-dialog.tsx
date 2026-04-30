@@ -41,7 +41,16 @@ interface OptionRow {
   score: number
 }
 
-export function AddQuestionDialog() {
+interface ExistingQuestion {
+  questionNumber: string
+  sortOrder: number
+}
+
+interface AddQuestionDialogProps {
+  existingQuestions: ExistingQuestion[]
+}
+
+export function AddQuestionDialog({ existingQuestions }: AddQuestionDialogProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -51,6 +60,7 @@ export function AddQuestionDialog() {
   const [text, setText] = useState("")
   const [type, setType] = useState<QuestionType>("single_choice")
   const [diseaseGroup, setDiseaseGroup] = useState<DiseaseGroup>("none")
+  const [insertAfter, setInsertAfter] = useState<string>("end")
   const [options, setOptions] = useState<OptionRow[]>([
     { label: "", value: "option_1", score: 0 },
   ])
@@ -84,12 +94,15 @@ export function AddQuestionDialog() {
 
   function handleSave() {
     setError(null)
-    if (!questionNumber.trim()) { setError("Question number is required (e.g. Q46)"); return }
+    if (!questionNumber.trim()) { setError("Question ID is required (e.g. Q46)"); return }
     if (!text.trim()) { setError("Question text is required"); return }
     if (needsOptions && options.some((o) => !o.label.trim())) {
       setError("All option labels are required")
       return
     }
+
+    const selectedQuestion = existingQuestions.find((q) => q.questionNumber === insertAfter)
+    const insertAfterSortOrder = selectedQuestion?.sortOrder ?? null
 
     startTransition(async () => {
       const result = await createQuestion({
@@ -98,17 +111,18 @@ export function AddQuestionDialog() {
         type,
         diseaseGroup: diseaseGroup === "none" ? null : diseaseGroup,
         options: needsOptions ? options.filter((o) => o.label.trim()) : [],
+        insertAfterSortOrder,
       })
 
       if (result.success) {
         setOpen(false)
         router.refresh()
         toast.success(`Question ${questionNumber} added`)
-        // Reset
         setQuestionNumber("")
         setText("")
         setType("single_choice")
         setDiseaseGroup("none")
+        setInsertAfter("end")
         setOptions([{ label: "", value: "option_1", score: 0 }])
       } else {
         setError(result.error ?? "Failed to create question")
@@ -138,7 +152,7 @@ export function AddQuestionDialog() {
                 onChange={(e) => setQuestionNumber(e.target.value)}
                 placeholder="e.g. Q46"
               />
-              <p className="text-xs text-muted-foreground">Unique identifier (Q46, PS6…)</p>
+              <p className="text-xs text-muted-foreground">Unique identifier — cannot be changed later</p>
             </div>
             <div className="space-y-1.5">
               <Label>Type</Label>
@@ -154,6 +168,24 @@ export function AddQuestionDialog() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Position</Label>
+            <Select value={insertAfter} onValueChange={setInsertAfter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="end">At the end</SelectItem>
+                {existingQuestions.map((q) => (
+                  <SelectItem key={q.questionNumber} value={q.questionNumber}>
+                    After {q.questionNumber}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Where this question appears in the questionnaire</p>
           </div>
 
           <div className="space-y-1.5">

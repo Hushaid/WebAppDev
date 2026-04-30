@@ -45,6 +45,7 @@ type DbQuestion = {
   questionNumber: string
   text: string
   options?: { label: string; value: string; score: number }[] | null
+  sortOrder?: number
 }
 
 export function QuestionnaireWizard({
@@ -56,20 +57,27 @@ export function QuestionnaireWizard({
   const [showError, setShowError] = useState(false)
   // DB question overrides: questionId → { text, options }
   const [dbOverrides, setDbOverrides] = useState<Map<string, DbQuestion>>(new Map())
+  // DB question order: questionNumber[] sorted by sortOrder
+  const [dbOrder, setDbOrder] = useState<string[]>([])
   const messages = useMessages() as unknown as Parameters<
     typeof localizeDemographicQuestions
   >[1]
   const t = useTranslations("questionnaire")
   const tCommon = useTranslations("common")
 
-  // Fetch current question text/options from DB so admin edits reflect immediately
+  // Fetch current question text/options/order from DB so admin edits reflect immediately
   useEffect(() => {
     fetch("/api/questionnaire/questions")
       .then((r) => r.ok ? r.json() : [])
       .then((rows: DbQuestion[]) => {
         const map = new Map<string, DbQuestion>()
-        for (const row of rows) map.set(row.questionNumber, row)
+        const order: string[] = []
+        for (const row of rows) {
+          map.set(row.questionNumber, row)
+          order.push(row.questionNumber)
+        }
         setDbOverrides(map)
+        setDbOrder(order)
       })
       .catch(() => {/* fallback to static config on network error */})
   }, [])
@@ -209,8 +217,18 @@ export function QuestionnaireWizard({
       })
     }
 
+    // Re-order by DB sortOrder when available so admin position changes reflect live
+    if (dbOrder.length > 0) {
+      const orderMap = new Map(dbOrder.map((id, i) => [id, i]))
+      allQuestions.sort((a, b) => {
+        const ai = orderMap.get(a.id) ?? 99999
+        const bi = orderMap.get(b.id) ?? 99999
+        return ai - bi
+      })
+    }
+
     return allQuestions
-  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey])
+  }, [sex, responses, localizedDemographic, localizedScored, localizedClosing, localizedPostSurvey, dbOrder])
 
   const totalQuestions = visibleQuestions.length
   // Clamp index if the list shrank due to skip logic changes
