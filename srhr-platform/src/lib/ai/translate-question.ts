@@ -12,8 +12,11 @@ export async function translateQuestion(
   text: string,
   options?: { value: string; label: string }[],
 ): Promise<QuestionTranslations> {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return {}
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    console.error("[translate-question] GROQ_API_KEY is not set")
+    return {}
+  }
 
   const optionsBlock = options?.length
     ? `\nAnswer options (translate each label, keep the key exactly as-is):\n${options.map((o) => `  "${o.value}": "${o.label}"`).join("\n")}`
@@ -34,29 +37,54 @@ Keep medical/health terms accurate and culturally appropriate.
 
 Question: "${text}"${optionsBlock}`
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 1024 },
-      }),
-    },
-  )
+  console.log("[translate-question] Calling Groq for:", text.slice(0, 60))
 
-  if (!res.ok) return {}
+  let res: Response
+  try {
+    res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        temperature: 0.2,
+        max_tokens: 1024,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    })
+  } catch (err) {
+    console.error("[translate-question] Fetch failed:", err)
+    return {}
+  }
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "(unreadable)")
+    console.error(`[translate-question] Groq API error ${res.status}:`, errText)
+    return {}
+  }
 
   const json = await res.json()
-  const raw: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? ""
+  console.log("[translate-question] Raw Groq response:", JSON.stringify(json).slice(0, 300))
+
+  const raw: string = json?.choices?.[0]?.message?.content ?? ""
+
+  if (!raw) {
+    console.error("[translate-question] Empty text in response. Full response:", JSON.stringify(json))
+    return {}
+  }
 
   // Strip optional ```json fences the model sometimes adds
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim()
+  console.log("[translate-question] Cleaned text to parse:", cleaned.slice(0, 200))
 
   try {
-    return JSON.parse(cleaned) as QuestionTranslations
-  } catch {
+    const parsed = JSON.parse(cleaned) as QuestionTranslations
+    console.log("[translate-question] Parsed OK, locales:", Object.keys(parsed))
+    return parsed
+  } catch (err) {
+    console.error("[translate-question] JSON.parse failed:", err, "| raw:", cleaned.slice(0, 200))
     return {}
   }
 }
