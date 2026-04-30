@@ -30,7 +30,9 @@ export default function FieldWorkerQuestionnairePage() {
   const [gps, setGps] = useState<GpsState>({ status: "idle" })
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
 
-  const requestGps = useCallback(async () => {
+  // fromButton: true → on failure show the denied error panel
+  // fromButton: false (auto-triggered) → on failure fall back to idle so the button appears
+  const requestGps = useCallback(async (fromButton = false) => {
     if (!session) return
     setGps({ status: "requesting" })
     try {
@@ -57,8 +59,13 @@ export default function FieldWorkerQuestionnairePage() {
       }
       setGps({ status: "granted", lat: pos.lat, lng: pos.lng })
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to get location."
-      setGps({ status: "denied", error: message })
+      if (!fromButton) {
+        // Auto-request failed (e.g. stale browser permission) — show the button
+        setGps({ status: "idle" })
+      } else {
+        const message = err instanceof Error ? err.message : "Failed to get location."
+        setGps({ status: "denied", error: message })
+      }
     }
   }, [session])
 
@@ -91,7 +98,7 @@ export default function FieldWorkerQuestionnairePage() {
       .query({ name: "geolocation" })
       .then((result) => {
         if (result.state === "granted") {
-          requestGps()
+          requestGps(false)
         } else if (result.state === "denied") {
           setGps({ status: "denied", error: "Location permission denied." })
         }
@@ -181,7 +188,7 @@ export default function FieldWorkerQuestionnairePage() {
               <p className="text-sm text-muted-foreground">{t("locationPermissionPrompt")}</p>
             </div>
           </div>
-          <Button onClick={requestGps} className="w-full sm:w-auto">
+          <Button onClick={() => requestGps(true)} className="w-full sm:w-auto">
             <MapPin className="mr-2 h-4 w-4" />
             {t("grantLocationAccess")}
           </Button>
