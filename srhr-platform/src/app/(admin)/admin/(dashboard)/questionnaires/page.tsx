@@ -100,7 +100,7 @@ export default async function QuestionnairesPage() {
           </p>
         </hgroup>
         <div className="flex items-center gap-2">
-          <AddQuestionDialog existingQuestions={questions.map((q) => ({ questionNumber: q.questionNumber, sortOrder: q.sortOrder }))} />
+          <AddQuestionDialog existingQuestions={questions.map((q) => ({ questionNumber: q.questionNumber, sortOrder: q.sortOrder, diseaseGroup: q.diseaseGroup ?? null }))} />
           <Link href="/admin/questionnaires/preview">
             <Button variant="outline">
               <Eye className="mr-2 h-4 w-4" />

@@ -16,7 +16,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -44,6 +46,7 @@ interface OptionRow {
 interface ExistingQuestion {
   questionNumber: string
   sortOrder: number
+  diseaseGroup: string | null
 }
 
 interface AddQuestionDialogProps {
@@ -178,11 +181,37 @@ export function AddQuestionDialog({ existingQuestions }: AddQuestionDialogProps)
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="end">At the end</SelectItem>
-                {existingQuestions.map((q) => (
-                  <SelectItem key={q.questionNumber} value={q.questionNumber}>
-                    After {q.questionNumber}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  const isDemographic = (q: ExistingQuestion) =>
+                    q.diseaseGroup === null &&
+                    q.questionNumber.startsWith("Q") &&
+                    parseInt(q.questionNumber.slice(1)) <= 10
+                  const isOther = (q: ExistingQuestion) =>
+                    q.diseaseGroup === null && !isDemographic(q)
+
+                  const sections: { label: string; filter: (q: ExistingQuestion) => boolean }[] = [
+                    { label: "Demographic (Q1–Q10)", filter: isDemographic },
+                    { label: "Infection Risk (STI)", filter: (q) => q.diseaseGroup === "sti" },
+                    { label: "Maternal Health", filter: (q) => q.diseaseGroup === "maternal_health" },
+                    { label: "Community Well-being", filter: (q) => q.diseaseGroup === "community_wellbeing" },
+                    { label: "Closing & Post-survey", filter: isOther },
+                  ]
+
+                  return sections.map(({ label, filter }) => {
+                    const qs = existingQuestions.filter(filter)
+                    if (qs.length === 0) return null
+                    return (
+                      <SelectGroup key={label}>
+                        <SelectLabel>{label}</SelectLabel>
+                        {qs.map((q) => (
+                          <SelectItem key={q.questionNumber} value={q.questionNumber}>
+                            After {q.questionNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )
+                  })
+                })()}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Where this question appears in the questionnaire</p>
