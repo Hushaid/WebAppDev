@@ -79,7 +79,7 @@ export function HealthSteps({ riskLevel }: HealthStepsProps) {
   const steps = getStepsForRiskLevel(riskLevel)
 
   return (
-    <Accordion type="single" collapsible defaultValue="health-steps" className="rounded-lg border">
+    <Accordion type="single" collapsible className="rounded-lg border">
       <AccordionItem value="health-steps" className="border-0">
         <AccordionTrigger className="px-6 py-4 hover:no-underline">
           <span className="flex items-center gap-3">
@@ -140,7 +140,7 @@ const EMERGENCY_CONTACTS = [
 
 export function EmergencyContacts() {
   return (
-    <Accordion type="single" collapsible defaultValue="emergency" className="rounded-lg border">
+    <Accordion type="single" collapsible className="rounded-lg border">
       <AccordionItem value="emergency" className="border-0">
         <AccordionTrigger className="px-6 py-4 hover:no-underline">
           <span className="text-base font-semibold">Help is always available</span>

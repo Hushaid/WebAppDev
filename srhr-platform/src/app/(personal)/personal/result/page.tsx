@@ -161,7 +161,7 @@ export default function PersonalResultPage() {
 
       <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
 
-      <Accordion type="single" collapsible defaultValue="facilities" className="rounded-lg border">
+      <Accordion type="single" collapsible className="rounded-lg border">
         <AccordionItem value="facilities" className="border-0">
           <AccordionTrigger className="px-6 py-4 hover:no-underline">
             <span className="text-base font-semibold">Recommended facilities</span>
