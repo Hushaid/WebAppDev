@@ -63,18 +63,19 @@ export default async function QuestionnairesPage() {
   const { questions } = data
 
   const scoredQuestions = questions.filter((q) => q.diseaseGroup !== null)
-  const demographicQuestions = questions.filter(
-    (q) =>
-      q.diseaseGroup === null &&
-      q.questionNumber.startsWith("Q") &&
-      parseInt(q.questionNumber.slice(1)) <= 10,
-  )
-  const otherQuestions = questions.filter(
-    (q) =>
-      q.diseaseGroup === null &&
-      !demographicQuestions.includes(q) &&
-      (q.questionNumber.startsWith("Q") || q.questionNumber.startsWith("PS")),
-  )
+
+  // Classify unscored questions by sortOrder position relative to scored block,
+  // not by questionNumber, so admin-inserted questions land in the right section.
+  const firstScoredSort = scoredQuestions.length > 0
+    ? Math.min(...scoredQuestions.map((q) => q.sortOrder))
+    : Infinity
+  const lastScoredSort = scoredQuestions.length > 0
+    ? Math.max(...scoredQuestions.map((q) => q.sortOrder))
+    : -Infinity
+
+  const unscoredQuestions = questions.filter((q) => q.diseaseGroup === null)
+  const demographicQuestions = unscoredQuestions.filter((q) => q.sortOrder < firstScoredSort)
+  const otherQuestions = unscoredQuestions.filter((q) => q.sortOrder > lastScoredSort)
 
   const groups: DiseaseGroup[] = ["sti", "maternal_health", "community_wellbeing"]
 
