@@ -22,22 +22,26 @@ export async function translateQuestion(
     ? `\nAnswer options (translate each label, keep the key exactly as-is):\n${options.map((o) => `  "${o.value}": "${o.label}"`).join("\n")}`
     : ""
 
-  const prompt = `You are translating a health survey question for Nigerian communities.
-Translate the question and its options into:
+  const prompt = `You are a professional translator for Nigerian community health surveys.
+Translate the question and every option label into:
 1. Nigerian Pidgin English (pcm)
 2. Hausa (ha)
 
-Return ONLY valid JSON — no markdown, no explanation — in this exact shape:
+CRITICAL RULES:
+- Translate EVERY word — including common words like "Yes", "No", "Male", "Female", "Always", "Never", etc.
+- In Hausa: "Yes" = "Eh / Ɗai", "No" = "A'a", "Male" = "Namiji", "Female" = "Mace"
+- In Pidgin: "Yes" = "Yes/Ehen", "No" = "No/Nope", "Male" = "Man", "Female" = "Woman"
+- Never leave option labels in English.
+- Keep the JSON key exactly as given — only translate the value.
+
+Return ONLY valid JSON, no markdown, no explanation:
 {
-  "pcm": { "text": "...", "options": { "key": "translation" } },
-  "ha":  { "text": "...", "options": { "key": "translation" } }
+  "pcm": { "text": "...", "options": { "key": "pidgin translation" } },
+  "ha":  { "text": "...", "options": { "key": "hausa translation" } }
 }
-Omit "options" from a locale object if there are no options.
-Keep medical/health terms accurate and culturally appropriate.
+Omit "options" if there are no options to translate.
 
 Question: "${text}"${optionsBlock}`
-
-  console.log("[translate-question] Calling Groq for:", text.slice(0, 60))
 
   let res: Response
   try {
@@ -48,7 +52,7 @@ Question: "${text}"${optionsBlock}`
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.3-70b-versatile",
         temperature: 0.2,
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
@@ -66,25 +70,14 @@ Question: "${text}"${optionsBlock}`
   }
 
   const json = await res.json()
-  console.log("[translate-question] Raw Groq response:", JSON.stringify(json).slice(0, 300))
-
   const raw: string = json?.choices?.[0]?.message?.content ?? ""
+  if (!raw) return {}
 
-  if (!raw) {
-    console.error("[translate-question] Empty text in response. Full response:", JSON.stringify(json))
-    return {}
-  }
-
-  // Strip optional ```json fences the model sometimes adds
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim()
-  console.log("[translate-question] Cleaned text to parse:", cleaned.slice(0, 200))
 
   try {
-    const parsed = JSON.parse(cleaned) as QuestionTranslations
-    console.log("[translate-question] Parsed OK, locales:", Object.keys(parsed))
-    return parsed
-  } catch (err) {
-    console.error("[translate-question] JSON.parse failed:", err, "| raw:", cleaned.slice(0, 200))
+    return JSON.parse(cleaned) as QuestionTranslations
+  } catch {
     return {}
   }
 }
