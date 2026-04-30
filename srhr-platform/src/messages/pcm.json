@@ -61,7 +61,13 @@
     "submittingAnswers": "E dey submit your answers...",
     "selectOption": "Choose one option",
     "enterResponse": "Abeg put answer before you continue.",
-    "selectResponse": "Abeg choose one option before you continue."
+    "selectResponse": "Abeg choose one option before you continue.",
+    "locationRequiredTitle": "We need your location",
+    "locationPermissionPrompt": "This assessment need your location. Click the button below to allow location access — your browser go ask you for permission.",
+    "grantLocationAccess": "Allow Location Access",
+    "waitingForLocationAccess": "E dey find your location… Abeg wait.",
+    "locationRequiredBody": "You need to allow location access before you fit start. Go to your browser settings, turn on location, then reload the page.",
+    "reloadPage": "Reload page"
   },
   "risk": {
     "low": "Low Risk",

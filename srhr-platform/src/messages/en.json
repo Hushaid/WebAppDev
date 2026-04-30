@@ -61,7 +61,13 @@
     "submittingAnswers": "Submitting your answers...",
     "selectOption": "Select an option",
     "enterResponse": "Please enter a response before continuing.",
-    "selectResponse": "Please select an option before continuing."
+    "selectResponse": "Please select an option before continuing.",
+    "locationRequiredTitle": "Location access required",
+    "locationPermissionPrompt": "This assessment requires your location. Tap the button below to allow location access — your browser will ask for permission.",
+    "grantLocationAccess": "Grant Location Access",
+    "waitingForLocationAccess": "Getting your location… Please wait.",
+    "locationRequiredBody": "Location permission is required to start the assessment. Please enable location access in your browser settings and reload the page.",
+    "reloadPage": "Reload page"
   },
   "risk": {
     "low": "Low Risk",

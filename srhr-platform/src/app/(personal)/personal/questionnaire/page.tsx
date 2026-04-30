@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
@@ -11,6 +11,14 @@ import { captureGps } from "@/lib/utils/geo"
 import { addPendingSubmission } from "@/lib/offline/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { MapPin } from "lucide-react"
+import { toast } from "sonner"
+
+type GpsState =
+  | { status: "idle" }
+  | { status: "requesting" }
+  | { status: "granted"; lat: number; lng: number }
+  | { status: "denied"; error: string }
 
 export default function PersonalQuestionnairePage() {
   const t = useTranslations("questionnaire")
@@ -23,20 +31,50 @@ export default function PersonalQuestionnairePage() {
     cooldownEndsAt?: string
   }>({ blocked: false })
   const [checking, setChecking] = useState(true)
+  const [gps, setGps] = useState<GpsState>({ status: "idle" })
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
 
-  // Request location permission immediately on page load so the browser
-  // prompt is visible while the user reads the first question.
-  useEffect(() => {
-    captureGps()
-      .then((gps) => {
-        gpsRef.current = gps
-        sessionStorage.setItem("lastGps", JSON.stringify(gps))
-      })
-      .catch(() => {
-        // GPS is optional — continue without it
-      })
+  const requestGps = useCallback(async () => {
+    setGps({ status: "requesting" })
+    try {
+      const pos = await captureGps()
+      gpsRef.current = { lat: pos.lat, lng: pos.lng }
+      sessionStorage.setItem("lastGps", JSON.stringify({ lat: pos.lat, lng: pos.lng }))
+      setGps({ status: "granted", lat: pos.lat, lng: pos.lng })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to get location."
+      setGps({ status: "denied", error: message })
+    }
   }, [])
+
+  // On mount check if permission already granted — auto-request without button friction.
+  // If "prompt" or unknown, require a user gesture so the browser shows its dialog.
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGps({ status: "denied", error: "Geolocation is not supported by this browser." })
+      return
+    }
+    if (!navigator.permissions) return
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((result) => {
+        if (result.state === "granted") {
+          requestGps()
+        } else if (result.state === "denied") {
+          setGps({ status: "denied", error: "Location permission denied." })
+        }
+      })
+      .catch(() => {})
+  }, [requestGps])
+
+  // Toast on denied transition
+  useEffect(() => {
+    if (gps.status === "denied") {
+      toast.error(t("locationRequiredTitle"), {
+        description: t("locationRequiredBody"),
+      })
+    }
+  }, [gps.status, t])
 
   // Check single-submission cooldown (24h)
   useEffect(() => {
@@ -70,25 +108,19 @@ export default function PersonalQuestionnairePage() {
   }, [session?.user?.id])
 
   async function handleComplete(data: QuestionnaireCompleteData) {
+    if (gps.status !== "granted") return
     setSubmitting(true)
 
-    // Use GPS captured at page load (prompt was shown on mount)
-    const gpsLat = gpsRef.current?.lat.toString()
-    const gpsLng = gpsRef.current?.lng.toString()
+    const gpsLat = gps.lat.toString()
+    const gpsLng = gps.lng.toString()
 
     if (!session?.user?.id) {
       router.push("/log-in")
       return
     }
 
-    // Always store the client-computed risk result so the result page works
-    // even if the API fails or is slow
-    sessionStorage.setItem(
-      "lastRiskResult",
-      JSON.stringify(data.riskResult),
-    )
+    sessionStorage.setItem("lastRiskResult", JSON.stringify(data.riskResult))
 
-    // Submit to API
     try {
       const res = await fetch("/api/submissions", {
         method: "POST",
@@ -108,7 +140,6 @@ export default function PersonalQuestionnairePage() {
         const result = await res.json()
         sessionStorage.setItem("lastSubmissionId", result.submissionId)
       } else {
-        // API error — queue for offline retry so data is not lost
         await addPendingSubmission({
           submitterId: session.user.id,
           submitterType: data.submitterType,
@@ -194,7 +225,42 @@ export default function PersonalQuestionnairePage() {
             : t("pageDescription")}
         </p>
       </header>
-      {!submitting && (
+
+      {/* GPS required gate */}
+      {gps.status === "idle" && (
+        <div className="rounded-lg border p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{t("locationRequiredTitle")}</p>
+              <p className="text-sm text-muted-foreground">{t("locationPermissionPrompt")}</p>
+            </div>
+          </div>
+          <Button onClick={requestGps} className="w-full sm:w-auto">
+            <MapPin className="mr-2 h-4 w-4" />
+            {t("grantLocationAccess")}
+          </Button>
+        </div>
+      )}
+
+      {gps.status === "requesting" && (
+        <div className="rounded-lg border p-4 text-sm text-muted-foreground">
+          {t("waitingForLocationAccess")}
+        </div>
+      )}
+
+      {gps.status === "denied" && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 space-y-3">
+          <p className="text-sm font-medium text-destructive">{t("locationRequiredTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("locationRequiredBody")}</p>
+          <p className="text-xs text-muted-foreground">Error: {gps.error}</p>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            {t("reloadPage")}
+          </Button>
+        </div>
+      )}
+
+      {!submitting && gps.status === "granted" && (
         <QuestionnaireWizard
           submitterType="personal_user"
           onComplete={handleComplete}

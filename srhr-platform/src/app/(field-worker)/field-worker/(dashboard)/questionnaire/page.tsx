@@ -11,6 +11,7 @@ import { captureGps } from "@/lib/utils/geo"
 import { addPendingSubmission } from "@/lib/offline/db"
 import { Button } from "@/components/ui/button"
 import { MapPin } from "lucide-react"
+import { toast } from "sonner"
 
 type GpsState =
   | { status: "idle" }
@@ -60,6 +61,15 @@ export default function FieldWorkerQuestionnairePage() {
       setGps({ status: "denied", error: message })
     }
   }, [session])
+
+  // Toast on denied transition
+  useEffect(() => {
+    if (gps.status === "denied") {
+      toast.error(t("locationRequiredTitle"), {
+        description: t("locationRequiredBody"),
+      })
+    }
+  }, [gps.status, t])
 
   // On mount, check if permission was already granted — if so, auto-request
   // without a button click to avoid unnecessary friction.

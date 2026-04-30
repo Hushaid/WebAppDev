@@ -144,70 +144,6 @@ export default async function QuestionnairesPage() {
         </Card>
       </div>
 
-      {/* Scored questions by group */}
-      <Accordion type="multiple" defaultValue={groups}>
-        {groups.map((group) => {
-          const groupQuestions = scoredQuestions.filter((q) => q.diseaseGroup === group)
-          const maxScore = groupQuestions.reduce((sum, q) => sum + q.scoreWeight, 0)
-
-          return (
-            <AccordionItem key={group} value={group}>
-              <AccordionTrigger className="text-lg font-semibold">
-                <span className="flex flex-wrap items-center gap-2">
-                  {GROUP_LABELS[group]}
-                  <Badge variant="secondary">{GROUP_RANGES[group]}</Badge>
-                  <Badge variant="outline">Max: {maxScore}</Badge>
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-16">ID</TableHead>
-                        <TableHead>Options</TableHead>
-                        <TableHead className="w-24 text-right">Max Score</TableHead>
-                        <TableHead className="w-28 text-right">Skip Logic</TableHead>
-                        <TableHead className="w-20 text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {groupQuestions.map((q) => {
-                        const opts = (q.options ?? []) as { label: string; value: string; score: number }[]
-                        const skipLogic = q.conditionalLogic as { skipWhen: string[]; skipTargets: string[] } | null
-                        return (
-                          <TableRow key={q.id}>
-                            <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
-                            <TableCell className="max-w-[200px] truncate">
-                              <span className="text-sm text-muted-foreground">
-                                {opts.length > 0 ? opts.map((o) => o.label).join(" · ") : "Free text"}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right font-mono">{q.scoreWeight}</TableCell>
-                            <TableCell className="text-right">
-                              {skipLogic?.skipTargets ? (
-                                <Badge variant="secondary" className="text-xs">
-                                  Skips {skipLogic.skipTargets.join(", ")}
-                                </Badge>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )
-        })}
-      </Accordion>
-
       {/* Demographic questions (Q1-Q10) — now editable */}
       <Accordion type="single" collapsible defaultValue="demographic">
         <AccordionItem value="demographic">
@@ -287,6 +223,71 @@ export default async function QuestionnairesPage() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {/* Scored questions by group */}
+      <Accordion type="multiple" defaultValue={groups}>
+        {groups.map((group) => {
+          const groupQuestions = scoredQuestions.filter((q) => q.diseaseGroup === group)
+          const maxScore = groupQuestions.reduce((sum, q) => sum + q.scoreWeight, 0)
+
+          return (
+            <AccordionItem key={group} value={group}>
+              <AccordionTrigger className="text-lg font-semibold">
+                <span className="flex flex-wrap items-center gap-2">
+                  {GROUP_LABELS[group]}
+                  <Badge variant="secondary">{GROUP_RANGES[group]}</Badge>
+                  <Badge variant="outline">Max: {maxScore}</Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-16">ID</TableHead>
+                        <TableHead>Options</TableHead>
+                        <TableHead className="w-24 text-right">Max Score</TableHead>
+                        <TableHead className="w-28 text-right">Skip Logic</TableHead>
+                        <TableHead className="w-20 text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {groupQuestions.map((q) => {
+                        const opts = (q.options ?? []) as { label: string; value: string; score: number }[]
+                        const skipLogic = q.conditionalLogic as { skipWhen: string[]; skipTargets: string[] } | null
+                        return (
+                          <TableRow key={q.id}>
+                            <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
+                            <TableCell className="max-w-[200px] truncate">
+                              <span className="text-sm text-muted-foreground">
+                                {opts.length > 0 ? opts.map((o) => o.label).join(" · ") : "Free text"}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-mono">{q.scoreWeight}</TableCell>
+                            <TableCell className="text-right">
+                              {skipLogic?.skipTargets ? (
+                                <Badge variant="secondary" className="text-xs">
+                                  Skips {skipLogic.skipTargets.join(", ")}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )
+        })}
+      </Accordion>
+
     </section>
   )
 }
