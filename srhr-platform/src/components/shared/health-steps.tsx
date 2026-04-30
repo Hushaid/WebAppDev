@@ -1,10 +1,11 @@
+"use client"
+
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 
 type RiskLevel = "low" | "medium" | "high"
@@ -78,31 +79,31 @@ export function HealthSteps({ riskLevel }: HealthStepsProps) {
   const steps = getStepsForRiskLevel(riskLevel)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Steps to protect your health
-          <Badge variant={riskBadgeVariant(riskLevel)} className="text-sm">
-            {riskLevel} risk
-          </Badge>
-        </CardTitle>
-        <CardDescription>
-          {riskLabel(riskLevel)}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ol className="space-y-3">
-          {steps.map((step, i) => (
-            <li key={i} className="flex gap-3 text-sm leading-relaxed">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                {i + 1}
-              </span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
-      </CardContent>
-    </Card>
+    <Accordion type="single" collapsible defaultValue="health-steps" className="rounded-lg border">
+      <AccordionItem value="health-steps" className="border-0">
+        <AccordionTrigger className="px-6 py-4 hover:no-underline">
+          <span className="flex items-center gap-3">
+            <span className="text-base font-semibold">Steps to protect your health</span>
+            <Badge variant={riskBadgeVariant(riskLevel)} className="text-xs">
+              {riskLevel} risk
+            </Badge>
+          </span>
+        </AccordionTrigger>
+        <AccordionContent className="px-6 pb-4">
+          <p className="mb-4 text-sm text-muted-foreground">{riskLabel(riskLevel)}</p>
+          <ol className="space-y-3">
+            {steps.map((step, i) => (
+              <li key={i} className="flex gap-3 text-sm leading-relaxed">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                  {i + 1}
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   )
 }
 
@@ -139,30 +140,32 @@ const EMERGENCY_CONTACTS = [
 
 export function EmergencyContacts() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Help is always available</CardTitle>
-        <CardDescription>
-          24/7 support for health emergencies and gender-based violence. You are not alone.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {EMERGENCY_CONTACTS.map((contact) => (
-            <li key={contact.number} className="rounded-lg border p-3">
-              <h3 className="font-medium">{contact.name}</h3>
-              <p className="text-xs text-muted-foreground">{contact.description}</p>
-              <a
-                href={contact.tel}
-                className="mt-1 inline-block text-lg font-semibold text-primary underline"
-              >
-                {contact.number}
-              </a>
-              <p className="text-xs text-muted-foreground">{contact.availability}</p>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+    <Accordion type="single" collapsible defaultValue="emergency" className="rounded-lg border">
+      <AccordionItem value="emergency" className="border-0">
+        <AccordionTrigger className="px-6 py-4 hover:no-underline">
+          <span className="text-base font-semibold">Help is always available</span>
+        </AccordionTrigger>
+        <AccordionContent className="px-6 pb-4">
+          <p className="mb-4 text-sm text-muted-foreground">
+            24/7 support for health emergencies and gender-based violence. You are not alone.
+          </p>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {EMERGENCY_CONTACTS.map((contact) => (
+              <li key={contact.number} className="rounded-lg border p-3">
+                <h3 className="font-medium">{contact.name}</h3>
+                <p className="text-xs text-muted-foreground">{contact.description}</p>
+                <a
+                  href={contact.tel}
+                  className="mt-1 inline-block text-lg font-semibold text-primary underline"
+                >
+                  {contact.number}
+                </a>
+                <p className="text-xs text-muted-foreground">{contact.availability}</p>
+              </li>
+            ))}
+          </ul>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   )
 }
