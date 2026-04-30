@@ -61,7 +61,13 @@
     "submittingAnswers": "Ana aika amsoshinku...",
     "selectOption": "Zaɓi ɗaya daga cikin zaɓuɓɓuka",
     "enterResponse": "Da fatan za a shigar da amsa kafin a ci gaba.",
-    "selectResponse": "Da fatan za a zaɓi amsa kafin a ci gaba."
+    "selectResponse": "Da fatan za a zaɓi amsa kafin a ci gaba.",
+    "locationRequiredTitle": "Ana buƙatar izinin wuri",
+    "locationPermissionPrompt": "Wannan kima yana buƙatar wurinka. Taɓa maɓallin da ke ƙasa don ba da izinin wuri — mai binciken ku zai nemi izini.",
+    "grantLocationAccess": "Ba da Izinin Wuri",
+    "waitingForLocationAccess": "Ana nemo wurinku… Da fatan a jira.",
+    "locationRequiredBody": "Ana buƙatar izinin wuri don fara kima. Da fatan a kunna izinin wuri a saitunan mai binciken ku sannan ku sake loda shafin.",
+    "reloadPage": "Sake loda shafi"
   },
   "risk": {
     "low": "Ƙaramin Haɗari",
@@ -138,8 +144,10 @@
     "total": "Jimla",
     "withLocationCaptured": "{count} tare da bayanin wuri",
     "locationCaptured": "An kama bayanin wuri",
-    "waitingForLocationAccess": "Ana jiran izinin wuri… Da fatan za a ba da izinin wuri idan an tambaya.",
+    "waitingForLocationAccess": "Ana nemo wurin ku… Da fatan jira.",
     "locationRequiredTitle": "Ana buƙatar izinin wuri",
+    "locationPermissionPrompt": "Wannan tantancewa na buƙatar wuɗin ku don hana aika bayanai sau biyu. Danna maballin da ke ƙasa don ba da izini — burauzarku zai tambaye ku.",
+    "grantLocationAccess": "Ba Da Izinin Wuri",
     "locationRequiredBody": "Ana buƙatar izinin wuri don aika tantancewa. Ana amfani da shi ne don hana tattara bayanai sau biyu. Da fatan za a kunna izinin wuri a saitunan burauzarku sannan ku sake loda shafin.",
     "reloadPage": "Sake loda shafi",
     "recentSubmissionDetectedTitle": "An gano sabuwar aika bayanai",
@@ -153,6 +161,7 @@
       "dashboard": "Dashboard",
       "newAssessment": "Sabuwar Tantancewa",
       "history": "Tarihi",
+      "referrals": "Tura Zuwa Wani",
       "settings": "Saituna",
       "menu": "Menu"
     }

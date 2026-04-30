@@ -1,9 +1,8 @@
 export const dynamic = "force-dynamic"
 
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { db } from "@/lib/db"
-import { submissions, questionResponses, questions } from "@/lib/db/schema"
+import { submissions, questionResponses, questions, riskClassifications } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { SCORED_QUESTIONS } from "@/lib/scoring/questions-config"
 import { reverseGeocode } from "@/lib/utils/reverse-geocode"
@@ -17,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { SubmissionActions } from "./submission-actions"
 
 export default async function FieldWorkerSubmissionDetailPage(props: {
   params: Promise<{ id: string }>
@@ -32,6 +31,18 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
 
   if (!submission) notFound()
 
+  // Risk classification (may not exist for very old submissions)
+  const [risk] = await db
+    .select({
+      overallRiskLevel: riskClassifications.overallRiskLevel,
+    })
+    .from(riskClassifications)
+    .where(eq(riskClassifications.submissionId, id))
+    .limit(1)
+
+  const isHighOrMedium =
+    risk?.overallRiskLevel === "high" || risk?.overallRiskLevel === "medium"
+
   // Reverse geocode GPS coordinates
   let locationName: string | null = null
   if (submission.gpsLat && submission.gpsLng) {
@@ -41,7 +52,7 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
     )
   }
 
-  // Join responses with questions to get question_number for display
+  // Join responses with questions for display
   const responses = await db
     .select({
       id: questionResponses.id,
@@ -55,120 +66,127 @@ export default async function FieldWorkerSubmissionDetailPage(props: {
     .where(eq(questionResponses.submissionId, id))
 
   return (
-    <section className="space-y-6">
-      <header className="flex items-center justify-between">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Submission Detail</h1>
-          <p className="text-muted-foreground">
-            <code className="text-xs">{submission.id}</code>
-          </p>
-        </hgroup>
-        <Link href="/field-worker/history">
-          <Button variant="outline">Back to history</Button>
-        </Link>
-      </header>
+    <>
+      <section className="space-y-6 pb-24">
+          <header>
+            <h1 className="text-2xl font-bold">Submission Detail</h1>
+            <p className="text-muted-foreground">
+              <code className="text-xs">{submission.id}</code>
+            </p>
+          </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Submission Info</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Type
-              </dt>
-              <dd>
-                <Badge variant="outline">
-                  {submission.submitterType.replace("_", " ")}
-                </Badge>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Location
-              </dt>
-              <dd>
-                {submission.gpsLat ? (
-                  <>
-                    {locationName && (
-                      <span className="block">{locationName}</span>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {parseFloat(submission.gpsLat).toFixed(6)}, {parseFloat(submission.gpsLng!).toFixed(6)}
-                    </span>
-                  </>
-                ) : (
-                  "Not captured"
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Submitted At
-              </dt>
-              <dd>
-                <time dateTime={submission.createdAt.toISOString()}>
-                  {submission.createdAt.toLocaleString()}
-                </time>
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Responses ({responses.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Question</TableHead>
-                <TableHead>Response</TableHead>
-                <TableHead className="text-right">Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {responses.map((r) => {
-                const qNum = r.questionNumber ?? r.questionId
-                const config = SCORED_QUESTIONS.find(
-                  (q) => q.id === qNum,
-                )
-                const option = config?.options.find(
-                  (o) => o.value === r.responseValue,
-                )
-                return (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      <span className="font-mono text-xs">{qNum}</span>
-                      {config && (
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          {config.diseaseGroup}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {option ? option.label : r.responseValue}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {r.score}
-                      {config && (
-                        <span className="text-muted-foreground">
-                          /{config.maxScore}
+          <Card>
+            <CardHeader>
+              <CardTitle>Submission Info</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Type</dt>
+                  <dd>
+                    <Badge variant="outline">
+                      {submission.submitterType.replace("_", " ")}
+                    </Badge>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Location</dt>
+                  <dd>
+                    {submission.gpsLat ? (
+                      <>
+                        {locationName && <span className="block">{locationName}</span>}
+                        <span className="text-sm text-muted-foreground">
+                          {parseFloat(submission.gpsLat).toFixed(6)},{" "}
+                          {parseFloat(submission.gpsLng!).toFixed(6)}
                         </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </section>
+                      </>
+                    ) : (
+                      "Not captured"
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Submitted At</dt>
+                  <dd>
+                    <time dateTime={submission.createdAt.toISOString()}>
+                      {submission.createdAt.toLocaleString()}
+                    </time>
+                  </dd>
+                </div>
+                {risk && (
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">Risk Level</dt>
+                    <dd>
+                      <Badge
+                        variant={
+                          risk.overallRiskLevel === "high"
+                            ? "destructive"
+                            : risk.overallRiskLevel === "medium"
+                              ? "secondary"
+                              : "default"
+                        }
+                      >
+                        {risk.overallRiskLevel.toUpperCase()}
+                      </Badge>
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Responses ({responses.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Question</TableHead>
+                      <TableHead>Response</TableHead>
+                      <TableHead className="text-right">Score</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {responses.map((r) => {
+                      const qNum = r.questionNumber ?? r.questionId
+                      const config = SCORED_QUESTIONS.find((q) => q.id === qNum)
+                      const option = config?.options.find((o) => o.value === r.responseValue)
+                      return (
+                        <TableRow key={r.id}>
+                          <TableCell>
+                            <span className="font-mono text-xs">{qNum}</span>
+                            {config && (
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                {config.diseaseGroup}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{option ? option.label : r.responseValue}</TableCell>
+                          <TableCell className="text-right font-mono">
+                            {r.score}
+                            {config && (
+                              <span className="text-muted-foreground">/{config.maxScore}</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+      </section>
+
+      <SubmissionActions
+        submissionId={submission.id}
+        initialFlagged={submission.flaggedForReview}
+        initialReferred={submission.referred}
+        isHighOrMedium={isHighOrMedium}
+      />
+    </>
   )
 }

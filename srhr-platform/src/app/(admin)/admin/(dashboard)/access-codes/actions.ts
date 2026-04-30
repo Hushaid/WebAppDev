@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { fieldWorkerCodes } from "@/lib/db/schema"
-import { eq, sql } from "drizzle-orm"
+import { eq, sql, desc } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import crypto from "node:crypto"
 import { logAudit } from "@/lib/audit"
@@ -79,7 +79,7 @@ export async function getAccessCodes(page: number = 1) {
   const items = await db
     .select()
     .from(fieldWorkerCodes)
-    .orderBy(fieldWorkerCodes.issuedAt)
+    .orderBy(desc(fieldWorkerCodes.issuedAt))
     .limit(PAGE_SIZE)
     .offset(offset)
 

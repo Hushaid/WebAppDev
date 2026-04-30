@@ -41,6 +41,12 @@ type WizardQuestion = {
   optional?: boolean
 }
 
+type DbQuestion = {
+  questionNumber: string
+  text: string
+  options?: { label: string; value: string; score: number }[] | null
+}
+
 export function QuestionnaireWizard({
   submitterType,
   onComplete,
@@ -48,31 +54,91 @@ export function QuestionnaireWizard({
   const [responses, setResponses] = useState<QuestionnaireResponse>({})
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showError, setShowError] = useState(false)
+  // DB question overrides: questionId → { text, options }
+  const [dbOverrides, setDbOverrides] = useState<Map<string, DbQuestion>>(new Map())
   const messages = useMessages() as unknown as Parameters<
     typeof localizeDemographicQuestions
   >[1]
   const t = useTranslations("questionnaire")
   const tCommon = useTranslations("common")
 
+  // Fetch current question text/options from DB so admin edits reflect immediately
+  useEffect(() => {
+    fetch("/api/questionnaire/questions")
+      .then((r) => r.ok ? r.json() : [])
+      .then((rows: DbQuestion[]) => {
+        const map = new Map<string, DbQuestion>()
+        for (const row of rows) map.set(row.questionNumber, row)
+        setDbOverrides(map)
+      })
+      .catch(() => {/* fallback to static config on network error */})
+  }, [])
+
   const sex = (responses["Q3"] as Sex) || null
 
-  // Apply translations to question configs
-  const localizedDemographic = useMemo(
-    () => (messages ? localizeDemographicQuestions(DEMOGRAPHIC_QUESTIONS, messages) : DEMOGRAPHIC_QUESTIONS),
-    [messages],
-  )
-  const localizedScored = useMemo(
-    () => (messages ? localizeScoredQuestions(SCORED_QUESTIONS, messages) : SCORED_QUESTIONS),
-    [messages],
-  )
-  const localizedClosing = useMemo(
-    () => (messages ? localizeDemographicQuestions(CLOSING_QUESTIONS, messages) : CLOSING_QUESTIONS),
-    [messages],
-  )
-  const localizedPostSurvey = useMemo(
-    () => (messages ? localizeDemographicQuestions(POST_SURVEY_QUESTIONS, messages) : POST_SURVEY_QUESTIONS),
-    [messages],
-  )
+  // Apply i18n first, then DB overrides on top so admin edits always win over translations
+  const localizedDemographic = useMemo(() => {
+    const i18n = messages ? localizeDemographicQuestions(DEMOGRAPHIC_QUESTIONS, messages) : DEMOGRAPHIC_QUESTIONS
+    return i18n.map((q) => {
+      const db = dbOverrides.get(q.id)
+      if (!db) return q
+      return {
+        ...q,
+        text: db.text,
+        options: db.options?.length
+          ? db.options.map((o) => ({ label: o.label, value: o.value }))
+          : q.options,
+      }
+    })
+  }, [messages, dbOverrides])
+
+  const localizedScored = useMemo(() => {
+    const i18n = messages ? localizeScoredQuestions(SCORED_QUESTIONS, messages) : SCORED_QUESTIONS
+    return i18n.map((q) => {
+      const db = dbOverrides.get(q.id)
+      if (!db) return q
+      return {
+        ...q,
+        text: db.text,
+        options: db.options?.length
+          ? q.options.map((staticOpt) => {
+              const dbOpt = db.options!.find((o) => o.value === staticOpt.value)
+              return dbOpt ? { ...staticOpt, label: dbOpt.label } : staticOpt
+            })
+          : q.options,
+      }
+    })
+  }, [messages, dbOverrides])
+
+  const localizedClosing = useMemo(() => {
+    const i18n = messages ? localizeDemographicQuestions(CLOSING_QUESTIONS, messages) : CLOSING_QUESTIONS
+    return i18n.map((q) => {
+      const db = dbOverrides.get(q.id)
+      if (!db) return q
+      return {
+        ...q,
+        text: db.text,
+        options: db.options?.length
+          ? db.options.map((o) => ({ label: o.label, value: o.value }))
+          : q.options,
+      }
+    })
+  }, [messages, dbOverrides])
+
+  const localizedPostSurvey = useMemo(() => {
+    const i18n = messages ? localizeDemographicQuestions(POST_SURVEY_QUESTIONS, messages) : POST_SURVEY_QUESTIONS
+    return i18n.map((q) => {
+      const db = dbOverrides.get(q.id)
+      if (!db) return q
+      return {
+        ...q,
+        text: db.text,
+        options: db.options?.length
+          ? db.options.map((o) => ({ label: o.label, value: o.value }))
+          : q.options,
+      }
+    })
+  }, [messages, dbOverrides])
 
   // Build the full question list, applying skip logic
   const visibleQuestions = useMemo(() => {
