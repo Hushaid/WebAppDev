@@ -226,11 +226,11 @@ export default async function SubmissionDetailPage(props: {
         </Card>
       )}
 
-      {/* Individual responses */}
+      {/* Individual responses — PII questions (Q44) excluded; shown above via PiiDownload */}
       <Card>
         <CardHeader>
           <CardTitle>
-            Question Responses ({responses.length})
+            Question Responses ({responses.filter((r) => !piiQuestionIds.includes(r.questionNumber ?? r.questionId)).length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -244,38 +244,36 @@ export default async function SubmissionDetailPage(props: {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {responses.map((r) => {
-                const qNum = r.questionNumber ?? r.questionId
-                const config = SCORED_QUESTIONS.find(
-                  (q) => q.id === qNum,
-                )
-                const option = config?.options.find(
-                  (o) => o.value === r.responseValue,
-                )
-                return (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      <span className="font-mono text-xs">{qNum}</span>
-                      {config && (
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          {config.diseaseGroup}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {option ? option.label : r.responseValue}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {r.score}
-                      {config && (
-                        <span className="text-muted-foreground">
-                          /{config.maxScore}
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+              {responses
+                .filter((r) => !piiQuestionIds.includes(r.questionNumber ?? r.questionId))
+                .map((r) => {
+                  const qNum = r.questionNumber ?? r.questionId
+                  const config = SCORED_QUESTIONS.find((q) => q.id === qNum)
+                  const option = config?.options.find((o) => o.value === r.responseValue)
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <span className="font-mono text-xs">{qNum}</span>
+                        {config && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {config.diseaseGroup}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {option ? option.label : r.responseValue}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {r.score}
+                        {config && (
+                          <span className="text-muted-foreground">
+                            /{config.maxScore}
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
             </TableBody>
           </Table>
           </div>

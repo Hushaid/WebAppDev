@@ -112,28 +112,28 @@ const EMERGENCY_CONTACTS = [
     description: "Sexual violence support",
     number: "0800-9210-0009",
     tel: "tel:080092100009",
-    availability: "Free \u00b7 24 hours \u00b7 Confidential",
+    availability: "Free · 24 hours · Confidential",
   },
   {
     name: "National Emergency",
     description: "All life-threatening emergencies",
     number: "112",
     tel: "tel:112",
-    availability: "Free \u00b7 24 hours",
+    availability: "Free · 24 hours",
   },
   {
     name: "NEMA (National Emergency Management Agency)",
     description: "Disaster & flood response",
     number: "080022556362",
     tel: "tel:080022556362",
-    availability: "Free \u00b7 24 hours",
+    availability: "Free · 24 hours",
   },
   {
     name: "NCC (Nigerian Communications Commission) Helpline",
     description: "Telecoms complaints & support",
     number: "767",
     tel: "tel:767",
-    availability: "Free \u00b7 24 hours",
+    availability: "Free · 24 hours",
   },
 ]
 

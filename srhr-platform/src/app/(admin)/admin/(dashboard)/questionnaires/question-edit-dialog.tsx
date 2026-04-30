@@ -22,6 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Trash2 } from "lucide-react"
+import { deleteQuestion } from "./actions"
+import { toast } from "sonner"
 
 interface OptionRow {
   label: string
@@ -39,11 +42,13 @@ interface QuestionData {
   conditionalLogic: unknown
 }
 
-export function QuestionEditDialog({ question }: { question: QuestionData }) {
+export function QuestionEditDialog({ question, isSuperAdmin = false }: { question: QuestionData; isSuperAdmin?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [isDeleting, startDeleteTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const opts = (question.options ?? []) as OptionRow[]
   const skipLogic = question.conditionalLogic as {
@@ -54,20 +59,14 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
   const [text, setText] = useState(question.text)
   const [options, setOptions] = useState<OptionRow[]>(opts)
   const [skipWhen, setSkipWhen] = useState(skipLogic?.skipWhen?.join(", ") ?? "")
-  const [skipTargets, setSkipTargets] = useState(
-    skipLogic?.skipTargets?.join(", ") ?? "",
-  )
+  const [skipTargets, setSkipTargets] = useState(skipLogic?.skipTargets?.join(", ") ?? "")
 
   function updateOptionScore(index: number, score: number) {
-    setOptions((prev) =>
-      prev.map((o, i) => (i === index ? { ...o, score } : o)),
-    )
+    setOptions((prev) => prev.map((o, i) => (i === index ? { ...o, score } : o)))
   }
 
   function updateOptionLabel(index: number, label: string) {
-    setOptions((prev) =>
-      prev.map((o, i) => (i === index ? { ...o, label } : o)),
-    )
+    setOptions((prev) => prev.map((o, i) => (i === index ? { ...o, label } : o)))
   }
 
   function addOption() {
@@ -84,14 +83,8 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
   function handleSave() {
     setError(null)
     startTransition(async () => {
-      const skipWhenArr = skipWhen
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-      const skipTargetsArr = skipTargets
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
+      const skipWhenArr = skipWhen.split(",").map((s) => s.trim()).filter(Boolean)
+      const skipTargetsArr = skipTargets.split(",").map((s) => s.trim()).filter(Boolean)
 
       const result = await fetch(`/api/admin/questionnaires/questions/${question.id}`, {
         method: "PATCH",
@@ -109,13 +102,31 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
       if (result.success) {
         setOpen(false)
         router.refresh()
+        toast.success("Question saved")
       } else {
         setError(result.error ?? "Failed to save")
       }
     })
   }
 
-  // Reset state when dialog opens
+  function handleDelete() {
+    if (!confirmDelete) {
+      setConfirmDelete(true)
+      return
+    }
+    startDeleteTransition(async () => {
+      const result = await deleteQuestion(question.id)
+      if (result.success) {
+        setOpen(false)
+        router.refresh()
+        toast.success("Question deleted")
+      } else {
+        setError(result.error ?? "Failed to delete")
+        setConfirmDelete(false)
+      }
+    })
+  }
+
   function handleOpenChange(isOpen: boolean) {
     if (isOpen) {
       setText(question.text)
@@ -123,6 +134,7 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
       setSkipWhen(skipLogic?.skipWhen?.join(", ") ?? "")
       setSkipTargets(skipLogic?.skipTargets?.join(", ") ?? "")
       setError(null)
+      setConfirmDelete(false)
     }
     setOpen(isOpen)
   }
@@ -145,7 +157,6 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
         </DialogHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto pr-1">
-          {/* Question text */}
           <div className="space-y-2">
             <Label htmlFor="question-text">Question Text</Label>
             <textarea
@@ -157,7 +168,6 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
             />
           </div>
 
-          {/* Options & scores */}
           {options.length > 0 && (
             <div className="space-y-2">
               <Label>Options &amp; Scores</Label>
@@ -184,9 +194,7 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
                           type="number"
                           min={0}
                           value={opt.score}
-                          onChange={(e) =>
-                            updateOptionScore(i, parseInt(e.target.value) || 0)
-                          }
+                          onChange={(e) => updateOptionScore(i, parseInt(e.target.value) || 0)}
                           className="h-8 w-16 text-sm"
                         />
                       </TableCell>
@@ -204,18 +212,12 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
                   ))}
                 </TableBody>
               </Table>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addOption}
-                className="mt-1"
-              >
+              <Button variant="outline" size="sm" onClick={addOption} className="mt-1">
                 + Add Option
               </Button>
             </div>
           )}
 
-          {/* Max score (computed) */}
           <div className="flex items-center gap-2">
             <Label>Max Score:</Label>
             <Badge variant="secondary" className="text-sm">
@@ -226,7 +228,6 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
             </span>
           </div>
 
-          {/* Skip logic */}
           <div className="space-y-2">
             <Label>Skip Logic</Label>
             <div className="grid gap-2">
@@ -267,12 +268,22 @@ export function QuestionEditDialog({ question }: { question: QuestionData }) {
             </div>
           )}
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
-        <DialogFooter className="shrink-0">
+        <DialogFooter className="shrink-0 items-center">
+          {isSuperAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mr-auto text-destructive hover:text-destructive"
+              disabled={isDeleting}
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-1.5 h-4 w-4" />
+              {confirmDelete ? "Confirm delete?" : "Delete"}
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>

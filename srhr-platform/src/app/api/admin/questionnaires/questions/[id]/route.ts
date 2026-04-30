@@ -23,6 +23,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   await db.update(questions).set(updates).where(eq(questions.id, id))
   logAudit({ actorId: session?.user?.id, action: "update", entityType: "question", entityId: id, metadata: { fields: Object.keys(updates).filter((k) => k !== "updatedAt") } }).catch(console.error)
   revalidatePath("/admin/questionnaires")
+  revalidatePath("/api/questionnaire/questions")
   return NextResponse.json({ success: true })
 }
 
