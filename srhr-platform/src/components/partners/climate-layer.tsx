@@ -27,6 +27,10 @@ const RISK_COLORS: Record<string, string> = {
   normal: "bg-green-600 text-white",
 }
 
+const LGA_DISPLAY: Record<string, string> = {
+  nasarawa_karu: "Karu, Nasarawa",
+}
+
 export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
   const [predictions, setPredictions] = useState<FloodPrediction[]>([])
   const [loading, setLoading] = useState(false)
@@ -43,7 +47,7 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
           setPredictions(data.predictions || [])
         }
       } catch {
-        // Climate service may not be running
+        // Service may not be running
       } finally {
         setLoading(false)
       }
@@ -52,19 +56,12 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
     fetchFloodRisk()
   }, [visible])
 
-  const emergencyCount = predictions.filter(
-    (p) => p.risk_level === "emergency",
-  ).length
-  const warningCount = predictions.filter(
-    (p) => p.risk_level === "warning",
-  ).length
-
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            Climate / Flood Risk Layer
+            Flood Risk Layer
           </CardTitle>
           <div className="flex items-center gap-2">
             <Label htmlFor="climate-toggle" className="text-xs">
@@ -86,45 +83,38 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
             </p>
           ) : predictions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No flood predictions available. Climate service may be offline.
+              No flood predictions available. Service may be offline.
             </p>
           ) : (
             <div className="space-y-3">
-              <div className="flex gap-2">
-                <Badge variant="destructive">{emergencyCount} Emergency</Badge>
-                <Badge className="bg-orange-500">{warningCount} Warning</Badge>
-                <Badge variant="secondary">
-                  {predictions.length} Total LGAs
-                </Badge>
-              </div>
-
-              {/* High-risk LGA list */}
-              <ul className="max-h-48 space-y-1 overflow-y-auto">
-                {predictions
-                  .filter((p) =>
-                    ["emergency", "warning"].includes(p.risk_level),
-                  )
-                  .slice(0, 10)
-                  .map((p) => (
-                    <li
-                      key={p.lga_id}
-                      className="flex items-center justify-between rounded px-2 py-1 text-sm"
-                    >
-                      <span className="font-medium">{p.lga_id}</span>
-                      <span className="flex items-center gap-2">
-                        <span>{(p.flood_probability * 100).toFixed(0)}%</span>
-                        <Badge className={RISK_COLORS[p.risk_level] || ""}>
-                          {p.risk_level}
-                        </Badge>
-                        {p.compound_risk_level && (
-                          <Badge variant="outline" className="text-xs">
-                            Compound: {p.compound_risk_level}
-                          </Badge>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
+              {predictions.map((p) => (
+                <div
+                  key={p.lga_id}
+                  className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {LGA_DISPLAY[p.lga_id] ?? p.lga_id}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.prediction_date}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">
+                      {(p.flood_probability * 100).toFixed(1)}%
+                    </span>
+                    <Badge className={RISK_COLORS[p.risk_level] ?? ""}>
+                      {p.risk_level}
+                    </Badge>
+                    {p.compound_risk_level && (
+                      <Badge variant="outline" className="text-xs">
+                        Compound: {p.compound_risk_level}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
