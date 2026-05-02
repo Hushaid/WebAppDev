@@ -32,9 +32,20 @@ from sklearn.metrics import roc_auc_score
 # Allow importing app modules from the project root
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.data.nimet import parse_nimet_rainfall
+from app.data.nimet import parse_nimet_rainfall, merge_rainfall_et
 from app.models.xgboost_flood import FloodXGBoost
 from app.pipeline.features import FEATURE_NAMES
+
+# Real terrain features for Karu LGA derived from Copernicus GLO-30 DEM
+# (computed via whitebox HAND/TWI/slope — see scripts/compute_terrain.py)
+KARU_TERRAIN = {
+    "hand_mean":  18.32,
+    "hand_min":    0.00,
+    "hand_std":   21.96,
+    "twi_mean":   -3.22,
+    "twi_max":     2.91,
+    "slope_mean":  3.69,
+}
 
 logging.basicConfig(
     level=logging.INFO,
@@ -123,6 +134,19 @@ def build_lga_metadata() -> pd.DataFrame:
             if is_karu:
                 lga_id = "nasarawa_karu"
 
+            # Karu gets real DEM-derived terrain; all others get calibrated synthetic values
+            if is_karu:
+                lga_terrain = KARU_TERRAIN.copy()
+            else:
+                lga_terrain = {
+                    "hand_mean":  round(max(0.5, (1 - flood_vuln) * 40 * vuln_noise + RNG.uniform(0, 5)), 2),
+                    "hand_min":   round(max(0.0, (1 - flood_vuln) * 16 * vuln_noise), 2),
+                    "hand_std":   round((1 - flood_vuln) * 12 * vuln_noise + RNG.uniform(0, 2), 2),
+                    "twi_mean":   round(flood_vuln * 15 * vuln_noise + RNG.uniform(0, 3), 2),
+                    "twi_max":    round(flood_vuln * 24 * vuln_noise + RNG.uniform(0, 3), 2),
+                    "slope_mean": round(max(0.1, (1 - flood_vuln) * 20 * vuln_noise + RNG.uniform(0, 3)), 2),
+                }
+
             rows.append({
                 "lga_id": lga_id,
                 "name": "Karu" if is_karu else f"{state} LGA {i + 1}",
@@ -132,13 +156,7 @@ def build_lga_metadata() -> pd.DataFrame:
                 "flood_vulnerability": round(flood_vuln, 2),
                 "rainfall_zone": zone,
                 "rainfall_multiplier": ZONE_RAINFALL_MULTIPLIER[zone],
-                # Static features (for FEATURE_NAMES alignment)
-                "hand_mean":   round(hand_mean, 2),
-                "hand_min":    round(max(0.1, hand_mean * 0.4), 2),
-                "hand_std":    round(hand_mean * 0.3 + RNG.uniform(0, 2), 2),
-                "twi_mean":    round(twi_mean, 2),
-                "twi_max":     round(twi_mean * 1.6 + RNG.uniform(0, 3), 2),
-                "slope_mean":  round(slope_mean, 2),
+                **lga_terrain,
                 "population_density": round(RNG.uniform(50, 3000), 1),
                 "distance_to_river":  round(RNG.exponential(15) * (1 - flood_vuln * 0.6), 2),
                 "historical_flood_count": int(RNG.poisson(flood_vuln * 8)),
@@ -300,11 +318,14 @@ def generate_flood_labels(
 def build_feature_matrix(
     rainfall_features: pd.DataFrame,
     lga_meta: pd.DataFrame,
+    karu_et_df: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Merge rainfall + static features into the full feature matrix.
+    """Merge rainfall + ET + static features into the full feature matrix.
 
-    Returns (features_df, static_df) where features_df has FEATURE_NAMES columns
-    plus lga_id and date for reference.
+    For Karu, real NIMET ET data drives water_balance and soil_moisture_proxy.
+    For all other LGAs, ET is estimated as a seasonal fraction of rainfall.
+
+    Returns (features_df, static_df).
     """
     static_cols = [
         "lga_id", "hand_mean", "hand_min", "hand_std",
@@ -319,16 +340,57 @@ def build_feature_matrix(
         "rain_1d", "rain_3d", "rain_7d", "rain_14d", "rain_30d",
         "rain_7d_ratio", "rain_3d_ratio",
     ]
-
     merged = rainfall_features[dynamic_cols].merge(static_df, on="lga_id", how="left")
 
-    # Default dynamic features not in rainfall (filled from defaults)
-    merged["soil_moisture"]       = 0.35  # ERA5 seasonal average for Nigeria
-    merged["forecast_risk"]       = 0.0   # Will be live Open-Meteo in production
-    merged["benue_discharge_max"] = 0.0   # Will be live GloFAS in production
+    # ── Water balance features ────────────────────────────────────────────────
+    # Karu: use real NIMET ET data
+    if karu_et_df is not None:
+        karu_et = karu_et_df[["date", "et_7d", "et_30d",
+                               "water_balance_7d", "water_balance_30d",
+                               "soil_moisture_proxy"]].copy()
+        karu_et["date"] = pd.to_datetime(karu_et["date"])
+        karu_mask = merged["lga_id"] == "nasarawa_karu"
+        merged["date"] = pd.to_datetime(merged["date"])
+        merged = merged.merge(
+            karu_et.rename(columns={
+                "water_balance_7d":  "_wb7_karu",
+                "water_balance_30d": "_wb30_karu",
+                "soil_moisture_proxy": "_sm_karu",
+            }),
+            on="date", how="left",
+        )
+        merged.loc[karu_mask, "water_balance_7d"]  = merged.loc[karu_mask, "_wb7_karu"]
+        merged.loc[karu_mask, "water_balance_30d"] = merged.loc[karu_mask, "_wb30_karu"]
+        merged.loc[karu_mask, "soil_moisture"]     = merged.loc[karu_mask, "_sm_karu"]
+        merged.drop(columns=["et_7d", "et_30d", "_wb7_karu", "_wb30_karu", "_sm_karu"],
+                    errors="ignore", inplace=True)
+
+    # All other LGAs: estimate ET as seasonal fraction of rainfall
+    # Wet season (Jul-Oct): ET ~ 30% of rain; dry season: ET ~ 80% of rain
+    month = pd.to_datetime(merged["date"]).dt.month
+    et_fraction = np.where((month >= 7) & (month <= 10), 0.30, 0.80)
+    if "water_balance_7d" not in merged.columns:
+        merged["water_balance_7d"] = 0.0
+    if "water_balance_30d" not in merged.columns:
+        merged["water_balance_30d"] = 0.0
+    if "soil_moisture" not in merged.columns:
+        merged["soil_moisture"] = 0.35
+
+    non_karu = merged["lga_id"] != "nasarawa_karu"
+    merged.loc[non_karu, "water_balance_7d"]  = (
+        merged.loc[non_karu, "rain_7d"] * (1 - et_fraction[non_karu])
+    )
+    merged.loc[non_karu, "water_balance_30d"] = (
+        merged.loc[non_karu, "rain_30d"] * (1 - et_fraction[non_karu])
+    )
+    wb30 = merged.loc[non_karu, "water_balance_30d"]
+    merged.loc[non_karu, "soil_moisture"] = 1 / (1 + np.exp(-wb30 / 50))
+
+    # Remaining defaults
+    merged["forecast_risk"]       = 0.0
+    merged["benue_discharge_max"] = 0.0
     merged["niger_discharge_max"] = 0.0
 
-    # Ensure all FEATURE_NAMES are present
     for col in FEATURE_NAMES:
         if col not in merged.columns:
             merged[col] = 0.0
@@ -337,15 +399,29 @@ def build_feature_matrix(
     return merged, static_df
 
 
-def train(nimet_csv: str, output_dir: str) -> dict:
+def train(nimet_csv: str, et_csv: str | None, output_dir: str) -> dict:
     """End-to-end training: data prep → feature engineering → model training → save."""
     os.makedirs(output_dir, exist_ok=True)
 
     # ── 1. Load NIMET rainfall ────────────────────────────────────────────────
     logger.info("Loading NIMET rainfall from %s", nimet_csv)
     nimet_df = parse_nimet_rainfall(nimet_csv)
-    logger.info("NIMET: %d daily records, %s → %s",
+    logger.info("NIMET rainfall: %d daily records, %s → %s",
                 len(nimet_df), nimet_df["date"].min(), nimet_df["date"].max())
+
+    # ── 1b. Load ET data ──────────────────────────────────────────────────────
+    karu_et_df = None
+    if et_csv and os.path.exists(et_csv):
+        logger.info("Loading NIMET ET from %s", et_csv)
+        karu_et_df = merge_rainfall_et(nimet_csv, et_csv)
+        karu_et_df["date"] = pd.to_datetime(karu_et_df["date"])
+        logger.info(
+            "ET merged: soil_moisture_proxy range [%.3f, %.3f]",
+            karu_et_df["soil_moisture_proxy"].min(),
+            karu_et_df["soil_moisture_proxy"].max(),
+        )
+    else:
+        logger.warning("No ET CSV provided — soil_moisture will use rainfall-based estimate")
 
     # ── 2. LGA metadata ───────────────────────────────────────────────────────
     logger.info("Generating LGA metadata for 774 LGAs")
@@ -360,8 +436,8 @@ def train(nimet_csv: str, output_dir: str) -> dict:
     rainfall_features = compute_rolling_features(rainfall_df)
 
     # ── 5. Full feature matrix ────────────────────────────────────────────────
-    logger.info("Building full feature matrix")
-    features_df, static_df = build_feature_matrix(rainfall_features, lga_meta)
+    logger.info("Building full feature matrix (with ET water balance)")
+    features_df, static_df = build_feature_matrix(rainfall_features, lga_meta, karu_et_df)
 
     # ── 6. Labels ─────────────────────────────────────────────────────────────
     logger.info("Generating flood event labels")
@@ -430,6 +506,11 @@ def main():
         help="Path to NIMET rainfall CSV (e.g. dataset-rainfall.csv)",
     )
     parser.add_argument(
+        "--et-csv",
+        default=None,
+        help="Path to NIMET ET CSV (e.g. ET_dataset.csv)",
+    )
+    parser.add_argument(
         "--output-dir",
         default=str(Path(__file__).parent.parent / "models_store"),
         help="Directory to save trained models (default: models_store/)",
@@ -440,7 +521,7 @@ def main():
         logger.error("NIMET CSV not found: %s", args.nimet_csv)
         sys.exit(1)
 
-    metrics = train(args.nimet_csv, args.output_dir)
+    metrics = train(args.nimet_csv, getattr(args, "et_csv", None), args.output_dir)
 
     print("\n" + "=" * 60)
     print("TRAINING COMPLETE")

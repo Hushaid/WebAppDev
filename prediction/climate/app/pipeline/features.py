@@ -120,18 +120,19 @@ def merge_features(
 
 
 FEATURE_NAMES = [
-    # Static
+    # Static terrain (DEM-derived)
     "hand_mean",
     "hand_min",
     "hand_std",
     "twi_mean",
     "twi_max",
     "slope_mean",
+    # Static metadata
     "population_density",
     "distance_to_river",
     "historical_flood_count",
     "land_cover_urban",
-    # Dynamic
+    # Dynamic rainfall
     "rain_1d",
     "rain_3d",
     "rain_7d",
@@ -139,7 +140,13 @@ FEATURE_NAMES = [
     "rain_30d",
     "rain_7d_ratio",
     "rain_3d_ratio",
+    # Dynamic moisture (ERA5 soil moisture or ET-derived proxy)
     "soil_moisture",
+    # Water balance: rain - ET over 7d and 30d windows
+    # Positive = soil gaining moisture; negative = drying out
+    "water_balance_7d",
+    "water_balance_30d",
+    # Forecast and river signals
     "forecast_risk",
     "benue_discharge_max",
     "niger_discharge_max",
