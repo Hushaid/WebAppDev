@@ -88,6 +88,90 @@ const statusColors: Record<string, string> = {
 
 type TrainStatus = "idle" | "uploading" | "training" | "success" | "error"
 
+// ── Plain-English model result card ─────────────────────────────────────────
+
+const FEATURE_LABELS: Record<string, string> = {
+  rain_7d:              "7-day cumulative rainfall",
+  rain_3d:              "3-day cumulative rainfall",
+  rain_1d:              "Yesterday's rainfall",
+  rain_14d:             "14-day cumulative rainfall",
+  rain_30d:             "30-day cumulative rainfall",
+  rain_7d_ratio:        "Recent vs monthly rainfall ratio",
+  rain_3d_ratio:        "3-day vs monthly rainfall ratio",
+  soil_moisture:        "Soil saturation level",
+  water_balance_7d:     "7-day water balance (rain minus evaporation)",
+  water_balance_30d:    "30-day water balance (rain minus evaporation)",
+  hand_mean:            "Average height above nearest river",
+  hand_min:             "Lowest point above nearest river",
+  flood_fraction_baseline: "Historical flood frequency",
+  benue_discharge_max:  "Benue River flow rate",
+  niger_discharge_max:  "Niger River flow rate",
+  forecast_risk:        "Upcoming rainfall forecast",
+}
+
+function modelQuality(auc: number): { label: string; color: string; description: string } {
+  if (auc >= 0.80) return { label: "Excellent", color: "text-green-700", description: "The model is highly reliable for flood risk predictions." }
+  if (auc >= 0.70) return { label: "Good", color: "text-green-600", description: "The model performs well and predictions can be trusted." }
+  if (auc >= 0.60) return { label: "Moderate", color: "text-yellow-600", description: "The model is reasonably accurate. More historical data will improve it." }
+  return { label: "Needs improvement", color: "text-orange-600", description: "The model may benefit from more training data. Contact support." }
+}
+
+function ModelResultCard({ metrics }: { metrics: Record<string, unknown> }) {
+  const auc = typeof metrics.cv_auc_mean === "number" ? metrics.cv_auc_mean : null
+  const quality = auc !== null ? modelQuality(auc) : null
+  const topFeatureKey = typeof metrics.top_feature === "string" ? metrics.top_feature : null
+  const topFeature = topFeatureKey ? (FEATURE_LABELS[topFeatureKey] ?? topFeatureKey) : null
+  const nSamples = typeof metrics.n_samples === "number" ? metrics.n_samples : null
+  const floodRate = typeof metrics.flood_event_rate_pct === "number" ? metrics.flood_event_rate_pct : null
+
+  return (
+    <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 space-y-4">
+      {/* Headline */}
+      <div className="flex items-center gap-2">
+        <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-green-800">Flood prediction model updated successfully</p>
+          <p className="text-xs text-green-700 mt-0.5">
+            The system is now using the latest NIMET data. Predictions on the partners dashboard will reflect the new model immediately.
+          </p>
+        </div>
+      </div>
+
+      {/* Metric cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {quality && (
+          <div className="rounded-md bg-white/80 px-3 py-2.5">
+            <p className="text-xs text-muted-foreground">Prediction accuracy</p>
+            <p className={`text-base font-bold ${quality.color}`}>{quality.label}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{quality.description}</p>
+          </div>
+        )}
+        {topFeature && (
+          <div className="rounded-md bg-white/80 px-3 py-2.5">
+            <p className="text-xs text-muted-foreground">Strongest flood signal</p>
+            <p className="text-sm font-semibold">{topFeature}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">This is the most important factor driving flood risk predictions.</p>
+          </div>
+        )}
+        {nSamples !== null && (
+          <div className="rounded-md bg-white/80 px-3 py-2.5">
+            <p className="text-xs text-muted-foreground">Data used for training</p>
+            <p className="text-sm font-semibold">{nSamples.toLocaleString()} daily records</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Across all Nigerian LGAs and historical years.</p>
+          </div>
+        )}
+        {floodRate !== null && (
+          <div className="rounded-md bg-white/80 px-3 py-2.5">
+            <p className="text-xs text-muted-foreground">Flood events in training data</p>
+            <p className="text-sm font-semibold">{floodRate.toFixed(1)}% of days had flooding</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Reflects the rarity of flood events — model is calibrated for this.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function DataSourcesPage() {
   const activeCount = dataSources.filter((d) => d.status === "active").length
 
@@ -120,7 +204,7 @@ export default function DataSourcesPage() {
 
       if (data.status === "ok") {
         setStatus("success")
-        setResultMessage(data.message)
+        setResultMessage("")
         setMetrics(data.metrics ?? null)
         setRainfallFile(null)
         setEtFile(null)
@@ -254,28 +338,8 @@ export default function DataSourcesPage() {
           </Button>
 
           {/* Result feedback */}
-          {status === "success" && (
-            <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-                <p className="text-sm font-medium text-green-700">{resultMessage}</p>
-              </div>
-              {metrics && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                  {[
-                    { label: "CV AUC (mean)", value: typeof metrics.cv_auc_mean === "number" ? metrics.cv_auc_mean.toFixed(3) : "—" },
-                    { label: "CV AUC (std)", value: typeof metrics.cv_auc_std === "number" ? metrics.cv_auc_std.toFixed(3) : "—" },
-                    { label: "Top feature", value: typeof metrics.top_feature === "string" ? metrics.top_feature : "—" },
-                    { label: "Training rows", value: typeof metrics.n_samples === "number" ? metrics.n_samples.toLocaleString() : "—" },
-                  ].map((m) => (
-                    <div key={m.label} className="rounded-md bg-white/70 px-3 py-2">
-                      <p className="text-xs text-muted-foreground">{m.label}</p>
-                      <p className="text-sm font-semibold">{m.value}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          {status === "success" && metrics && (
+            <ModelResultCard metrics={metrics} />
           )}
 
           {status === "error" && (
