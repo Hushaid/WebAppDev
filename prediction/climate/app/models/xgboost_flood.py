@@ -16,13 +16,14 @@ class FloodXGBoost:
         self.params = params or {
             "objective": "binary:logistic",
             "eval_metric": "auc",
-            "max_depth": 6,
+            "max_depth": 4,
             "learning_rate": 0.05,
             "subsample": 0.8,
             "colsample_bytree": 0.8,
             "min_child_weight": 5,
             "scale_pos_weight": 10,  # floods are rare events
             "tree_method": "hist",
+            "nthread": 1,  # single thread to cap memory on constrained instances
             "seed": 42,
         }
         self.model: xgb.Booster | None = None
@@ -33,8 +34,8 @@ class FloodXGBoost:
         X: np.ndarray,
         y: np.ndarray,
         feature_names: list[str],
-        n_rounds: int = 500,
-        early_stopping: int = 50,
+        n_rounds: int = 200,
+        early_stopping: int = 30,
     ) -> dict:
         """Train with temporal cross-validation.
 
@@ -42,7 +43,7 @@ class FloodXGBoost:
         """
         self.feature_names = feature_names
 
-        tscv = TimeSeriesSplit(n_splits=5)
+        tscv = TimeSeriesSplit(n_splits=3)
         cv_scores = []
 
         for train_idx, val_idx in tscv.split(X):
@@ -63,6 +64,7 @@ class FloodXGBoost:
             )
 
             preds = model.predict(dval)
+            del dtrain, dval
             from sklearn.metrics import roc_auc_score
 
             auc = roc_auc_score(y[val_idx], preds)
@@ -73,6 +75,7 @@ class FloodXGBoost:
         self.model = xgb.train(
             self.params, dfull, num_boost_round=n_rounds, verbose_eval=False
         )
+        del dfull
 
         return {
             "cv_auc_mean": float(np.mean(cv_scores)),

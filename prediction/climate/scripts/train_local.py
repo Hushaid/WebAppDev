@@ -225,8 +225,8 @@ def build_rainfall_series(
     nimet_df = nimet_df.copy()
     nimet_df["date"] = pd.to_datetime(nimet_df["date"])
 
-    # Use 2021-01-01 to 2025-12-31 as the training window
-    start = pd.Timestamp("2021-01-01")
+    # Use 2024-01-01 to 2025-12-31 as the training window (2 years fits in 512 MB)
+    start = pd.Timestamp("2024-01-01")
     end   = pd.Timestamp("2025-12-31")
     full_dates = pd.date_range(start, end, freq="D")
 
@@ -487,7 +487,7 @@ def train(nimet_csv: str, et_csv: str | None, output_dir: str) -> dict:
     logger.info("Generating flood event labels")
     y = generate_flood_labels(rainfall_features, lga_meta)
 
-    X = features_df[FEATURE_NAMES].values
+    X = features_df[FEATURE_NAMES].values.astype(np.float32)
     logger.info("Training matrix shape: %s | positive class: %.2f%%",
                 X.shape, 100 * y.mean())
 
