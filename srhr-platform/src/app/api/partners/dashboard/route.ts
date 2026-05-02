@@ -50,6 +50,20 @@ function avg(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length
 }
 
+function groupScore(row: EnrichedSubmission, group: DiseaseGroup): number {
+  if (group === "sti") return row.stiScore
+  if (group === "maternal_health") return row.maternalScore ?? row.aggregateScore
+  if (group === "community_wellbeing") return row.communityWellbeingScore
+  return row.aggregateScore
+}
+
+function groupRiskLevel(row: EnrichedSubmission, group: DiseaseGroup): RiskLevel {
+  if (group === "sti") return row.stiRiskLevel
+  if (group === "maternal_health") return row.maternalRiskLevel ?? row.overallRiskLevel
+  if (group === "community_wellbeing") return row.communityWellbeingRiskLevel
+  return row.overallRiskLevel
+}
+
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: request.headers })
   const role = (session?.user as { role?: string } | undefined)?.role
@@ -242,13 +256,13 @@ export async function GET(request: Request) {
       current.latValues.push(Number(row.gpsLat))
       current.lngValues.push(Number(row.gpsLng))
     }
-    current.overallScores.push(row.aggregateScore)
+    current.overallScores.push(groupScore(row, diseaseGroup))
     current.stiScores.push(row.stiScore)
     if (row.maternalScore !== null) current.maternalScores.push(row.maternalScore)
     current.communityScores.push(row.communityWellbeingScore)
-    current.overallLevels.push(row.overallRiskLevel)
+    current.overallLevels.push(groupRiskLevel(row, diseaseGroup))
     current.submissionCount += 1
-    if (row.overallRiskLevel === "high") current.highRiskCount += 1
+    if (groupRiskLevel(row, diseaseGroup) === "high") current.highRiskCount += 1
     if (row.createdAt > current.latestComputedAt) current.latestComputedAt = row.createdAt
 
     groupedAreas.set(key, current)
@@ -295,7 +309,7 @@ export async function GET(request: Request) {
     current.stiScores.push(row.stiScore)
     if (row.maternalScore !== null) current.maternalScores.push(row.maternalScore)
     current.communityScores.push(row.communityWellbeingScore)
-    current.overallScores.push(row.aggregateScore)
+    current.overallScores.push(groupScore(row, diseaseGroup))
     current.submissions += 1
     trendBuckets.set(period, current)
   }

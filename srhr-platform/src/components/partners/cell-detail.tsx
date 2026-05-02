@@ -39,8 +39,7 @@ export function CellDetail({ cell, onClose }: CellDetailProps) {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-2">
-            {cell.location_name ?? "Cell"}
-            <code className="text-xs">{cell.h3_index.slice(0, 10)}...</code>
+            {cell.location_name ?? "Area"}
             {cell.hotspot_flag && (
               <Badge variant="destructive">Hotspot</Badge>
             )}
