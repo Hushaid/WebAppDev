@@ -225,8 +225,8 @@ def build_rainfall_series(
     nimet_df = nimet_df.copy()
     nimet_df["date"] = pd.to_datetime(nimet_df["date"])
 
-    # Use 2024-01-01 to 2025-12-31 as the training window (2 years fits in 512 MB)
-    start = pd.Timestamp("2024-01-01")
+    # Use 2021-01-01 to 2025-12-31 as the training window
+    start = pd.Timestamp("2021-01-01")
     end   = pd.Timestamp("2025-12-31")
     full_dates = pd.date_range(start, end, freq="D")
 
@@ -470,6 +470,19 @@ def train(nimet_csv: str, et_csv: str | None, output_dir: str) -> dict:
     # ── 2. LGA metadata ───────────────────────────────────────────────────────
     logger.info("Generating LGA metadata for 774 LGAs")
     lga_meta = build_lga_metadata()
+
+    # Sample LGAs to fit 512 MB RAM on Render Starter.
+    # 773 non-Karu LGAs are synthetic (Karu data × zone multipliers + noise),
+    # so a representative sample preserves model quality while cutting memory ~60%.
+    # Karu is always included as it holds the only real NIMET measurements.
+    _SAMPLE_LGA_COUNT = 300
+    karu_row = lga_meta[lga_meta["lga_id"] == "nasarawa_karu"]
+    other_lgas = lga_meta[lga_meta["lga_id"] != "nasarawa_karu"]
+    sampled_others = other_lgas.sample(
+        n=min(_SAMPLE_LGA_COUNT - 1, len(other_lgas)), random_state=42
+    )
+    lga_meta = pd.concat([karu_row, sampled_others], ignore_index=True)
+    logger.info("Using %d sampled LGAs for training (Karu always included)", len(lga_meta))
 
     # ── 3. Rainfall series ────────────────────────────────────────────────────
     logger.info("Building rainfall time series for all LGAs")
