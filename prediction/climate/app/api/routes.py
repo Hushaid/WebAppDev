@@ -30,6 +30,7 @@ from ..models.ensemble import FloodEnsemble
 from ..models.compound_risk import batch_compound_risk
 from ..pipeline.features import FEATURE_NAMES, merge_features, build_dynamic_features
 from ..data.nimet import load_nimet_features
+from ..data.openmeteo import fetch_karu_live_features
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["climate"])
@@ -87,12 +88,24 @@ def _load_artifacts() -> None:
 
 
 def _get_karu_features() -> dict:
-    """Return Karu dynamic features from NIMET files, or seasonal defaults."""
+    """Return today's dynamic features for Karu LGA.
+
+    Priority: Open-Meteo live data → NIMET CSV fallback → hardcoded defaults.
+    """
+    # 1. Try Open-Meteo (live, auto-updates daily)
+    live = fetch_karu_live_features()
+    if live:
+        logger.info("Karu features from Open-Meteo (data_date=%s)", live.get("data_date"))
+        return live
+
+    # 2. Fall back to NIMET CSVs if provided
     if NIMET_RAINFALL_CSV and os.path.exists(NIMET_RAINFALL_CSV):
+        logger.warning("Open-Meteo unavailable — falling back to NIMET CSV")
         et_path = NIMET_ET_CSV if NIMET_ET_CSV and os.path.exists(NIMET_ET_CSV) else None
         return load_nimet_features(NIMET_RAINFALL_CSV, et_path)
 
-    # Fallback: mid-dry-season defaults
+    # 3. Last resort: mid-dry-season defaults
+    logger.warning("All data sources unavailable — using hardcoded defaults")
     return {
         "rain_1d": 0.0,
         "rain_3d": 0.0,
@@ -140,7 +153,7 @@ def _build_dynamic(lga_metadata: pd.DataFrame, karu: dict) -> pd.DataFrame:
 
 
 def _run_prediction() -> list[dict]:
-    """Predict flood risk for Karu LGA using real NIMET data."""
+    """Predict flood risk for Karu LGA using live Open-Meteo data."""
     _load_artifacts()
 
     karu_raw = _get_karu_features()
@@ -179,7 +192,7 @@ def _run_prediction() -> list[dict]:
     ]
     compound_results = batch_compound_risk(compound_input)
 
-    today = str(date.today())
+    today = karu_raw.get("data_date", str(date.today()))
     return [
         {
             "lga_id": compound["lga_id"],
