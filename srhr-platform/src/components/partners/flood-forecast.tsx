@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { CloudRain, Info } from "lucide-react"
+import { CheckCircle2, AlertTriangle, Waves, CloudRain, Info } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
@@ -27,30 +26,79 @@ interface ForecastResponse {
   generated_at: string
 }
 
-const RISK_BAR: Record<string, string> = {
-  normal:    "bg-green-500",
-  watch:     "bg-yellow-400",
-  warning:   "bg-orange-500",
-  emergency: "bg-red-600",
+// What each risk level means to a partner — no numbers
+const RISK_LABEL: Record<string, string> = {
+  normal:    "Safe",
+  watch:     "Monitor",
+  warning:   "Elevated",
+  emergency: "Critical",
 }
 
-const RISK_TEXT: Record<string, string> = {
+const RISK_ICON: Record<string, React.ReactNode> = {
+  normal:    <CheckCircle2 className="h-4 w-4 text-green-600" />,
+  watch:     <CloudRain className="h-4 w-4 text-yellow-500" />,
+  warning:   <AlertTriangle className="h-4 w-4 text-orange-500" />,
+  emergency: <Waves className="h-4 w-4 text-red-600" />,
+}
+
+const RISK_ROW_BG: Record<string, string> = {
+  normal:    "",
+  watch:     "bg-yellow-50",
+  warning:   "bg-orange-50",
+  emergency: "bg-red-50",
+}
+
+const RISK_LABEL_COLOR: Record<string, string> = {
   normal:    "text-green-700",
   watch:     "text-yellow-700",
   warning:   "text-orange-600",
   emergency: "text-red-700",
 }
 
-const CONFIDENCE_LABEL: Record<string, string> = {
-  high:        "Reliable",
-  moderate:    "Good estimate",
-  indicative:  "Indicative",
+const CONFIDENCE_NOTE: Record<string, string> = {
+  high:       "",
+  moderate:   "",
+  indicative: "trend only",
 }
 
-const CONFIDENCE_COLOR: Record<string, string> = {
-  high:       "text-green-600",
-  moderate:   "text-yellow-600",
-  indicative: "text-gray-400",
+function SummaryBanner({ forecasts }: { forecasts: ForecastDay[] }) {
+  const highDays = forecasts.filter(
+    (f) => f.risk_level === "warning" || f.risk_level === "emergency"
+  )
+  const watchDays = forecasts.filter((f) => f.risk_level === "watch")
+
+  if (highDays.length > 0) {
+    const first = highDays[0]
+    return (
+      <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm">
+        <p className="font-semibold text-orange-700">Elevated risk period ahead</p>
+        <p className="text-orange-700 mt-0.5">
+          Flood risk rises around <strong>{first.day_label}</strong>. Review your emergency response plan and ensure community contacts in Karu are reachable.
+        </p>
+      </div>
+    )
+  }
+
+  if (watchDays.length > 0) {
+    const first = watchDays[0]
+    return (
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
+        <p className="font-semibold text-yellow-700">Conditions to watch</p>
+        <p className="text-yellow-700 mt-0.5">
+          Rainfall is expected to build around <strong>{first.day_label}</strong>. No immediate action needed, but stay informed.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm">
+      <p className="font-semibold text-green-700">All clear for the next 16 days</p>
+      <p className="text-green-700 mt-0.5">
+        No significant flood risk is forecast for Karu LGA. Continue routine programme activities.
+      </p>
+    </div>
+  )
 }
 
 export function FloodForecast() {
@@ -89,10 +137,14 @@ export function FloodForecast() {
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
-                <TooltipContent className="max-w-xs text-xs">
-                  <p className="font-medium mb-1">How to read this outlook</p>
-                  <p>Each bar shows the likelihood of flooding on that day based on rainfall forecasts and terrain data.</p>
-                  <p className="mt-1"><span className="font-medium">Reliable</span> = days 1–2, <span className="font-medium">Good estimate</span> = days 3–5, <span className="font-medium">Indicative</span> = days 6–16 (trend only).</p>
+                <TooltipContent className="max-w-72 text-xs space-y-1">
+                  <p className="font-medium">How to read this outlook</p>
+                  <p>Each row shows the expected flood situation for that day based on rainfall forecasts and terrain data for Karu LGA.</p>
+                  <p><strong>Safe</strong> — normal conditions, no action needed.</p>
+                  <p><strong>Monitor</strong> — rainfall building, stay alert.</p>
+                  <p><strong>Elevated</strong> — flooding likely, prepare response.</p>
+                  <p><strong>Critical</strong> — activate emergency plan.</p>
+                  <p className="text-muted-foreground pt-1">Days 1–3 are most reliable. Beyond day 5, treat as a general trend.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -105,7 +157,7 @@ export function FloodForecast() {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-4">
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading flood outlook...</p>
         ) : error || !data ? (
@@ -113,71 +165,54 @@ export function FloodForecast() {
             Flood outlook unavailable. Service may be offline.
           </p>
         ) : (
-          <div className="space-y-4">
-            {/* Peak risk callout if any warning+ day in the window */}
-            {(() => {
-              const highDays = data.forecasts.filter(
-                (f) => f.risk_level === "warning" || f.risk_level === "emergency"
-              )
-              if (highDays.length === 0) return null
-              const worst = highDays[0]
-              return (
-                <div className="rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm">
-                  <span className="font-medium text-orange-700">Heads up: </span>
-                  <span className="text-orange-700">
-                    Elevated flood risk expected around {worst.day_label}. Review your response plan.
-                  </span>
-                </div>
-              )
-            })()}
+          <>
+            <SummaryBanner forecasts={data.forecasts} />
 
-            {/* Day-by-day strip */}
-            <div className="space-y-1.5">
-              {data.forecasts.map((f) => (
-                <div key={f.date} className="flex items-center gap-3">
+            <div className="divide-y rounded-lg border overflow-hidden">
+              {data.forecasts.map((f, i) => (
+                <div
+                  key={f.date}
+                  className={`flex items-center gap-3 px-3 py-2.5 ${RISK_ROW_BG[f.risk_level]}`}
+                >
                   {/* Day label */}
-                  <div className="w-24 shrink-0">
-                    <p className={`text-sm font-medium ${f.is_forecast ? "" : "text-muted-foreground"}`}>
-                      {f.day_label}
-                    </p>
-                    <p className={`text-xs ${CONFIDENCE_COLOR[f.confidence]}`}>
-                      {CONFIDENCE_LABEL[f.confidence]}
-                    </p>
+                  <div className="w-28 shrink-0">
+                    <p className="text-sm font-medium">{f.day_label}</p>
+                    {f.confidence === "indicative" && (
+                      <p className="text-xs text-muted-foreground">trend only</p>
+                    )}
                   </div>
 
-                  {/* Probability bar */}
-                  <div className="flex-1 h-5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${RISK_BAR[f.risk_level]}`}
-                      style={{ width: `${Math.max(f.flood_probability * 100, 3)}%` }}
-                    />
+                  {/* Status icon + label */}
+                  <div className="flex items-center gap-1.5 w-24 shrink-0">
+                    {RISK_ICON[f.risk_level]}
+                    <span className={`text-sm font-medium ${RISK_LABEL_COLOR[f.risk_level]}`}>
+                      {RISK_LABEL[f.risk_level]}
+                    </span>
                   </div>
 
-                  {/* Probability % */}
-                  <p className={`w-9 text-right text-xs font-semibold shrink-0 ${RISK_TEXT[f.risk_level]}`}>
-                    {(f.flood_probability * 100).toFixed(0)}%
-                  </p>
+                  {/* Rain indicator */}
+                  <div className="flex-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    {f.rain_mm > 0 && (
+                      <>
+                        <CloudRain className="h-3 w-3 text-blue-400 shrink-0" />
+                        <span>{f.rain_mm}mm rain expected</span>
+                      </>
+                    )}
+                  </div>
 
-                  {/* Rain */}
-                  {f.rain_mm > 0 && (
-                    <div className="flex items-center gap-0.5 w-16 shrink-0">
-                      <CloudRain className="h-3 w-3 text-blue-400" />
-                      <span className="text-xs text-muted-foreground">{f.rain_mm}mm</span>
-                    </div>
+                  {/* Faint divider between reliable/indicative zones */}
+                  {i === 2 && (
+                    <span className="text-xs text-muted-foreground/50 shrink-0">· · ·</span>
                   )}
-                  {f.rain_mm === 0 && <div className="w-16 shrink-0" />}
                 </div>
               ))}
             </div>
 
-            {/* Legend */}
-            <div className="flex flex-wrap gap-3 pt-1 border-t text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500" /> Normal</span>
-              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400" /> Watch</span>
-              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-orange-500" /> Warning</span>
-              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-600" /> Emergency</span>
-            </div>
-          </div>
+            {/* Footer note */}
+            <p className="text-xs text-muted-foreground">
+              Forecast accuracy is highest for the next 3 days. Beyond day 5, use as a general trend indicator only.
+            </p>
+          </>
         )}
       </CardContent>
     </Card>
