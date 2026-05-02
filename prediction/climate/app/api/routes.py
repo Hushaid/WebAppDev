@@ -12,7 +12,7 @@ from datetime import date
 
 import numpy as np
 import pandas as pd
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 
 from .schemas import (
     FloodRiskListResponse,
@@ -470,8 +470,8 @@ async def get_flood_forecast():
 
 @router.post("/retrain", response_model=TrainingResponse)
 async def trigger_retrain(
-    rainfall_file: "UploadFile | None" = None,
-    et_file: "UploadFile | None" = None,
+    rainfall_file: UploadFile | None = File(None),
+    et_file: UploadFile | None = File(None),
 ):
     """Upload new NIMET CSVs and retrain the XGBoost flood model.
 
@@ -479,8 +479,6 @@ async def trigger_retrain(
     NIMET data directory, runs the training script, then reloads the model.
     Can be called with just one file to update only that dataset.
     """
-    from fastapi import UploadFile
-    import subprocess
     import asyncio
 
     os.makedirs(_NIMET_DIR, exist_ok=True)
