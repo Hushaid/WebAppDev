@@ -34,7 +34,7 @@ const RISK_CONFIG: Record<string, {
     border: "border-green-200 bg-green-50",
     headline: "No significant flood risk",
     description: "Rainfall and soil conditions are within normal seasonal range. No flood disruption expected.",
-    action: "Field activities can proceed as normal.",
+    action: "No action needed. Continue routine programme activities.",
   },
   watch: {
     icon: <CloudRain className="h-5 w-5 text-yellow-600" />,
@@ -42,7 +42,7 @@ const RISK_CONFIG: Record<string, {
     border: "border-yellow-200 bg-yellow-50",
     headline: "Flood conditions developing",
     description: "Rainfall is building up and soil is becoming saturated. Flooding is possible in low-lying areas over the next few days.",
-    action: "Monitor conditions closely. Prepare contingency plans for field visits.",
+    action: "Review your emergency response plan. Ensure community contacts in Karu are reachable and aware of the developing situation.",
   },
   warning: {
     icon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
@@ -50,7 +50,7 @@ const RISK_CONFIG: Record<string, {
     border: "border-orange-200 bg-orange-50",
     headline: "Elevated flood risk",
     description: "High rainfall accumulation detected. Flooding is likely in low-lying and riverside areas.",
-    action: "Consider postponing non-essential field activities. Avoid low-lying routes.",
+    action: "Alert your community focal points in Karu. Pre-position supplies and resources. Notify partner organisations and relevant government agencies.",
   },
   emergency: {
     icon: <Waves className="h-5 w-5 text-red-600" />,
@@ -58,7 +58,7 @@ const RISK_CONFIG: Record<string, {
     border: "border-red-200 bg-red-50",
     headline: "Critical flood risk",
     description: "Extreme rainfall and saturated soils indicate a high probability of severe flooding.",
-    action: "Suspend field activities. Follow emergency protocols and keep staff safe.",
+    action: "Activate your emergency response plan immediately. Coordinate with local government and relief agencies. Prioritise communication with vulnerable beneficiaries in affected areas.",
   },
 }
 
