@@ -12,16 +12,14 @@ RUN pip install --no-cache-dir .
 COPY app/ app/
 COPY scripts/ scripts/
 
-# Seed model artifacts under a different path so the Persistent Disk mount
-# at /app/models_store doesn't shadow them on Render.
-# entrypoint.sh copies these into /app/models_store if the disk is empty.
-COPY models_store/ models_store_seed/
+# Seed trained model artifacts into the image so the service starts without
+# a separate training step. The volume mount (climate-models) will overlay
+# these with freshly retrained files after the first admin-triggered retrain.
+COPY models_store/ models_store/
 
-# nimet_data and models_store dirs are populated by Persistent Disk mounts on Render
-RUN mkdir -p /app/nimet_data /app/models_store
-
-RUN chmod +x /app/scripts/entrypoint.sh
+# nimet_data dir is populated via volume mount from admin CSV uploads
+RUN mkdir -p /app/nimet_data
 
 EXPOSE 8002
 
-CMD ["/app/scripts/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
