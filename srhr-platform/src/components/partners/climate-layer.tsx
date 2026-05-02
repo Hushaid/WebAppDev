@@ -56,6 +56,9 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
     fetchFloodRisk()
   }, [visible])
 
+  // Only Karu LGA has real NIMET data — filter regardless of what the API returns
+  const karuPredictions = predictions.filter((p) => p.lga_id === "nasarawa_karu")
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -81,13 +84,13 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
             <p className="text-sm text-muted-foreground">
               Loading flood predictions...
             </p>
-          ) : predictions.length === 0 ? (
+          ) : karuPredictions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No flood predictions available. Service may be offline.
             </p>
           ) : (
             <div className="space-y-3">
-              {predictions.map((p) => (
+              {karuPredictions.map((p) => (
                 <div
                   key={p.lga_id}
                   className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
