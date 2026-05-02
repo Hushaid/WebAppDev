@@ -126,9 +126,14 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
           ) : (
             <div className={`rounded-lg border p-4 space-y-3 ${config.border}`}>
               {/* Location + date */}
-              <p className="text-xs text-muted-foreground">
-                Karu LGA, Nasarawa · Updated {karu.prediction_date}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Karu LGA, Nasarawa · Updated {karu.prediction_date}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Chance of flooding: {(karu.flood_probability * 100).toFixed(0)}%
+                </p>
+              </div>
 
               {/* Status headline */}
               <div className="flex items-center gap-2">
