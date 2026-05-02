@@ -13,6 +13,7 @@ import {
 import { IrixTrendChart } from "@/components/partners/irix-trend-chart"
 import { CellDetail } from "@/components/partners/cell-detail"
 import { ClimateLayer } from "@/components/partners/climate-layer"
+import { FloodForecast } from "@/components/partners/flood-forecast"
 import { MapPin } from "lucide-react"
 
 function StatValue({
@@ -237,6 +238,9 @@ export default function PartnersDashboardPage() {
 
       {/* Climate / Flood Risk Layer */}
       <ClimateLayer visible={climateVisible} onToggle={setClimateVisible} />
+
+      {/* 16-day flood outlook */}
+      <FloodForecast />
 
       {/* Trend charts */}
       <IrixTrendChart data={trendData} />
