@@ -94,10 +94,26 @@ def _get_karu_features() -> dict:
 
     Priority: Open-Meteo live data → NIMET CSV fallback → hardcoded defaults.
     """
-    # 1. Try Open-Meteo (live, auto-updates daily)
-    live = fetch_karu_live_features()
-    if live:
-        logger.info("Karu features from Open-Meteo (data_date=%s)", live.get("data_date"))
+    # 1. Try Open-Meteo — extract today's row from the same series used by the forecast
+    #    so /flood-risk and /flood-forecast always agree on today's value.
+    series = fetch_karu_forecast_series(forecast_days=16)
+    if series is not None:
+        today_rows = series[series["date"].dt.date == date.today()]
+        row = today_rows.iloc[-1] if not today_rows.empty else series.iloc[-1]
+        import math
+        wb30 = float(row["water_balance_30d"])
+        live = {
+            "rain_1d":           float(row["rain_1d"]),
+            "rain_3d":           float(row["rain_3d"]),
+            "rain_7d":           float(row["rain_7d"]),
+            "rain_14d":          float(row["rain_14d"]),
+            "rain_30d":          float(row["rain_30d"]),
+            "soil_moisture":     round(1.0 / (1.0 + math.exp(-wb30 / 50.0)), 4),
+            "water_balance_7d":  float(row["water_balance_7d"]),
+            "water_balance_30d": wb30,
+            "data_date":         str(row["date"].date()),
+        }
+        logger.info("Karu features from Open-Meteo forecast series (data_date=%s)", live["data_date"])
         return live
 
     # 2. Fall back to NIMET CSVs if provided
