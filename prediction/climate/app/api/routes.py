@@ -24,13 +24,15 @@ from .schemas import (
     ClimateAlertResponse,
     TrainingResponse,
     LagdoDamResponse,
+    FloodForecastDay,
+    FloodForecastResponse,
 )
 from ..models.xgboost_flood import FloodXGBoost
 from ..models.ensemble import FloodEnsemble
 from ..models.compound_risk import batch_compound_risk
 from ..pipeline.features import FEATURE_NAMES, merge_features, build_dynamic_features
 from ..data.nimet import load_nimet_features
-from ..data.openmeteo import fetch_karu_live_features
+from ..data.openmeteo import fetch_karu_live_features, fetch_karu_forecast_series
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["climate"])
@@ -215,6 +217,111 @@ def _get_cached_predictions() -> list[dict]:
     return _cache
 
 
+# Separate cache for the 16-day forecast (heavier computation)
+_forecast_cache: list[dict] | None = None
+_forecast_cache_ts: float = 0.0
+
+
+def _confidence(days_ahead: int) -> str:
+    if days_ahead <= 2:
+        return "high"
+    if days_ahead <= 5:
+        return "moderate"
+    return "indicative"
+
+
+def _day_label(d: "date", today: "date") -> str:
+    delta = (d - today).days
+    if delta == 0:
+        return "Today"
+    if delta == 1:
+        return "Tomorrow"
+    return d.strftime("%a %-d %b")
+
+
+def _run_forecast() -> list[dict]:
+    """Build 16-day flood forecast for Karu using Open-Meteo + XGBoost."""
+    _load_artifacts()
+
+    series = fetch_karu_forecast_series(forecast_days=16)
+    if series is None:
+        logger.warning("Open-Meteo forecast unavailable")
+        return []
+
+    # Only return rows from today onwards (the 16 forecast days)
+    today = date.today()
+    forecast_rows = series[series["date"].dt.date >= today].copy()
+
+    if forecast_rows.empty:
+        return []
+
+    # Build a feature row for each forecast day and run through the model
+    results = []
+    karu_static = _static_features[
+        _static_features["lga_id"].astype(str) == KARU_LGA_ID
+    ]
+    if karu_static.empty:
+        return []
+
+    static_row = karu_static.iloc[0]
+    ensemble = FloodEnsemble()
+
+    for i, (_, row) in enumerate(forecast_rows.iterrows()):
+        feat = {col: 0.0 for col in FEATURE_NAMES}
+
+        # Static terrain features
+        for col in ["hand_mean", "hand_min", "hand_std", "twi_mean", "twi_max",
+                    "slope_mean", "population_density", "distance_to_river",
+                    "flood_fraction_baseline", "land_cover_urban"]:
+            feat[col] = float(static_row.get(col, 0))
+
+        # Dynamic rainfall features
+        rain_30d = float(row["rain_30d"]) or 1.0
+        feat["rain_1d"]  = float(row["rain_1d"])
+        feat["rain_3d"]  = float(row["rain_3d"])
+        feat["rain_7d"]  = float(row["rain_7d"])
+        feat["rain_14d"] = float(row["rain_14d"])
+        feat["rain_30d"] = float(row["rain_30d"])
+        feat["rain_7d_ratio"] = feat["rain_7d"] / rain_30d
+        feat["rain_3d_ratio"] = feat["rain_3d"] / rain_30d
+        feat["soil_moisture"]      = float(row["soil_moisture"])
+        feat["water_balance_7d"]   = float(row["water_balance_7d"])
+        feat["water_balance_30d"]  = float(row["water_balance_30d"])
+        feat["forecast_risk"]      = 0.0
+        feat["benue_discharge_max"] = 0.0
+        feat["niger_discharge_max"] = 0.0
+
+        import xgboost as xgb
+        X = np.array([[feat[c] for c in FEATURE_NAMES]])
+        xgb_pred = _model.predict(X)
+        flood_prob = float(ensemble.predict(xgb_pred, None, np.zeros(1))[0])
+        risk_level = ensemble.classify_risk(np.array([flood_prob]))[0]
+
+        forecast_date = row["date"].date()
+        days_ahead = (forecast_date - today).days
+
+        results.append({
+            "date": str(forecast_date),
+            "day_label": _day_label(forecast_date, today),
+            "flood_probability": round(flood_prob, 4),
+            "risk_level": risk_level,
+            "rain_mm": round(float(row["rain_mm"]), 1),
+            "confidence": _confidence(days_ahead),
+            "is_forecast": bool(row["is_forecast"]),
+        })
+
+    return results
+
+
+def _get_cached_forecast() -> list[dict]:
+    global _forecast_cache, _forecast_cache_ts
+    if _forecast_cache is not None and (time.time() - _forecast_cache_ts) < _CACHE_TTL:
+        return _forecast_cache
+    _forecast_cache = _run_forecast()
+    _forecast_cache_ts = time.time()
+    return _forecast_cache
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -320,12 +427,36 @@ async def get_climate_alerts(
     return ClimateAlertListResponse(alerts=alerts, total=len(alerts))
 
 
+@router.get("/flood-forecast", response_model=FloodForecastResponse)
+async def get_flood_forecast():
+    """16-day flood outlook for Karu LGA powered by Open-Meteo + XGBoost."""
+    try:
+        _load_artifacts()
+        forecasts = _get_cached_forecast()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Forecast pipeline failed")
+        raise HTTPException(status_code=500, detail="Forecast failed") from exc
+
+    if not forecasts:
+        raise HTTPException(status_code=503, detail="Forecast data unavailable")
+
+    return FloodForecastResponse(
+        location="Karu LGA, Nasarawa",
+        forecasts=[FloodForecastDay(**f) for f in forecasts],
+        generated_at=date.today().isoformat(),
+    )
+
+
 @router.post("/retrain", response_model=TrainingResponse)
 async def trigger_retrain():
     """Clear prediction cache so next request re-runs the pipeline."""
-    global _cache, _cache_ts, _model, _static_features, _lga_metadata
+    global _cache, _cache_ts, _forecast_cache, _forecast_cache_ts, _model, _static_features, _lga_metadata
     _cache = None
     _cache_ts = 0.0
+    _forecast_cache = None
+    _forecast_cache_ts = 0.0
     _model = None
     _static_features = None
     _lga_metadata = None

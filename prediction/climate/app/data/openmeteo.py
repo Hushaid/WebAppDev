@@ -87,6 +87,71 @@ def compute_forecast_risk_signal(forecast_data: dict) -> float:
     return min(1.0, cumulative / 100.0)
 
 
+def fetch_karu_forecast_series(forecast_days: int = 16) -> pd.DataFrame | None:
+    """Fetch a combined 30-day history + N-day forecast series for Karu LGA.
+
+    Returns a DataFrame with one row per day (past + future) containing:
+        date, rain_mm, et_mm, is_forecast,
+        rain_1d/3d/7d/14d/30d, et_7d/30d,
+        water_balance_7d/30d, soil_moisture
+
+    Returns None if the API request fails.
+    """
+    params = {
+        "latitude": KARU_LAT,
+        "longitude": KARU_LON,
+        "daily": [
+            "precipitation_sum",
+            "et0_fao_evapotranspiration",
+        ],
+        "timezone": "Africa/Lagos",
+        "past_days": 30,
+        "forecast_days": forecast_days,
+    }
+
+    try:
+        with httpx.Client(timeout=20) as client:
+            resp = client.get(OPENMETEO_URL, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.HTTPError:
+        return None
+
+    daily = data.get("daily", {})
+    dates = daily.get("time", [])
+    rain_vals = daily.get("precipitation_sum", [])
+    et_vals = daily.get("et0_fao_evapotranspiration", [])
+
+    if not dates:
+        return None
+
+    today_str = date.today().isoformat()
+
+    df = pd.DataFrame({
+        "date": pd.to_datetime(dates),
+        "rain_mm": [v or 0.0 for v in rain_vals],
+        "et_mm":   [v or 0.0 for v in et_vals],
+    }).sort_values("date").reset_index(drop=True)
+
+    df["is_forecast"] = df["date"].dt.date >= date.today()
+
+    # Rolling cumulative windows over the full series
+    for w in [1, 3, 7, 14, 30]:
+        df[f"rain_{w}d"] = df["rain_mm"].rolling(w, min_periods=1).sum()
+    for w in [7, 30]:
+        df[f"et_{w}d"] = df["et_mm"].rolling(w, min_periods=1).sum()
+
+    df["water_balance_7d"]  = df["rain_7d"]  - df["et_7d"]
+    df["water_balance_30d"] = df["rain_30d"] - df["et_30d"]
+
+    import math
+    df["soil_moisture"] = df["water_balance_30d"].apply(
+        lambda wb: round(1.0 / (1.0 + math.exp(-wb / 50.0)), 4)
+    )
+
+    return df
+
+
 def fetch_karu_live_features() -> dict | None:
     """Fetch today's dynamic features for Karu LGA from Open-Meteo.
 
