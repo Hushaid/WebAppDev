@@ -53,7 +53,7 @@ export function IrixTrendChart({
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="period" fontSize={12} />
-            <YAxis fontSize={12} />
+            <YAxis fontSize={12} tickFormatter={(v: number) => Math.round(v).toString()} allowDecimals={false} />
             <Tooltip />
             <Legend />
             <Line

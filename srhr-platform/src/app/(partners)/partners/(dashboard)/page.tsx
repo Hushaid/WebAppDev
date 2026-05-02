@@ -13,6 +13,7 @@ import {
 import { IrixTrendChart } from "@/components/partners/irix-trend-chart"
 import { CellDetail } from "@/components/partners/cell-detail"
 import { ClimateLayer } from "@/components/partners/climate-layer"
+import { FloodForecast } from "@/components/partners/flood-forecast"
 import { MapPin } from "lucide-react"
 
 function StatValue({
@@ -48,7 +49,7 @@ export default function PartnersDashboardPage() {
   const userName = session?.user?.name ?? ""
   const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS)
   const [selectedCell, setSelectedCell] = useState<MapScore | null>(null)
-  const [climateVisible, setClimateVisible] = useState(false)
+  const [climateVisible, setClimateVisible] = useState(true)
   const [scores, setScores] = useState<MapScore[]>([])
   const [trendData, setTrendData] = useState<
     { period: string; sti_avg: number; maternal_avg: number | null; community_avg: number; overall: number; submissions: number }[]
@@ -71,18 +72,14 @@ export default function PartnersDashboardPage() {
 
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([key, value]) => {
-        if (value && value !== "all") {
-          params.set(key, value)
-        }
+        if (value && value !== "all") params.set(key, value)
       })
 
       try {
         const response = await fetch(`/api/partners/dashboard?${params.toString()}`, {
           signal: controller.signal,
         })
-        if (!response.ok) {
-          throw new Error("Failed to load partner dashboard data")
-        }
+        if (!response.ok) throw new Error("Failed to load partner dashboard data")
 
         const payload = await response.json()
         setScores(payload.areas ?? [])
@@ -100,21 +97,13 @@ export default function PartnersDashboardPage() {
         setScores([])
         setTrendData([])
         setLocationOptions([])
-        setSummary({
-          monitoredAreas: 0,
-          hotspots: 0,
-          highRiskAreas: 0,
-          totalSubmissions: 0,
-        })
+        setSummary({ monitoredAreas: 0, hotspots: 0, highRiskAreas: 0, totalSubmissions: 0 })
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false)
-        }
+        if (!controller.signal.aborted) setIsLoading(false)
       }
     }
 
     fetchDashboardData()
-
     return () => controller.abort()
   }, [filters])
 
@@ -127,28 +116,25 @@ export default function PartnersDashboardPage() {
   const showSkeleton = isLoading
   const dataUnavailable = isError
   const hasData = scores.length > 0
-  const hasActiveFilters = Object.values(filters).some((value) => value && value !== "all")
+  const hasActiveFilters = Object.values(filters).some((v) => v && v !== "all")
 
   return (
     <section className="space-y-6">
+      {/* ── Header ── */}
       <header>
-        <hgroup>
-          <h1 className="text-2xl font-bold">
-            {userName ? `Welcome, ${userName}` : "Partners Dashboard"}
-          </h1>
-          <p className="text-muted-foreground">
-            Community-level health risk data and analytics. All data is aggregated and de-identified — no personal information is shown.
-          </p>
-        </hgroup>
+        <h1 className="text-2xl font-bold">
+          {userName ? `Welcome, ${userName}` : "Partners Dashboard"}
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Community-level health risk data and analytics. All data is aggregated and de-identified.
+        </p>
       </header>
 
-      {/* Summary cards */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+      {/* ── Summary stats (always full width) ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Monitored Areas
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Monitored Areas</CardTitle>
           </CardHeader>
           <CardContent>
             <StatValue value={summary.monitoredAreas} showSkeleton={showSkeleton} />
@@ -156,9 +142,7 @@ export default function PartnersDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Hotspots
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Hotspots</CardTitle>
           </CardHeader>
           <CardContent>
             <StatValue value={summary.hotspots} className="text-red-600" showSkeleton={showSkeleton} />
@@ -166,9 +150,7 @@ export default function PartnersDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              High Risk Areas
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">High Risk Areas</CardTitle>
           </CardHeader>
           <CardContent>
             <StatValue value={summary.highRiskAreas} showSkeleton={showSkeleton} />
@@ -176,9 +158,7 @@ export default function PartnersDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Submissions
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Submissions</CardTitle>
           </CardHeader>
           <CardContent>
             <StatValue value={summary.totalSubmissions} showSkeleton={showSkeleton} />
@@ -186,60 +166,61 @@ export default function PartnersDashboardPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <IrixFilters
-        filters={filters}
-        locationOptions={locationOptions}
-        onChange={setFilters}
-        onReset={() => setFilters(DEFAULT_FILTERS)}
-      />
+      {/* ── Main 2-column body ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
-      {/* Map */}
-      <div className="relative">
-        {showSkeleton ? (
-          <div className="space-y-3 rounded-lg border p-4">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-8 w-24" />
-            </div>
-            <Skeleton className="h-[460px] w-full rounded-md" />
+        {/* Left col (3/5): community health data */}
+        <div className="lg:col-span-3 space-y-4">
+          <IrixFilters
+            filters={filters}
+            locationOptions={locationOptions}
+            onChange={setFilters}
+            onReset={() => setFilters(DEFAULT_FILTERS)}
+          />
+
+          <div className="relative">
+            {showSkeleton ? (
+              <div className="space-y-3 rounded-lg border p-4">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+                <Skeleton className="h-[420px] w-full rounded-md" />
+              </div>
+            ) : dataUnavailable ? (
+              <div className="flex h-[460px] flex-col items-center justify-center rounded-lg border border-dashed">
+                <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                <p className="text-sm font-medium text-muted-foreground">Unable to load community risk data</p>
+                <p className="mt-1 text-xs text-muted-foreground/70">The real-time data service is currently unavailable.</p>
+              </div>
+            ) : !hasData ? (
+              <div className="flex h-[460px] flex-col items-center justify-center rounded-lg border border-dashed">
+                <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  {hasActiveFilters ? "No results match your filters" : "No community risk data yet"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  {hasActiveFilters
+                    ? "Try adjusting the filters above."
+                    : "IRIX scores will appear here once submissions have been processed."}
+                </p>
+              </div>
+            ) : (
+              <IrixMap scores={scores} onCellClick={setSelectedCell} />
+            )}
+            <CellDetail cell={selectedCell} onClose={() => setSelectedCell(null)} />
           </div>
-        ) : dataUnavailable ? (
-          <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed">
-            <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
-            <p className="text-sm font-medium text-muted-foreground">
-              Unable to load community risk data
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground/70">
-              The real-time data service is currently unavailable. Please try again later.
-            </p>
-          </div>
-        ) : !hasData ? (
-          <div className="flex h-[500px] flex-col items-center justify-center rounded-lg border border-dashed">
-            <MapPin className="mb-3 h-10 w-10 text-muted-foreground/50" />
-            <p className="text-sm font-medium text-muted-foreground">
-              {hasActiveFilters ? "No results match your filters" : "No community risk data yet"}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground/70">
-              {hasActiveFilters
-                ? "Try adjusting the filters above to see community risk data."
-                : "IRIX scores will appear here once enough questionnaire submissions have been processed."}
-            </p>
-          </div>
-        ) : (
-          <IrixMap scores={scores} onCellClick={setSelectedCell} />
-        )}
-        <CellDetail
-          cell={selectedCell}
-          onClose={() => setSelectedCell(null)}
-        />
+
+          <IrixTrendChart data={trendData} />
+        </div>
+
+        {/* Right col (2/5): environmental risk context */}
+        <div className="lg:col-span-2 space-y-4">
+          <ClimateLayer visible={climateVisible} onToggle={setClimateVisible} />
+          <FloodForecast />
+        </div>
+
       </div>
-
-      {/* Climate / Flood Risk Layer */}
-      <ClimateLayer visible={climateVisible} onToggle={setClimateVisible} />
-
-      {/* Trend charts */}
-      <IrixTrendChart data={trendData} />
     </section>
   )
 }

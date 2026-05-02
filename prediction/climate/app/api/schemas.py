@@ -60,3 +60,19 @@ class LagdoDamResponse(BaseModel):
     discharge_m3s: float
     threshold_m3s: float
     affected_lgas: list[str]
+
+
+class FloodForecastDay(BaseModel):
+    date: str
+    day_label: str          # "Today", "Tomorrow", "Mon 5 May", etc.
+    flood_probability: float
+    risk_level: str
+    rain_mm: float          # forecasted / observed daily rainfall
+    confidence: str         # "high", "moderate", "indicative"
+    is_forecast: bool       # False = observed history, True = model forecast
+
+
+class FloodForecastResponse(BaseModel):
+    location: str
+    forecasts: list[FloodForecastDay]
+    generated_at: str
