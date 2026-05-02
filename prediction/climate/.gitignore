@@ -8,3 +8,7 @@ models_store/
 
 # Climate data cache
 /tmp/climate_data/
+
+# Local deployment files — not part of the repo
+DEPLOY_RENDER.md
+scripts/entrypoint.sh
