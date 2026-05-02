@@ -10,6 +10,15 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir .
 
 COPY app/ app/
+COPY scripts/ scripts/
+
+# Seed trained model artifacts into the image so the service starts without
+# a separate training step. The volume mount (climate-models) will overlay
+# these with freshly retrained files after the first admin-triggered retrain.
+COPY models_store/ models_store/
+
+# nimet_data dir is populated via volume mount from admin CSV uploads
+RUN mkdir -p /app/nimet_data
 
 EXPOSE 8002
 

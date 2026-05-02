@@ -527,11 +527,14 @@ def train(nimet_csv: str, et_csv: str | None, output_dir: str) -> dict:
     lga_meta.to_parquet(lga_meta_path, index=False)
     logger.info("Saved LGA metadata → %s", lga_meta_path)
 
+    top_feature = next(iter(importance), "n/a") if importance else "n/a"
     metrics_out = {
         **metrics,
         "n_lgas": int(len(lga_meta)),
+        "n_samples": int(len(X)),
         "n_training_records": int(len(X)),
         "flood_event_rate_pct": round(float(y.mean() * 100), 3),
+        "top_feature": top_feature,
         "feature_importance": {k: round(v, 5) for k, v in importance.items()},
     }
     metrics_path = os.path.join(output_dir, "training_metrics.json")

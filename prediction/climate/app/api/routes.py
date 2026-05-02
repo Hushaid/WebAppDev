@@ -38,8 +38,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["climate"])
 
 MODEL_DIR = os.getenv("MODEL_DIR", "models_store")
-NIMET_RAINFALL_CSV = os.getenv("NIMET_RAINFALL_CSV", "")
-NIMET_ET_CSV = os.getenv("NIMET_ET_CSV", "")
+
+# NIMET data dir is populated by admin CSV uploads (volume-mounted in Docker)
+_NIMET_DIR = os.getenv("NIMET_DATA_DIR", "nimet_data")
+NIMET_RAINFALL_CSV = os.getenv("NIMET_RAINFALL_CSV", os.path.join(_NIMET_DIR, "dataset-rainfall.csv"))
+NIMET_ET_CSV = os.getenv("NIMET_ET_CSV", os.path.join(_NIMET_DIR, "ET_dataset.csv"))
 
 # The only LGA with real NIMET data — all predictions are for Karu only
 KARU_LGA_ID = "nasarawa_karu"
@@ -466,8 +469,79 @@ async def get_flood_forecast():
 
 
 @router.post("/retrain", response_model=TrainingResponse)
-async def trigger_retrain():
-    """Clear prediction cache so next request re-runs the pipeline."""
+async def trigger_retrain(
+    rainfall_file: "UploadFile | None" = None,
+    et_file: "UploadFile | None" = None,
+):
+    """Upload new NIMET CSVs and retrain the XGBoost flood model.
+
+    Accepts multipart uploads for rainfall and ET CSVs. Saves them to the
+    NIMET data directory, runs the training script, then reloads the model.
+    Can be called with just one file to update only that dataset.
+    """
+    from fastapi import UploadFile
+    import subprocess
+    import asyncio
+
+    os.makedirs(_NIMET_DIR, exist_ok=True)
+
+    saved = []
+
+    if rainfall_file and rainfall_file.filename:
+        dest = os.path.join(_NIMET_DIR, "dataset-rainfall.csv")
+        content = await rainfall_file.read()
+        with open(dest, "wb") as f:
+            f.write(content)
+        saved.append("rainfall")
+        logger.info("Saved new rainfall CSV (%d bytes) to %s", len(content), dest)
+
+    if et_file and et_file.filename:
+        dest = os.path.join(_NIMET_DIR, "ET_dataset.csv")
+        content = await et_file.read()
+        with open(dest, "wb") as f:
+            f.write(content)
+        saved.append("ET")
+        logger.info("Saved new ET CSV (%d bytes) to %s", len(content), dest)
+
+    rainfall_path = os.path.join(_NIMET_DIR, "dataset-rainfall.csv")
+    et_path = os.path.join(_NIMET_DIR, "ET_dataset.csv")
+
+    if not os.path.exists(rainfall_path):
+        return TrainingResponse(
+            status="error",
+            message="Rainfall CSV not found. Upload a rainfall file first.",
+        )
+
+    # Run training in a subprocess so it doesn't block the event loop
+    cmd = [
+        "python", "scripts/train_local.py",
+        "--nimet-csv", rainfall_path,
+        "--output-dir", MODEL_DIR,
+    ]
+    if os.path.exists(et_path):
+        cmd += ["--et-csv", et_path]
+
+    logger.info("Starting retraining: %s", " ".join(cmd))
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd="/app" if os.path.exists("/app") else ".",
+        )
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=600)
+    except asyncio.TimeoutError:
+        return TrainingResponse(status="error", message="Training timed out after 10 minutes.")
+    except Exception as exc:
+        return TrainingResponse(status="error", message=f"Training failed: {exc}")
+
+    if proc.returncode != 0:
+        err = stderr.decode()[-500:] if stderr else "unknown error"
+        logger.error("Retraining failed: %s", err)
+        return TrainingResponse(status="error", message=f"Training script failed: {err}")
+
+    # Reload model artifacts and clear caches
     global _cache, _cache_ts, _forecast_cache, _forecast_cache_ts, _model, _static_features, _lga_metadata
     _cache = None
     _cache_ts = 0.0
@@ -476,7 +550,21 @@ async def trigger_retrain():
     _model = None
     _static_features = None
     _lga_metadata = None
-    return TrainingResponse(status="ok", message="Cache cleared — next request will reload model.")
+
+    # Read metrics from the newly written file
+    metrics_path = os.path.join(MODEL_DIR, "training_metrics.json")
+    metrics = {}
+    if os.path.exists(metrics_path):
+        import json
+        with open(metrics_path) as f:
+            metrics = json.load(f)
+
+    files_msg = f" (updated: {', '.join(saved)})" if saved else ""
+    return TrainingResponse(
+        status="ok",
+        message=f"Model retrained successfully{files_msg}. CV AUC: {metrics.get('cv_auc_mean', 'n/a')}",
+        metrics=metrics,
+    )
 
 
 @router.get("/lagdo-dam", response_model=LagdoDamResponse)
