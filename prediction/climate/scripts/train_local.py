@@ -471,6 +471,19 @@ def train(nimet_csv: str, et_csv: str | None, output_dir: str) -> dict:
     logger.info("Generating LGA metadata for 774 LGAs")
     lga_meta = build_lga_metadata()
 
+    # Sample LGAs to fit 512 MB RAM on Render Starter.
+    # 773 non-Karu LGAs are synthetic (Karu data × zone multipliers + noise),
+    # so a representative sample preserves model quality while cutting memory ~60%.
+    # Karu is always included as it holds the only real NIMET measurements.
+    _SAMPLE_LGA_COUNT = 300
+    karu_row = lga_meta[lga_meta["lga_id"] == "nasarawa_karu"]
+    other_lgas = lga_meta[lga_meta["lga_id"] != "nasarawa_karu"]
+    sampled_others = other_lgas.sample(
+        n=min(_SAMPLE_LGA_COUNT - 1, len(other_lgas)), random_state=42
+    )
+    lga_meta = pd.concat([karu_row, sampled_others], ignore_index=True)
+    logger.info("Using %d sampled LGAs for training (Karu always included)", len(lga_meta))
+
     # ── 3. Rainfall series ────────────────────────────────────────────────────
     logger.info("Building rainfall time series for all LGAs")
     rainfall_df = build_rainfall_series(nimet_df, lga_meta)
@@ -487,7 +500,7 @@ def train(nimet_csv: str, et_csv: str | None, output_dir: str) -> dict:
     logger.info("Generating flood event labels")
     y = generate_flood_labels(rainfall_features, lga_meta)
 
-    X = features_df[FEATURE_NAMES].values
+    X = features_df[FEATURE_NAMES].values.astype(np.float32)
     logger.info("Training matrix shape: %s | positive class: %.2f%%",
                 X.shape, 100 * y.mean())
 
