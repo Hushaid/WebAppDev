@@ -3,8 +3,8 @@ __pycache__/
 *.pyo
 .env
 
-# Generated model artifacts — produced by train_local.py, not source code
-models_store/
+# Model artifacts: track seed files for deployment; gitignore bulk data only
+# models_store/ — removed so Render can deploy with a seed model
 
 # Climate data cache
 /tmp/climate_data/
