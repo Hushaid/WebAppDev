@@ -130,7 +130,7 @@ FEATURE_NAMES = [
     # Static metadata
     "population_density",
     "distance_to_river",
-    "historical_flood_count",
+    "flood_fraction_baseline",
     "land_cover_urban",
     # Dynamic rainfall
     "rain_1d",

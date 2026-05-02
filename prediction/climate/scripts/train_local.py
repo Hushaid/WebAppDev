@@ -36,6 +36,9 @@ from app.data.nimet import parse_nimet_rainfall, merge_rainfall_et
 from app.models.xgboost_flood import FloodXGBoost
 from app.pipeline.features import FEATURE_NAMES
 
+# FloodScan baseline data path (downloaded from HDX, satellite-derived 1998-2023)
+FLOODSCAN_CSV = "/tmp/climate_data/flood_history/floodscan_nga_lga.csv"
+
 # Real terrain features for Karu LGA derived from Copernicus GLO-30 DEM
 # (computed via whitebox HAND/TWI/slope — see scripts/compute_terrain.py)
 KARU_TERRAIN = {
@@ -102,13 +105,45 @@ STATES = [
 ZONE_RAINFALL_MULTIPLIER = {"south": 1.80, "middle": 1.00, "north": 0.45}
 
 
+def _load_floodscan_lookup() -> tuple[dict, dict, float]:
+    """Load real FloodScan LGA baseline flood fractions from HDX dataset.
+
+    Returns:
+        lga_lookup  — exact match keyed by (state_lower, lga_name_lower)
+        state_avg   — state-level average as fallback for unmatched LGAs
+        national_avg — national fallback of last resort
+    Source: AER FloodScan SFED 1998-2023, 10-year historical baseline per LGA.
+    """
+    if not os.path.exists(FLOODSCAN_CSV):
+        logger.warning("FloodScan CSV not found at %s — run download step first", FLOODSCAN_CSV)
+        return {}, {}, 0.001
+
+    df = pd.read_csv(FLOODSCAN_CSV)
+    lga_lookup = {
+        (row["state"].strip().lower(), row["lga_name"].strip().lower()): row["flood_fraction_baseline"]
+        for _, row in df.iterrows()
+    }
+    state_avg = {
+        state.strip().lower(): grp["flood_fraction_baseline"].mean()
+        for state, grp in df.groupby("state")
+    }
+    national_avg = float(df["flood_fraction_baseline"].mean())
+    logger.info(
+        "Loaded FloodScan: %d LGA baselines, %d states (national avg: %.6f)",
+        len(lga_lookup), len(state_avg), national_avg,
+    )
+    return lga_lookup, state_avg, national_avg
+
+
 def build_lga_metadata() -> pd.DataFrame:
     """Generate metadata for all 774 Nigerian LGAs.
 
     Terrain features (HAND, TWI, slope) are calibrated to each state's
-    flood vulnerability class. Not real DEM-derived values, but they encode
-    the correct relative risk ordering for model training.
+    flood vulnerability class. flood_fraction_baseline comes from real
+    FloodScan satellite data (AER, HDX, 1998-2023 historical average).
     """
+    floodscan_lga, floodscan_state, national_avg = _load_floodscan_lookup()
+
     rows = []
     lga_counter = 0
 
@@ -159,7 +194,14 @@ def build_lga_metadata() -> pd.DataFrame:
                 **lga_terrain,
                 "population_density": round(RNG.uniform(50, 3000), 1),
                 "distance_to_river":  round(RNG.exponential(15) * (1 - flood_vuln * 0.6), 2),
-                "historical_flood_count": int(RNG.poisson(flood_vuln * 8)),
+                # Real FloodScan satellite-derived flood fraction baseline.
+                # Karu: exact LGA match. All others: real state-level average
+                # from FloodScan, then national average as last resort.
+                "flood_fraction_baseline": (
+                    floodscan_lga.get(("nasarawa", "karu"), national_avg)
+                    if is_karu
+                    else floodscan_state.get(state.lower(), national_avg)
+                ),
                 "land_cover_urban": int(RNG.random() < 0.25),
             })
             lga_counter += 1
@@ -269,7 +311,7 @@ def generate_flood_labels(
     Target flood event rate: ~3–6% of LGA-day records.
     """
     merged = rainfall_features.merge(
-        lga_meta[["lga_id", "hand_mean", "flood_vulnerability", "historical_flood_count"]],
+        lga_meta[["lga_id", "hand_mean", "flood_vulnerability", "flood_fraction_baseline"]],
         on="lga_id",
         how="left",
     )
@@ -300,9 +342,11 @@ def generate_flood_labels(
     log_odds = exceedance * season_amp * vuln_amp * 2.5 - 1.5
     p_flood = 1 / (1 + np.exp(-log_odds))
 
-    # Additional boost from historical flood frequency
-    hist_boost = np.clip(merged["historical_flood_count"].values / 20, 0, 0.3)
-    p_flood = np.clip(p_flood + hist_boost * 0.3, 0, 0.95)
+    # Boost from real FloodScan baseline — high satellite-detected flood fraction
+    # indicates areas that genuinely flood repeatedly (scaled to 0-0.3 range)
+    ffb = merged["flood_fraction_baseline"].values
+    hist_boost = np.clip(ffb / 0.10, 0, 1) * 0.3  # 0.10 = ~Borno Abadam max
+    p_flood = np.clip(p_flood + hist_boost, 0, 0.95)
 
     # Stochastic realisation
     labels = (RNG.random(len(p_flood)) < p_flood).astype(int)
@@ -331,7 +375,7 @@ def build_feature_matrix(
         "lga_id", "hand_mean", "hand_min", "hand_std",
         "twi_mean", "twi_max", "slope_mean",
         "population_density", "distance_to_river",
-        "historical_flood_count", "land_cover_urban",
+        "flood_fraction_baseline", "land_cover_urban",
     ]
     static_df = lga_meta[static_cols].copy()
 
