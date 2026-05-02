@@ -38,6 +38,9 @@ MODEL_DIR = os.getenv("MODEL_DIR", "models_store")
 NIMET_RAINFALL_CSV = os.getenv("NIMET_RAINFALL_CSV", "")
 NIMET_ET_CSV = os.getenv("NIMET_ET_CSV", "")
 
+# The only LGA with real NIMET data — all predictions are for Karu only
+KARU_LGA_ID = "nasarawa_karu"
+
 # Zone-relative rainfall scaling factors (relative to middle-belt Karu)
 _ZONE_FACTORS = {"south": 1.8, "middle": 1.0, "north": 0.45}
 
@@ -137,23 +140,32 @@ def _build_dynamic(lga_metadata: pd.DataFrame, karu: dict) -> pd.DataFrame:
 
 
 def _run_prediction() -> list[dict]:
-    """Run full prediction pipeline and return sorted list of prediction dicts."""
+    """Predict flood risk for Karu LGA using real NIMET data."""
     _load_artifacts()
 
-    karu = _get_karu_features()
-    dynamic = _build_dynamic(_lga_metadata, karu)
+    karu_raw = _get_karu_features()
+    dynamic = _build_dynamic(_lga_metadata, karu_raw)
 
     features = merge_features(_static_features, dynamic)
     for col in FEATURE_NAMES:
         if col not in features.columns:
             features[col] = 0.0
 
+    # Run model over all LGAs (needed to keep relative scores calibrated),
+    # but only return Karu's prediction to the API.
     X = features[FEATURE_NAMES].to_numpy(dtype=float)
     xgb_preds = _model.predict(X)
 
     ensemble = FloodEnsemble()
     flood_probs = ensemble.predict(xgb_preds, None, np.zeros(len(X)))
     risk_levels = ensemble.classify_risk(flood_probs)
+
+    karu_mask = features["lga_id"].astype(str) == KARU_LGA_ID
+    karu_indices = [i for i, m in enumerate(karu_mask) if m]
+
+    if not karu_indices:
+        logger.error("Karu LGA (%s) not found in feature matrix", KARU_LGA_ID)
+        return []
 
     compound_input = [
         {
@@ -163,24 +175,22 @@ def _run_prediction() -> list[dict]:
             "exposure": 0.5,
             "adaptive_capacity": 0.5,
         }
-        for i in range(len(features))
+        for i in karu_indices
     ]
     compound_results = batch_compound_risk(compound_input)
 
     today = str(date.today())
-    predictions = [
+    return [
         {
             "lga_id": compound["lga_id"],
             "prediction_date": today,
-            "flood_probability": float(flood_probs[i]),
-            "risk_level": risk_levels[i],
+            "flood_probability": float(flood_probs[karu_indices[i]]),
+            "risk_level": risk_levels[karu_indices[i]],
             "compound_score": compound["compound_score"],
             "compound_risk_level": compound["risk_level"],
         }
         for i, compound in enumerate(compound_results)
     ]
-
-    return sorted(predictions, key=lambda p: p["flood_probability"], reverse=True)
 
 
 def _get_cached_predictions() -> list[dict]:
