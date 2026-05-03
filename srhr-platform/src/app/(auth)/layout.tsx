@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Image from "next/image"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: {
@@ -16,7 +17,7 @@ export default function AuthLayout({
 }) {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center bg-muted/50 p-4">
-      <figure className="mb-8">
+      <Link href="/" className="mb-8">
         <Image
           src="/hushaid-full-logo-new.svg"
           alt="Hushaid"
@@ -25,7 +26,7 @@ export default function AuthLayout({
           priority
           className="w-40 h-auto"
         />
-      </figure>
+      </Link>
       <article className="w-full max-w-md">{children}</article>
     </main>
   )
