@@ -11,6 +11,7 @@ import { submitterTypeEnum, riskLevelEnum } from "./enums"
 import { users } from "./users"
 import { subjects } from "./subjects"
 import { questionnaires, questions } from "./questionnaires"
+import { geographicUnits } from "./facilities"
 
 export const submissions = pgTable("submissions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -22,6 +23,7 @@ export const submissions = pgTable("submissions", {
   questionnaireVersionId: uuid("questionnaire_version_id")
     .notNull()
     .references(() => questionnaires.id),
+  geographicUnitId: uuid("geographic_unit_id").references(() => geographicUnits.id),
   gpsLat: numeric("gps_lat"),
   gpsLng: numeric("gps_lng"),
   clientSubmissionId: text("client_submission_id").unique(),

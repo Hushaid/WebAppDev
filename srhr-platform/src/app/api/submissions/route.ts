@@ -8,8 +8,9 @@ import {
   questionnaires,
   questions,
   platformSettings,
+  geographicUnits,
 } from "@/lib/db/schema"
-import { eq, and, gte, sql } from "drizzle-orm"
+import { eq, and, gte, sql, ilike } from "drizzle-orm"
 import {
   computeRisk,
   type QuestionResponse,
@@ -183,7 +184,19 @@ export async function POST(request: NextRequest) {
       questionNumberToId[row.questionNumber] = row.id
     }
 
-    // 4. Insert submission
+    // 4. Resolve Q2 (location name) to a geographic_unit_id if possible
+    let geographicUnitId: string | null = null
+    const q2Value = body.responses["Q2"]
+    if (q2Value && q2Value.trim().length > 0) {
+      const [unit] = await db
+        .select({ id: geographicUnits.id })
+        .from(geographicUnits)
+        .where(ilike(geographicUnits.name, q2Value.trim()))
+        .limit(1)
+      geographicUnitId = unit?.id ?? null
+    }
+
+    // 5. Insert submission
     const [submission] = await db
       .insert(submissions)
       .values({
@@ -191,6 +204,7 @@ export async function POST(request: NextRequest) {
         submitterId: body.submitterId,
         submitterType: body.submitterType,
         questionnaireVersionId,
+        geographicUnitId,
         gpsLat: body.gpsLat ?? null,
         gpsLng: body.gpsLng ?? null,
         clientSubmissionId: body.clientSubmissionId ?? null,
