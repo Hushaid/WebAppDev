@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 
 export default function PartnersAuthLayout({
   children,
@@ -7,7 +8,7 @@ export default function PartnersAuthLayout({
 }) {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center bg-muted/50 p-4">
-      <figure className="mb-8">
+      <Link href="/" className="mb-8">
         <Image
           src="/hushaid-full-logo-new.svg"
           alt="Hushaid"
@@ -16,7 +17,7 @@ export default function PartnersAuthLayout({
           priority
           className="w-40 h-auto"
         />
-      </figure>
+      </Link>
       <article className="w-full max-w-md">{children}</article>
     </main>
   )

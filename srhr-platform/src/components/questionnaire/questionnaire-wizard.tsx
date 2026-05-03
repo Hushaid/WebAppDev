@@ -233,7 +233,7 @@ export function QuestionnaireWizard({
     if (dbOrder.length > 0) {
       const allIds = new Set(allQuestions.map((q) => q.id))
       for (const qId of dbOrder) {
-        if (!allIds.has(qId)) {
+        if (!allIds.has(qId) && !skippedIds.has(qId)) {
           const db = dbOverrides.get(qId)
           if (db) {
             const wizType: WizardQuestion["type"] =

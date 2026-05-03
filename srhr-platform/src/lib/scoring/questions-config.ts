@@ -162,6 +162,7 @@ export const SCORED_QUESTIONS: QuestionConfig[] = [
       { label: "IUD / coil", value: "iud", score: 1 },
       { label: "Natural method", value: "natural", score: 1 },
       { label: "Herbs", value: "herbs", score: 1 },
+      { label: "None", value: "none", score: 0 },
     ],
   },
 
