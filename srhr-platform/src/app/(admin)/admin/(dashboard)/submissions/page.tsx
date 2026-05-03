@@ -152,7 +152,9 @@ export default async function SubmissionsPage({
                   </TableCell>
                   <TableCell>
                     <Link href={`/admin/submissions/${sub.id}`} className="block">
-                      {sub.gpsLat ? (
+                      {sub.locationName ? (
+                        <span className="text-sm">{sub.locationName}</span>
+                      ) : sub.gpsLat ? (
                         <Badge variant="secondary">
                           {parseFloat(sub.gpsLat).toFixed(4)}, {parseFloat(sub.gpsLng!).toFixed(4)}
                         </Badge>

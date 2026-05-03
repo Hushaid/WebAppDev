@@ -45,6 +45,33 @@ async function getSubmissionIdsByAgeGroup(ageGroup: string): Promise<string[]> {
   return rows.map((r) => r.submissionId)
 }
 
+async function getQ2LocationNames(submissionIds: string[]): Promise<Record<string, string>> {
+  if (submissionIds.length === 0) return {}
+
+  const [q2] = await db
+    .select({ id: questions.id })
+    .from(questions)
+    .where(eq(questions.questionNumber, "Q2"))
+    .limit(1)
+
+  if (!q2) return {}
+
+  const rows = await db
+    .select({
+      submissionId: questionResponses.submissionId,
+      responseValue: questionResponses.responseValue,
+    })
+    .from(questionResponses)
+    .where(
+      and(
+        eq(questionResponses.questionId, q2.id),
+        inArray(questionResponses.submissionId, submissionIds),
+      ),
+    )
+
+  return Object.fromEntries(rows.map((r) => [r.submissionId, r.responseValue]))
+}
+
 export async function getSubmissions(page: number = 1, filters: SubmissionFilters = {}) {
   const offset = (page - 1) * PAGE_SIZE
 
@@ -115,8 +142,9 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
       .limit(PAGE_SIZE)
       .offset(offset)
 
+    const locationNames = await getQ2LocationNames(items.map((i) => i.id))
     return {
-      items,
+      items: items.map((i) => ({ ...i, locationName: locationNames[i.id] ?? null })),
       total: countResult.count,
       page,
       pageSize: PAGE_SIZE,
@@ -150,8 +178,9 @@ export async function getSubmissions(page: number = 1, filters: SubmissionFilter
     .limit(PAGE_SIZE)
     .offset(offset)
 
+  const locationNames = await getQ2LocationNames(items.map((i) => i.id))
   return {
-    items,
+    items: items.map((i) => ({ ...i, locationName: locationNames[i.id] ?? null })),
     total: countResult.count,
     page,
     pageSize: PAGE_SIZE,
