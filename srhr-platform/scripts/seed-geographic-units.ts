@@ -9,15 +9,15 @@
  */
 
 import { config } from "dotenv"
-import { drizzle } from "drizzle-orm/neon-http"
-import { neon } from "@neondatabase/serverless"
+config({ path: ".env.local" })
+
+import { drizzle } from "drizzle-orm/postgres-js"
+import postgres from "postgres"
 import { geographicUnits } from "../src/lib/db/schema/facilities"
 import { eq, and } from "drizzle-orm"
 
-config({ path: ".env.local" })
-
-const sql = neon(process.env.DATABASE_URL!)
-const db = drizzle(sql)
+const client = postgres(process.env.DATABASE_URL!)
+const db = drizzle(client)
 
 const NASARAWA_LGAS = [
   "Akwanga",
