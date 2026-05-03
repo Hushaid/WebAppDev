@@ -15,7 +15,8 @@
     "db:studio": "drizzle-kit studio",
     "db:studio:alt": "drizzle-kit studio --port=4984",
     "db:seed": "bun run src/lib/db/seed.ts",
-    "db:seed-facilities": "bun run scripts/seed-facilities.ts"
+    "db:seed-facilities": "bun run scripts/seed-facilities.ts",
+    "db:seed-geo": "bun run scripts/seed-geographic-units.ts"
   },
   "dependencies": {
     "@better-fetch/fetch": "^1.1.21",
