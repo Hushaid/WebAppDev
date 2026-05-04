@@ -119,7 +119,7 @@ export function UsersTable({ users, isSuperAdmin, callerRole, callerId }: UsersT
                   </TableCell>
                   <TableCell>
                     <time dateTime={user.createdAt.toISOString()}>
-                      {user.createdAt.toLocaleDateString()}
+                      {user.createdAt.toLocaleDateString("en-US")}
                     </time>
                   </TableCell>
                   <TableCell>

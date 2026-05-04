@@ -119,7 +119,7 @@ export default async function AlertsPage({
                       dateTime={alert.createdAt.toISOString()}
                       className="text-sm"
                     >
-                      {alert.createdAt.toLocaleDateString()}
+                      {alert.createdAt.toLocaleDateString("en-US")}
                     </time>
                   </TableCell>
                   <TableCell>

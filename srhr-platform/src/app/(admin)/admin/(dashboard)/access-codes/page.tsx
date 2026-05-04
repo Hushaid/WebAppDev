@@ -88,13 +88,13 @@ export default async function AccessCodesPage({
                   </TableCell>
                   <TableCell>
                     <time dateTime={code.issuedAt.toISOString()}>
-                      {code.issuedAt.toLocaleDateString()}
+                      {code.issuedAt.toLocaleDateString("en-US")}
                     </time>
                   </TableCell>
                   <TableCell>
                     {code.usedAt ? (
                       <time dateTime={code.usedAt.toISOString()}>
-                        {code.usedAt.toLocaleDateString()}
+                        {code.usedAt.toLocaleDateString("en-US")}
                       </time>
                     ) : (
                       <span className="text-muted-foreground">—</span>

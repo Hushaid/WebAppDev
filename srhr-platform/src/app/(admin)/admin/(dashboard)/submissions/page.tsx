@@ -166,7 +166,7 @@ export default async function SubmissionsPage({
                   <TableCell>
                     <Link href={`/admin/submissions/${sub.id}`} className="block">
                       <time dateTime={sub.createdAt.toISOString()}>
-                        {sub.createdAt.toLocaleDateString()}
+                        {sub.createdAt.toLocaleDateString("en-US")}
                       </time>
                     </Link>
                   </TableCell>

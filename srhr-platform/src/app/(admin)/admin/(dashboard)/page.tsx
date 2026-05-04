@@ -364,7 +364,7 @@ export default async function AdminDashboard() {
                       </p>
                     </div>
                     <Badge variant="outline" className="shrink-0 text-xs">
-                      {new Date(fw.lastSubmission).toLocaleDateString()}
+                      {new Date(fw.lastSubmission).toLocaleDateString("en-US")}
                     </Badge>
                   </div>
                 ))}
