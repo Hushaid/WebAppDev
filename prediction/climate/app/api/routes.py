@@ -8,7 +8,8 @@ and static parquet files — no database required.
 import os
 import time
 import logging
-from datetime import date
+import math
+from datetime import date, timedelta
 
 import numpy as np
 import pandas as pd
@@ -32,7 +33,7 @@ from ..models.ensemble import FloodEnsemble
 from ..models.compound_risk import batch_compound_risk
 from ..pipeline.features import FEATURE_NAMES, merge_features, build_dynamic_features
 from ..data.nimet import load_nimet_features
-from ..data.openmeteo import fetch_karu_live_features, fetch_karu_forecast_series
+from ..data.openmeteo import fetch_karu_live_features, fetch_karu_forecast_series, fetch_karu_seasonal_series
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["climate"])
@@ -103,7 +104,6 @@ def _get_karu_features() -> dict:
     if series is not None:
         today_rows = series[series["date"].dt.date == date.today()]
         row = today_rows.iloc[-1] if not today_rows.empty else series.iloc[-1]
-        import math
         wb30 = float(row["water_balance_30d"])
         live = {
             "rain_1d":           float(row["rain_1d"]),
@@ -246,7 +246,9 @@ def _confidence(days_ahead: int) -> str:
         return "high"
     if days_ahead <= 5:
         return "moderate"
-    return "indicative"
+    if days_ahead <= 16:
+        return "indicative"
+    return "seasonal"
 
 
 def _day_label(d: "date", today: "date") -> str:
@@ -259,23 +261,71 @@ def _day_label(d: "date", today: "date") -> str:
 
 
 def _run_forecast() -> list[dict]:
-    """Build 16-day flood forecast for Karu using Open-Meteo + XGBoost."""
+    """Build 90-day flood forecast for Karu using Open-Meteo + XGBoost.
+
+    Days 1-16: deterministic Open-Meteo forecast (high/moderate/indicative confidence).
+    Days 17-90: Open-Meteo seasonal ensemble — median flood probability with
+                p10/p90 rainfall uncertainty bands (confidence = "seasonal").
+    """
     _load_artifacts()
 
-    series = fetch_karu_forecast_series(forecast_days=16)
-    if series is None:
+    today = date.today()
+
+    # --- 16-day deterministic series (30d history + 16d forecast) ---
+    series_16 = fetch_karu_forecast_series(forecast_days=16)
+    if series_16 is None:
         logger.warning("Open-Meteo forecast unavailable")
         return []
 
-    # Only return rows from today onwards (the 16 forecast days)
-    today = date.today()
-    forecast_rows = series[series["date"].dt.date >= today].copy()
+    # --- 92-day seasonal ensemble ---
+    seasonal = fetch_karu_seasonal_series(forecast_days=92)
 
+    # Build full combined series for rolling window continuity.
+    # Base = 30d history + 16d forecast from deterministic API.
+    # Extend with seasonal medians for days 17-92, estimating ET from
+    # the mean ET observed in the 16-day forecast window.
+    forecast_et_rows = series_16[series_16["is_forecast"]]
+    mean_et = float(forecast_et_rows["et_mm"].mean()) if not forecast_et_rows.empty else 4.0
+
+    if seasonal is not None:
+        cutoff = today + timedelta(days=16)
+        seasonal_ext = seasonal[seasonal["date"].dt.date > cutoff].copy()
+        seasonal_ext = seasonal_ext.assign(et_mm=mean_et)
+        # Merge into a combined frame for rolling window recomputation
+        base = series_16[["date", "rain_mm", "et_mm"]].copy()
+        combined = pd.concat(
+            [base, seasonal_ext[["date", "rain_mm", "et_mm"]]],
+            ignore_index=True,
+        ).sort_values("date").reset_index(drop=True)
+    else:
+        combined = series_16[["date", "rain_mm", "et_mm"]].copy()
+        seasonal_ext = pd.DataFrame()
+
+    # Recompute rolling windows on the full combined series
+    for w in [1, 3, 7, 14, 30]:
+        combined[f"rain_{w}d"] = combined["rain_mm"].rolling(w, min_periods=1).sum()
+    for w in [7, 30]:
+        combined[f"et_{w}d"] = combined["et_mm"].rolling(w, min_periods=1).sum()
+    combined["water_balance_7d"]  = combined["rain_7d"]  - combined["et_7d"]
+    combined["water_balance_30d"] = combined["rain_30d"] - combined["et_30d"]
+    combined["soil_moisture"] = combined["water_balance_30d"].apply(
+        lambda wb: round(1.0 / (1.0 + math.exp(-wb / 50.0)), 4)
+    )
+
+    # Lookup table for p10/p90 from seasonal (keyed by date string)
+    seasonal_bounds: dict[str, tuple[float, float]] = {}
+    if seasonal is not None and not seasonal_ext.empty:
+        for _, sr in seasonal_ext.iterrows():
+            d = str(sr["date"].date())
+            p10 = float(seasonal.loc[seasonal["date"] == sr["date"], "rain_mm_p10"].iloc[0])
+            p90 = float(seasonal.loc[seasonal["date"] == sr["date"], "rain_mm_p90"].iloc[0])
+            seasonal_bounds[d] = (round(p10, 1), round(p90, 1))
+
+    # Slice to today onwards
+    forecast_rows = combined[combined["date"].dt.date >= today].copy()
     if forecast_rows.empty:
         return []
 
-    # Build a feature row for each forecast day and run through the model
-    results = []
     karu_static = _static_features[
         _static_features["lga_id"].astype(str) == KARU_LGA_ID
     ]
@@ -284,33 +334,32 @@ def _run_forecast() -> list[dict]:
 
     static_row = karu_static.iloc[0]
     ensemble = FloodEnsemble()
+    import xgboost as xgb  # noqa: F401 — imported for model.predict
 
-    for i, (_, row) in enumerate(forecast_rows.iterrows()):
+    results = []
+    for _, row in forecast_rows.iterrows():
         feat = {col: 0.0 for col in FEATURE_NAMES}
 
-        # Static terrain features
         for col in ["hand_mean", "hand_min", "hand_std", "twi_mean", "twi_max",
                     "slope_mean", "population_density", "distance_to_river",
                     "flood_fraction_baseline", "land_cover_urban"]:
             feat[col] = float(static_row.get(col, 0))
 
-        # Dynamic rainfall features
         rain_30d = float(row["rain_30d"]) or 1.0
         feat["rain_1d"]  = float(row["rain_1d"])
         feat["rain_3d"]  = float(row["rain_3d"])
         feat["rain_7d"]  = float(row["rain_7d"])
         feat["rain_14d"] = float(row["rain_14d"])
         feat["rain_30d"] = float(row["rain_30d"])
-        feat["rain_7d_ratio"] = feat["rain_7d"] / rain_30d
-        feat["rain_3d_ratio"] = feat["rain_3d"] / rain_30d
-        feat["soil_moisture"]      = float(row["soil_moisture"])
-        feat["water_balance_7d"]   = float(row["water_balance_7d"])
-        feat["water_balance_30d"]  = float(row["water_balance_30d"])
-        feat["forecast_risk"]      = 0.0
+        feat["rain_7d_ratio"]       = feat["rain_7d"] / rain_30d
+        feat["rain_3d_ratio"]       = feat["rain_3d"] / rain_30d
+        feat["soil_moisture"]       = float(row["soil_moisture"])
+        feat["water_balance_7d"]    = float(row["water_balance_7d"])
+        feat["water_balance_30d"]   = float(row["water_balance_30d"])
+        feat["forecast_risk"]       = 0.0
         feat["benue_discharge_max"] = 0.0
         feat["niger_discharge_max"] = 0.0
 
-        import xgboost as xgb
         X = np.array([[feat[c] for c in FEATURE_NAMES]])
         xgb_pred = _model.predict(X)
         flood_prob = float(ensemble.predict(xgb_pred, None, np.zeros(1))[0])
@@ -318,15 +367,19 @@ def _run_forecast() -> list[dict]:
 
         forecast_date = row["date"].date()
         days_ahead = (forecast_date - today).days
+        date_str = str(forecast_date)
+        bounds = seasonal_bounds.get(date_str)
 
         results.append({
-            "date": str(forecast_date),
+            "date": date_str,
             "day_label": _day_label(forecast_date, today),
             "flood_probability": round(flood_prob, 4),
             "risk_level": risk_level,
             "rain_mm": round(float(row["rain_mm"]), 1),
+            "rain_mm_p10": bounds[0] if bounds else None,
+            "rain_mm_p90": bounds[1] if bounds else None,
             "confidence": _confidence(days_ahead),
-            "is_forecast": bool(row["is_forecast"]),
+            "is_forecast": days_ahead >= 0,
         })
 
     return results
@@ -448,7 +501,11 @@ async def get_climate_alerts(
 
 @router.get("/flood-forecast", response_model=FloodForecastResponse)
 async def get_flood_forecast():
-    """16-day flood outlook for Karu LGA powered by Open-Meteo + XGBoost."""
+    """90-day flood outlook for Karu LGA powered by Open-Meteo + XGBoost.
+
+    Days 1-16: deterministic forecast (high/moderate/indicative confidence).
+    Days 17-90: seasonal ensemble median with p10/p90 uncertainty bands (confidence=seasonal).
+    """
     try:
         _load_artifacts()
         forecasts = _get_cached_forecast()

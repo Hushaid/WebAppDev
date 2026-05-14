@@ -64,12 +64,14 @@ class LagdoDamResponse(BaseModel):
 
 class FloodForecastDay(BaseModel):
     date: str
-    day_label: str          # "Today", "Tomorrow", "Mon 5 May", etc.
+    day_label: str              # "Today", "Tomorrow", "Mon 5 May", etc.
     flood_probability: float
     risk_level: str
-    rain_mm: float          # forecasted / observed daily rainfall
-    confidence: str         # "high", "moderate", "indicative"
-    is_forecast: bool       # False = observed history, True = model forecast
+    rain_mm: float              # forecasted / observed daily rainfall (median for seasonal)
+    rain_mm_p10: float | None = None  # 10th percentile — low scenario (seasonal days only)
+    rain_mm_p90: float | None = None  # 90th percentile — high scenario (seasonal days only)
+    confidence: str             # "high", "moderate", "indicative", "seasonal"
+    is_forecast: bool           # False = observed history, True = model forecast
 
 
 class FloodForecastResponse(BaseModel):
