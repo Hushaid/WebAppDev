@@ -16,6 +16,8 @@ interface ForecastDay {
   flood_probability: number
   risk_level: string
   rain_mm: number
+  rain_mm_p10?: number | null
+  rain_mm_p90?: number | null
   confidence: string
   is_forecast: boolean
 }
@@ -26,7 +28,6 @@ interface ForecastResponse {
   generated_at: string
 }
 
-// What each risk level means to a partner — no numbers
 const RISK_LABEL: Record<string, string> = {
   normal:    "Safe",
   watch:     "Monitor",
@@ -55,17 +56,11 @@ const RISK_LABEL_COLOR: Record<string, string> = {
   emergency: "text-red-700",
 }
 
-const CONFIDENCE_NOTE: Record<string, string> = {
-  high:       "",
-  moderate:   "",
-  indicative: "trend only",
-}
-
 function SummaryBanner({ forecasts }: { forecasts: ForecastDay[] }) {
-  const highDays = forecasts.filter(
-    (f) => f.risk_level === "warning" || f.risk_level === "emergency"
-  )
-  const watchDays = forecasts.filter((f) => f.risk_level === "watch")
+  // Only evaluate the first 16 days for the summary alert
+  const near = forecasts.slice(0, 16)
+  const highDays = near.filter((f) => f.risk_level === "warning" || f.risk_level === "emergency")
+  const watchDays = near.filter((f) => f.risk_level === "watch")
 
   if (highDays.length > 0) {
     const first = highDays[0]
@@ -95,8 +90,36 @@ function SummaryBanner({ forecasts }: { forecasts: ForecastDay[] }) {
     <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm">
       <p className="font-semibold text-green-700">All clear for the next 16 days</p>
       <p className="text-green-700 mt-0.5">
-        No significant flood risk is forecast for Karu LGA. Continue routine programme activities.
+        No significant flood risk is forecast for Karu LGA. The seasonal outlook through August also shows no elevated risk.
       </p>
+    </div>
+  )
+}
+
+function RainIndicator({ f }: { f: ForecastDay }) {
+  if (f.confidence === "seasonal" && f.rain_mm_p10 != null && f.rain_mm_p90 != null) {
+    return (
+      <div className="flex-1 flex items-center gap-1 text-xs text-muted-foreground">
+        <CloudRain className="h-3 w-3 text-blue-300 shrink-0" />
+        <span>{f.rain_mm}mm est. ({f.rain_mm_p10}–{f.rain_mm_p90}mm range)</span>
+      </div>
+    )
+  }
+  if (f.rain_mm > 0) {
+    return (
+      <div className="flex-1 flex items-center gap-1 text-xs text-muted-foreground">
+        <CloudRain className="h-3 w-3 text-blue-400 shrink-0" />
+        <span>{f.rain_mm}mm rain expected</span>
+      </div>
+    )
+  }
+  return <div className="flex-1" />
+}
+
+function ZoneDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/40 border-y">
+      <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{label}</span>
     </div>
   )
 }
@@ -130,7 +153,7 @@ export function FloodForecast() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CardTitle className="text-sm font-medium">
-              16-Day Flood Outlook — Karu LGA
+              90-Day Flood Outlook — Karu LGA
             </CardTitle>
             <TooltipProvider>
               <Tooltip>
@@ -139,12 +162,12 @@ export function FloodForecast() {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-72 text-xs space-y-1">
                   <p className="font-medium">How to read this outlook</p>
-                  <p>Each row shows the expected flood situation for that day based on rainfall forecasts and terrain data for Karu LGA.</p>
+                  <p>Each row shows the expected flood situation based on rainfall forecasts and terrain data for Karu LGA.</p>
                   <p><strong>Safe</strong> — normal conditions, no action needed.</p>
                   <p><strong>Monitor</strong> — rainfall building, stay alert.</p>
                   <p><strong>Elevated</strong> — flooding likely, prepare response.</p>
                   <p><strong>Critical</strong> — activate emergency plan.</p>
-                  <p className="text-muted-foreground pt-1">Days 1–3 are most reliable. Beyond day 5, treat as a general trend.</p>
+                  <p className="text-muted-foreground pt-1"><strong>Days 1–5</strong> are most reliable. <strong>Days 6–16</strong> are indicative trends. <strong>Days 17–90</strong> are seasonal estimates from climate ensemble models — use for planning, not operational decisions.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -168,49 +191,46 @@ export function FloodForecast() {
           <>
             <SummaryBanner forecasts={data.forecasts} />
 
-            <div className="divide-y rounded-lg border overflow-hidden">
-              {data.forecasts.map((f, i) => (
-                <div
-                  key={f.date}
-                  className={`flex items-center gap-3 px-3 py-2.5 ${RISK_ROW_BG[f.risk_level]}`}
-                >
-                  {/* Day label */}
-                  <div className="w-28 shrink-0">
-                    <p className="text-sm font-medium">{f.day_label}</p>
-                    {f.confidence === "indicative" && (
-                      <p className="text-xs text-muted-foreground">trend only</p>
-                    )}
-                  </div>
+            <div className="rounded-lg border overflow-hidden divide-y">
+              {data.forecasts.map((f, i) => {
+                const isFirstIndicative = i > 0 && f.confidence === "indicative" && data.forecasts[i - 1].confidence !== "indicative"
+                const isFirstSeasonal = i > 0 && f.confidence === "seasonal" && data.forecasts[i - 1].confidence !== "seasonal"
 
-                  {/* Status icon + label */}
-                  <div className="flex items-center gap-1.5 w-24 shrink-0">
-                    {RISK_ICON[f.risk_level]}
-                    <span className={`text-sm font-medium ${RISK_LABEL_COLOR[f.risk_level]}`}>
-                      {RISK_LABEL[f.risk_level]}
-                    </span>
-                  </div>
+                return (
+                  <div key={f.date}>
+                    {isFirstIndicative && <ZoneDivider label="Days 6–16 · Trend only" />}
+                    {isFirstSeasonal && <ZoneDivider label="Days 17–90 · Seasonal outlook" />}
 
-                  {/* Rain indicator */}
-                  <div className="flex-1 flex items-center gap-1 text-xs text-muted-foreground">
-                    {f.rain_mm > 0 && (
-                      <>
-                        <CloudRain className="h-3 w-3 text-blue-400 shrink-0" />
-                        <span>{f.rain_mm}mm rain expected</span>
-                      </>
-                    )}
-                  </div>
+                    <div className={`flex items-center gap-3 px-3 py-2.5 ${RISK_ROW_BG[f.risk_level]}`}>
+                      {/* Day label */}
+                      <div className="w-28 shrink-0">
+                        <p className="text-sm font-medium">{f.day_label}</p>
+                        {f.confidence === "indicative" && (
+                          <p className="text-xs text-muted-foreground">trend only</p>
+                        )}
+                        {f.confidence === "seasonal" && (
+                          <p className="text-xs text-muted-foreground">seasonal est.</p>
+                        )}
+                      </div>
 
-                  {/* Faint divider between reliable/indicative zones */}
-                  {i === 2 && (
-                    <span className="text-xs text-muted-foreground/50 shrink-0">· · ·</span>
-                  )}
-                </div>
-              ))}
+                      {/* Status icon + label */}
+                      <div className="flex items-center gap-1.5 w-24 shrink-0">
+                        {RISK_ICON[f.risk_level]}
+                        <span className={`text-sm font-medium ${RISK_LABEL_COLOR[f.risk_level]}`}>
+                          {RISK_LABEL[f.risk_level]}
+                        </span>
+                      </div>
+
+                      {/* Rain indicator */}
+                      <RainIndicator f={f} />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
-            {/* Footer note */}
             <p className="text-xs text-muted-foreground">
-              Forecast accuracy is highest for the next 3 days. Beyond day 5, use as a general trend indicator only.
+              Days 1–5: highest accuracy. Days 6–16: directional trend. Days 17–90: seasonal climate estimates — suitable for programme planning, not emergency response.
             </p>
           </>
         )}
