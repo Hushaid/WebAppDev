@@ -11,6 +11,7 @@ import pandas as pd
 
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
 OPENMETEO_HISTORICAL_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+SEASONAL_URL = "https://seasonal-api.open-meteo.com/v1/seasonal"
 
 # Karu LGA, Nasarawa State
 KARU_LAT = 9.2747
@@ -223,3 +224,50 @@ def fetch_karu_live_features() -> dict | None:
         "water_balance_30d":  round(wb30, 2),
         "data_date":          str(latest["date"].date()),
     }
+
+
+def fetch_karu_seasonal_series(forecast_days: int = 92) -> pd.DataFrame | None:
+    """Fetch seasonal ensemble forecast for Karu (up to 92 days).
+
+    Returns a DataFrame with columns:
+        date, rain_mm (ensemble median), rain_mm_p10, rain_mm_p90
+
+    Uses 50 ensemble members from the Open-Meteo seasonal API (free, no key).
+    """
+    import numpy as np
+
+    params = {
+        "latitude": KARU_LAT,
+        "longitude": KARU_LON,
+        "daily": "precipitation_sum",
+        "forecast_days": min(forecast_days, 92),
+        "timezone": "Africa/Lagos",
+    }
+
+    try:
+        with httpx.Client(timeout=30) as client:
+            resp = client.get(SEASONAL_URL, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.HTTPError:
+        return None
+
+    daily = data.get("daily", {})
+    dates = daily.get("time", [])
+    if not dates:
+        return None
+
+    member_keys = sorted(k for k in daily if k.startswith("precipitation_sum_member"))
+    if not member_keys:
+        return None
+
+    member_arr = np.array([daily[k] for k in member_keys], dtype=float)  # (n_members, n_days)
+
+    df = pd.DataFrame({
+        "date": pd.to_datetime(dates),
+        "rain_mm": np.nanmedian(member_arr, axis=0),
+        "rain_mm_p10": np.nanpercentile(member_arr, 10, axis=0),
+        "rain_mm_p90": np.nanpercentile(member_arr, 90, axis=0),
+    })
+
+    return df.reset_index(drop=True)
