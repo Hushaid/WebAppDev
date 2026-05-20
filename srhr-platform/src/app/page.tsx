@@ -1,19 +1,28 @@
-import { Button } from "@/components/ui/button"
+export const dynamic = "force-dynamic"
 
-export default function Page() {
-  return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
-  )
+import { redirect } from "next/navigation"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
+import { LandingPage } from "@/components/landing/landing-page"
+
+const roleRoutes: Record<string, string> = {
+  admin: "/admin",
+  super_admin: "/admin",
+  field_worker: "/field-worker",
+  personal_user: "/personal/questionnaire",
+  partner: "/partners",
+}
+
+export default async function HomePage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (session?.user) {
+    const role = (session.user as { role?: string }).role || "personal_user"
+    const destination = roleRoutes[role] || "/log-in"
+    redirect(destination)
+  }
+
+  return <LandingPage />
 }

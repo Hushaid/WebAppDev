@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Generated model artifacts — produced by train_local.py, not source code
+models_store/
+
+# Climate data cache
+/tmp/climate_data/
+
+# Local deployment guide — reference only, not part of the repo
+DEPLOY_RENDER.md

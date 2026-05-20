@@ -1,0 +1,567 @@
+{
+  "common": {
+    "appName": "Hushaid SRHR",
+    "loading": "E dey load...",
+    "submit": "Send am",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Go back",
+    "next": "Next",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "online": "Online",
+    "offline": "Offline",
+    "syncing": "E dey sync...",
+    "pending": "E dey wait to sync"
+  },
+  "auth": {
+    "logIn": "Log In",
+    "createAccount": "Create Account",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Your Full Name",
+    "accessCode": "Access Code",
+    "forgotPassword": "You forget your password?",
+    "noAccount": "You no get account?",
+    "hasAccount": "You get account already?",
+    "mfaSetup": "Set Up Two-Factor Authentication",
+    "mfaVerify": "Verify Authentication Code",
+    "mfaRequired": "Two-factor authentication dey required for your role."
+  },
+  "questionnaire": {
+    "title": "SRHR Health Assessment",
+    "progress": "Question {current} of {total}",
+    "sectionSti": "STI Risk Check",
+    "sectionMaternal": "Maternal Health",
+    "sectionCommunity": "Community Wellbeing",
+    "skipNote": "Dem skip dis question based on your last answer.",
+    "submitting": "E dey submit your assessment...",
+    "submitted": "Assessment don submit successfully!",
+    "cooldown": "Assessment Cooldown",
+    "cooldownMessage": "You fit submit another assessment after {time}.",
+    "gpsCapture": "E dey capture GPS location...",
+    "gpsRequired": "GPS location dey required for field submissions.",
+    "surveyEndedTitle": "Survey Don End",
+    "surveyEndedMessage": "Thank you for your time. Since you no give consent, the survey no fit continue. We dey respect your privacy and we no collect any data.",
+    "startOver": "Start Again",
+    "pageTitle": "Health Assessment",
+    "checkingAvailability": "E dey check availability...",
+    "cooldownTitle": "Abeg wait before you retake",
+    "cooldownBody": "You don do one assessment recently. To make sure your results dey accurate and meaningful, e get small waiting time between assessments.",
+    "cooldownAfter": "You fit take another assessment after {time}.",
+    "viewLastResults": "See your last results",
+    "pageDescription": "Answer the questions below to get confidential health risk assessment. Your data dey encrypted and private.",
+    "submittingAnswers": "E dey submit your answers...",
+    "selectOption": "Choose one option",
+    "enterResponse": "Abeg put answer before you continue.",
+    "selectResponse": "Abeg choose one option before you continue.",
+    "locationRequiredTitle": "We need your location",
+    "locationPermissionPrompt": "This assessment need your location. Click the button below to allow location access — your browser go ask you for permission.",
+    "grantLocationAccess": "Allow Location Access",
+    "waitingForLocationAccess": "E dey find your location… Abeg wait.",
+    "locationRequiredBody": "You need to allow location access before you fit start. Go to your browser settings, turn on location, then reload the page.",
+    "reloadPage": "Reload page"
+  },
+  "risk": {
+    "low": "Low Risk",
+    "medium": "Medium Risk",
+    "high": "High Risk",
+    "stiRisk": "STI Risk",
+    "maternalRisk": "Maternal Health Risk",
+    "communityRisk": "Community Wellbeing Risk",
+    "overallRisk": "Overall Risk Level",
+    "referral": "Recommended Facility"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "recentSubmissions": "Recent Submissions",
+    "todayCount": "Today Submissions",
+    "weekCount": "Dis Week",
+    "totalCount": "Total Submissions",
+    "noSubmissions": "No submissions yet."
+  },
+  "partners": {
+    "title": "Partners Dashboard",
+    "description": "Community-level SRHR risk map and analytics.",
+    "geoCells": "Geographic Cells",
+    "hotspots": "Hotspots",
+    "highRisk": "High Risk Areas",
+    "totalSubmissions": "Total Submissions",
+    "climateLayer": "Climate / Flood Risk Layer",
+    "floodRisk": "Flood Risk",
+    "compoundRisk": "Compound Vulnerability"
+  },
+  "admin": {
+    "users": "Users",
+    "submissions": "Submissions",
+    "accessCodes": "Access Codes",
+    "questionnaires": "Questionnaires",
+    "alerts": "Alerts",
+    "auditLog": "Audit Log",
+    "settings": "Settings"
+  },
+  "personal": {
+    "welcome": "Welcome",
+    "welcomeWithName": "Welcome, {name}",
+    "description": "Dis na your private health assessment dashboard. All your data dey encrypted and private.",
+    "quickActions": "Quick Actions",
+    "takeAssessment": "Take assessment",
+    "viewLastResult": "View last result",
+    "latestResult": "Latest Result",
+    "takenOn": "Taken on",
+    "aggregateScore": "Aggregate score",
+    "infectionRisk": "Infection Risk",
+    "maternalHealth": "Maternal Health",
+    "communityWellbeing": "Community Well-being",
+    "viewAllAssessments": "View all assessments",
+    "assessmentHistory": "Assessment History",
+    "noAssessmentsYet": "You never take any assessment yet. Complete your first health assessment to get personalised risk profile and facility recommendation.",
+    "nav": {
+      "dashboard": "Dashboard",
+      "assessment": "Assessment",
+      "history": "History",
+      "settings": "Settings",
+      "menu": "Menu"
+    }
+  },
+  "fieldWorker": {
+    "dashboardTitle": "Field Worker Dashboard",
+    "welcomeWithName": "Welcome, {name}",
+    "description": "Your assessment activity for one glance. Every assessment wey you do dey help identify health risk for community.",
+    "newAssessment": "New assessment",
+    "questionnaireDescription": "Complete the health risk assessment for the person wey you dey assist.",
+    "noAssessmentsYetTitle": "No assessments yet",
+    "noAssessmentsYetBody": "You never conduct any health assessment yet. Start your first one to help identify health risks for the community.",
+    "startFirstAssessment": "Start your first assessment",
+    "submissions": "submissions",
+    "total": "Total",
+    "withLocationCaptured": "{count} with location captured",
+    "locationCaptured": "Location captured",
+    "waitingForLocationAccess": "We dey get your location… Abeg wait small.",
+    "locationRequiredTitle": "Location access required",
+    "locationPermissionPrompt": "Dis assessment need your location to stop duplicate submission. Tap the button below to allow location access — your browser go ask you for permission.",
+    "grantLocationAccess": "Grant Location Access",
+    "locationRequiredBody": "Location permission na must to submit assessment. Dem dey use am stop duplicate data collection. Abeg enable location access for your browser settings and reload the page.",
+    "reloadPage": "Reload page",
+    "recentSubmissionDetectedTitle": "Recent submission detected",
+    "recentSubmissionDetectedBody": "Dem don already record submission from this location within the last {minutes} {unit}. To prevent duplicate data collection, you no fit start new assessment from here yet.",
+    "startNewAssessmentAfter": "You fit start another assessment after {time}, or {move}.",
+    "moveDifferentLocation": "move go different location",
+    "duplicateAlert": "Duplicate submission detected. Abeg move go another location before you submit again.",
+    "minute": "minute",
+    "minutes": "minutes",
+    "nav": {
+      "dashboard": "Dashboard",
+      "newAssessment": "New Assessment",
+      "history": "History",
+      "referrals": "Referrals",
+      "settings": "Settings",
+      "menu": "Menu"
+    }
+  },
+  "questions": {
+    "Q1": {
+      "text": "Dis survey go help us understand your health needs and make sure your community get things like medicine, delivery packs, sanitary pads, contraceptives and free treatment when flood come. Your answers dey private. We fit start?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q2": {
+      "text": "Wetin be the name of your State and Community?"
+    },
+    "Q3": {
+      "text": "Wetin be your sex?",
+      "options": {
+        "male": "Male",
+        "female": "Female"
+      }
+    },
+    "Q4": {
+      "text": "Who you dey stay with?",
+      "options": {
+        "family": "Family",
+        "alone": "I dey alone",
+        "idp_camp": "For camp (IDP)",
+        "other": "Other"
+      }
+    },
+    "Q5": {
+      "text": "How old you be?",
+      "options": {
+        "15_24": "15–24 years",
+        "25_34": "25–34 years",
+        "35_plus": "35 years or more"
+      }
+    },
+    "Q6": {
+      "text": "Wetin be your work?"
+    },
+    "Q7": {
+      "text": "How much you dey earn per year?",
+      "options": {
+        "10k_20k": "₦10,000 – ₦20,000",
+        "20k_30k": "₦20,000 – ₦30,000",
+        "30k_40k": "₦30,000 – ₦40,000",
+        "40k_50k": "₦40,000 – ₦50,000"
+      }
+    },
+    "Q8": {
+      "text": "Which type house you dey stay?",
+      "options": {
+        "hut": "Hut (small mud house)",
+        "bungalow": "Bungalow",
+        "homeless": "I no get house (homeless)",
+        "idp_camp": "IDP camp"
+      }
+    },
+    "Q9": {
+      "text": "How many people dey your family?",
+      "options": {
+        "2_4": "2–4 people",
+        "5_7": "5–7 people",
+        "8_10": "8–10 people"
+      }
+    },
+    "Q10": {
+      "text": "You get any disability? If yes, wetin e be?"
+    },
+    "Q11": {
+      "text": "You don dey see any of these things recently? Tick as many as apply.",
+      "options": {
+        "discharge": "Strange flow or smell from your private part",
+        "sores": "Sore, lump, or blister for mouth or private part",
+        "burning": "Hot or burning feeling when you dey piss",
+        "pain_sex": "Pain or blood when you dey knack or after you knack",
+        "tummy_pain": "Pain for your lower belle",
+        "fever": "Fever or plenty sweating at night",
+        "yellow_eyes": "Yellow eyes/skin or your piss very dark",
+        "none": "None of these"
+      }
+    },
+    "Q12": {
+      "text": "How long dis thing don dey happen?",
+      "options": {
+        "less_1_week": "Less than 1 week",
+        "1_4_weeks": "1–4 weeks ago",
+        "more_4_weeks": "More than 4 weeks"
+      }
+    },
+    "Q13": {
+      "text": "The symptoms — e dey get worse, abi e dey the same or e dey get better?",
+      "options": {
+        "improving": "E dey better",
+        "same": "Na the same thing till now",
+        "worse": "Dem dey get worse"
+      }
+    },
+    "Q14": {
+      "text": "When last you go do blood test for HIV or other infections?",
+      "options": {
+        "last_6_months": "Within the last 6 months",
+        "more_6_months": "More than 6 months ago",
+        "never_tested": "I never do am before"
+      }
+    },
+    "Q15": {
+      "text": "You get who you dey sleep with since last year?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q16": {
+      "text": "How many times you dey use condom?",
+      "options": {
+        "every_time": "Every time",
+        "sometimes": "Sometimes",
+        "never": "Never"
+      }
+    },
+    "Q17": {
+      "text": "Recently, anybody don force or pressure you to sleep with them when you no want?",
+      "options": {
+        "no": "No",
+        "yes": "Yes",
+        "rather_not_say": "I no wan talk"
+      }
+    },
+    "Q18": {
+      "text": "You don exchange your body for money, food, gift, or place to stay?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q19": {
+      "text": "Person wey you dey sleep with get other partners, or any health wahala wey you know?",
+      "options": {
+        "no": "No",
+        "yes": "Yes",
+        "not_sure": "I no sure"
+      }
+    },
+    "Q20": {
+      "text": "You dey use any protection for STI or to prevent pregnancy?",
+      "options": {
+        "yes": "Yes",
+        "no": "No",
+        "want_but_no_access": "I wan use but I no get"
+      }
+    },
+    "Q21": {
+      "text": "Which one you dey use? Tick all that apply.",
+      "options": {
+        "condom": "Condom",
+        "pills": "Daily Pills",
+        "injection": "Injection (the shot)",
+        "implant": "Implant (small rod for arm)",
+        "iud": "IUD (the coil)",
+        "natural": "Natural method (withdrawal or counting days)",
+        "herbs": "Herbs"
+      }
+    },
+    "Q22": {
+      "text": "You get belle? (pregnant)",
+      "options": {
+        "no": "No",
+        "not_sure": "I no sure",
+        "yes": "Yes"
+      }
+    },
+    "Q23": {
+      "text": "How many months you don carry belle?",
+      "options": {
+        "early": "Early (1–3 months)",
+        "middle": "Middle (4–6 months)",
+        "late": "Late (7 months and above)",
+        "not_sure": "I no sure"
+      }
+    },
+    "Q24": {
+      "text": "When last you go for antenatal checkup for dis pregnancy?",
+      "options": {
+        "last_month": "Last month",
+        "1_3_months": "1–3 months ago",
+        "more_3_months": "More than 3 months ago",
+        "never": "I never go"
+      }
+    },
+    "Q25": {
+      "text": "Wetin dey stop you from going for antenatal?",
+      "options": {
+        "no_barrier": "Nothing dey stop me",
+        "far_away": "Health centre too far",
+        "no_money": "I no get money",
+        "cultural": "Family or cultural reasons",
+        "not_aware": "I no know wetin be antenatal service"
+      }
+    },
+    "Q26": {
+      "text": "You don experience any of these for dis pregnancy or past pregnancies? Tick all that apply.",
+      "options": {
+        "headaches": "Very bad headache or dizziness",
+        "swelling": "Swelling for leg, hand, or face",
+        "blurred_vision": "Blurred vision (you no dey see well)",
+        "bleeding": "Unusual or heavy bleeding",
+        "c_section": "Dem do C-section for me",
+        "high_bp": "High blood pressure",
+        "high_sugar": "High sugar level (diabetes)",
+        "none": "None of these"
+      }
+    },
+    "Q27": {
+      "text": "How old you be when you first get belle?",
+      "options": {
+        "never_pregnant": "I never get belle before",
+        "over_18": "More than 18 years",
+        "under_18_or_over_35": "Less than 18 years or more than 35 years"
+      }
+    },
+    "Q28": {
+      "text": "Wetin be the space between your pikin (if you get 2 or more pikin)?",
+      "options": {
+        "no_children": "I no get pikin",
+        "over_2_years": "More than 2 years apart or I only get one pikin",
+        "under_2_years": "Less than 2 years apart"
+      }
+    },
+    "Q29": {
+      "text": "If you dey carry belle now, where you wan born your baby?",
+      "options": {
+        "health_centre": "For health centre",
+        "home": "For house",
+        "traditional": "With traditional birth attendant (TBA)"
+      }
+    },
+    "Q30": {
+      "text": "You dey prepare for delivery but you no get Delivery Pack (soap, gloves, wrapper, baby clothes, cap, socks, towel, delivery pad) ready?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q31": {
+      "text": "Where you born your other pikin? (If you no dey carry belle now but you don born before)",
+      "options": {
+        "no_deliveries": "I never born before",
+        "health_centre": "For health centre",
+        "home": "For house",
+        "traditional": "With traditional birth attendant (TBA)"
+      }
+    },
+    "Q32": {
+      "text": "You don ever lose pregnancy before (miscarriage)?",
+      "options": {
+        "no": "No",
+        "yes": "Yes"
+      }
+    },
+    "Q33": {
+      "text": "If yes, how many times you don lose pregnancy?",
+      "options": {
+        "0_1": "0–1 time",
+        "2_3": "2–3 times",
+        "more_3": "More than 3 times"
+      }
+    },
+    "Q34": {
+      "text": "Which group of people face SRHR risk the most when flood come? Tick all that apply.",
+      "options": {
+        "pregnant": "Pregnant women or breastfeeding mothers",
+        "nursing": "Teenagers / Young people",
+        "disability": "People with disability (PWD)",
+        "others": "Old people or displaced people"
+      }
+    },
+    "Q35": {
+      "text": "When flood come, which of these things dey available for temporary shelters? You fit tick more than one.",
+      "options": {
+        "delivery_spaces": "Safe place for delivery",
+        "privacy": "Private place for women and girls",
+        "hygiene": "Sanitary pads / menstrual hygiene supplies",
+        "violence_reporting": "Way to report gender-based violence (GBV)",
+        "none": "None of the above"
+      }
+    },
+    "Q36": {
+      "text": "When flood happen, people dey report gender-based violence for your community?",
+      "options": {
+        "no": "No",
+        "not_sure": "I no sure",
+        "yes": "Yes"
+      }
+    },
+    "Q37": {
+      "text": "Which of these things you don see for the health centre wey dey your community? Tick all that apply.",
+      "options": {
+        "sanitary_pads": "Sanitary pads",
+        "condoms": "Condoms",
+        "birth_control": "Family planning (pills, injection, implants)",
+        "delivery_pack": "Delivery Pack",
+        "chew": "Community Health Workers (CHEW)",
+        "nurses_doctors": "Trained nurses or doctors",
+        "private_rooms": "Private room for testing and talking",
+        "none": "None of the above"
+      }
+    },
+    "Q38": {
+      "text": "The health centre dey near you?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q39": {
+      "text": "When flood dey happen, you fit still reach the nearest health centre, or road dey block?",
+      "options": {
+        "yes": "I fit still reach the health centre",
+        "flooded": "Road don block with water",
+        "not_sure": "I no sure"
+      }
+    },
+    "Q40": {
+      "text": "Medicine dey available during past flood?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q41": {
+      "text": "If you get pikin under 5 years, any of dem don miss their vaccination recently because of flood?",
+      "options": {
+        "no_children": "I no get pikin under 5",
+        "up_to_date": "No, dem up to date",
+        "missed": "Yes, dem miss some"
+      }
+    },
+    "Q42": {
+      "text": "If person force you sleep with them, you fit get help or medicine within 3 days (to prevent HIV, STI or pregnancy)?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "Q43": {
+      "text": "Dem dey send warning for your area before flood come?",
+      "options": {
+        "yes": "Yes",
+        "no": "No",
+        "not_sure": "I no sure"
+      }
+    },
+    "Q44": {
+      "text": "Abeg drop your phone or WhatsApp number so that relief teams fit reach you with supplies or health support when flood come. (Optional)"
+    },
+    "Q45": {
+      "text": "E okay make dem use your answers (we no go put your name) to tell relief teams to bring medicine and more health workers to your community before the flood?",
+      "options": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "PS1": {
+      "text": "How easy the questions be to understand?",
+      "options": {
+        "1": "No easy at all",
+        "2": "Small small easy",
+        "3": "E fair",
+        "4": "Easy",
+        "5": "Very easy"
+      }
+    },
+    "PS2": {
+      "text": "How well the words wey dem use to describe sickness, symptoms, or body parts match wetin people dey call dem for dis community?",
+      "options": {
+        "1": "No match at all",
+        "2": "Small small match",
+        "3": "E fair",
+        "4": "E match well",
+        "5": "E match very well"
+      }
+    },
+    "PS3": {
+      "text": "How well the questions for dis survey show the real health problems wey dey worry you, your family and the community?",
+      "options": {
+        "1": "No show at all",
+        "2": "Small small show",
+        "3": "E fair",
+        "4": "E show well",
+        "5": "E show very well"
+      }
+    },
+    "PS4": {
+      "text": "You get any other suggestion to make dis survey better or capture the community health situation more accurately?"
+    },
+    "PS5": {
+      "text": "Any health issue or local thing wey dis survey miss entirely?"
+    }
+  }
+}

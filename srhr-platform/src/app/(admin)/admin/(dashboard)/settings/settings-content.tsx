@@ -1,0 +1,301 @@
+"use client"
+
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import type { ThresholdConfig, RiskLevel } from "@/lib/scoring/thresholds"
+import { ChangePasswordForm } from "@/components/auth/change-password-form"
+import { DedupSettings } from "./dedup-settings"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+const RISK_COLORS: Record<RiskLevel, string> = {
+  low: "bg-green-100 text-green-800",
+  medium: "bg-yellow-100 text-yellow-800",
+  high: "bg-red-100 text-red-800",
+}
+
+interface ThresholdEditorProps {
+  title: string
+  description: string
+  thresholds: ThresholdConfig
+  maxPossible: number
+  category: "sti" | "maternal" | "communityWellbeing"
+}
+
+function ThresholdEditor({
+  title,
+  description,
+  thresholds,
+  maxPossible,
+  category,
+}: ThresholdEditorProps) {
+  const router = useRouter()
+  const [values, setValues] = useState<ThresholdConfig>({ ...thresholds })
+  const [isPending, startTransition] = useTransition()
+
+  function handleChange(
+    level: RiskLevel,
+    bound: 0 | 1,
+    value: string,
+  ) {
+    const num = parseInt(value, 10)
+    if (isNaN(num)) return
+    setValues((prev) => ({
+      ...prev,
+      [level]: bound === 0
+        ? [num, prev[level][1]]
+        : [prev[level][0], num],
+    }))
+  }
+
+  function handleSave() {
+    startTransition(async () => {
+      const result = await fetch("/api/admin/settings/thresholds", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category,
+          thresholds: values,
+        }),
+      }).then((response) => response.json())
+      if (result.success) {
+        toast.success("Thresholds saved")
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
+  const levels: RiskLevel[] = ["low", "medium", "high"]
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Risk Level</TableHead>
+              <TableHead>Min Score</TableHead>
+              <TableHead>Max Score</TableHead>
+              <TableHead>Range</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {levels.map((level) => (
+              <TableRow key={level}>
+                <TableCell>
+                  <Badge className={RISK_COLORS[level]}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={maxPossible}
+                    value={values[level][0]}
+                    onChange={(e) => handleChange(level, 0, e.target.value)}
+                    className="w-20"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={maxPossible}
+                    value={values[level][1]}
+                    onChange={(e) => handleChange(level, 1, e.target.value)}
+                    className="w-20"
+                  />
+                </TableCell>
+                <TableCell className="font-mono text-sm">
+                  {values[level][0]}–{values[level][1]} of {maxPossible}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        <footer>
+          <Button onClick={handleSave} disabled={isPending}>
+            {isPending ? "Saving..." : "Save thresholds"}
+          </Button>
+        </footer>
+      </CardContent>
+    </Card>
+  )
+}
+
+interface SettingsContentProps {
+  dedupRadius: number
+  dedupWindow: number
+  thresholds: {
+    sti: ThresholdConfig
+    maternal: ThresholdConfig
+    communityWellbeing: ThresholdConfig
+  }
+}
+
+export function SettingsContent({ dedupRadius, dedupWindow, thresholds }: SettingsContentProps) {
+  return (
+    <section className="space-y-6">
+      <header>
+        <hgroup>
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">
+            Configure risk classification thresholds and platform settings.
+          </p>
+        </hgroup>
+      </header>
+
+      <Tabs defaultValue="thresholds">
+        <TabsList>
+          <TabsTrigger value="thresholds">Risk Thresholds</TabsTrigger>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="thresholds" className="space-y-6 mt-4">
+          <p className="text-sm text-muted-foreground">
+            Define the score ranges that classify individual risk as Low,
+            Medium, or High for each assessment category. Changes apply to
+            all new submissions immediately.
+          </p>
+
+          <ThresholdEditor
+            title="Infection Risk Thresholds"
+            description="Questions Q11–Q21. Maximum possible score: 18."
+            thresholds={thresholds.sti}
+            maxPossible={18}
+            category="sti"
+          />
+
+          <ThresholdEditor
+            title="Maternal Health Thresholds"
+            description="Questions Q22–Q36 (females only). Maximum possible score: 22."
+            thresholds={thresholds.maternal}
+            maxPossible={22}
+            category="maternal"
+          />
+
+          <ThresholdEditor
+            title="Community Well-being Thresholds"
+            description="Questions Q37–Q43. Maximum possible score: 9."
+            thresholds={thresholds.communityWellbeing}
+            maxPossible={9}
+            category="communityWellbeing"
+          />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Overall Risk Classification Logic</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                The overall risk level is determined by the <strong>worst-of</strong> logic:
+                if any single category is classified as High, the overall risk is High.
+                If any is Medium, the overall is Medium. Otherwise, Low.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="general" className="space-y-6 mt-4">
+          <DedupSettings
+            initialRadius={dedupRadius}
+            initialWindow={dedupWindow}
+          />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Scoring Engine</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Model Version
+                  </dt>
+                  <dd className="font-mono">v1</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Classification Method
+                  </dt>
+                  <dd>Rule-based (threshold ranges)</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Overall Logic
+                  </dt>
+                  <dd>Worst-of across categories</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Gender-based Routing
+                  </dt>
+                  <dd>Males skip maternal health (Q22–Q36)</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Platform</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Location capture
+                  </dt>
+                  <dd>Enabled (optional, high accuracy, 10s timeout)</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Facility Lookup
+                  </dt>
+                  <dd>Haversine distance sort (top 5)</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Session Timeout
+                  </dt>
+                  <dd>30 minutes of inactivity</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Rate Limiting
+                  </dt>
+                  <dd>10 requests per 60 seconds per IP</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="account" className="space-y-6 mt-4">
+          <ChangePasswordForm />
+        </TabsContent>
+      </Tabs>
+    </section>
+  )
+}
