@@ -11,6 +11,8 @@ const TRUSTED_ORIGINS = [
   "http://srhr.localhost:1355",
   "http://localhost:3000",
   "http://localhost:1355",
+  "https://hushaid.org",
+  "https://www.hushaid.org",
 ].filter(Boolean) as string[]
 
 const _baseHostname = (() => {
