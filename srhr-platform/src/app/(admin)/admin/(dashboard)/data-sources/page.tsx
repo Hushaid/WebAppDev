@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Upload, RefreshCw, CheckCircle2, XCircle, Loader2, FileText } from "lucide-react"
+import { Upload, RefreshCw, CheckCircle2, XCircle, Loader2 } from "lucide-react"
 
 const dataSources = [
   {

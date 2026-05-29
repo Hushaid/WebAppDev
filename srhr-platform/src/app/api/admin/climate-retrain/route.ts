@@ -4,7 +4,7 @@ import { headers } from "next/headers"
 
 const CLIMATE_BACKEND_URL = process.env.CLIMATE_BACKEND_URL || "http://localhost:8002"
 
-async function requireAdminSession(request: NextRequest) {
+async function requireAdminSession(_request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return null
   const role = (session.user as { role?: string })?.role
