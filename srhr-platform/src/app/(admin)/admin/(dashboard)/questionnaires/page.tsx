@@ -163,22 +163,32 @@ export default async function QuestionnairesPage() {
                     <TableHead className="w-16">ID</TableHead>
                     <TableHead>Question Text</TableHead>
                     <TableHead className="w-20">Type</TableHead>
+                    <TableHead>Options</TableHead>
                     <TableHead className="w-20 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {demographicQuestions.map((q) => (
+                  {demographicQuestions.map((q) => {
+                    const opts = (q.options ?? []) as { label: string }[]
+                    return (
                     <TableRow key={q.id}>
                       <TableCell className="font-mono font-semibold">{q.questionNumber}</TableCell>
                       <TableCell className="whitespace-normal break-words text-sm">{q.text}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{q.type}</Badge>
                       </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {opts.length > 0
+                          ? opts.map((o) => o.label).join(" · ")
+                          : <span className="italic">No options — click Edit to add</span>
+                        }
+                      </TableCell>
                       <TableCell className="text-right">
                         <QuestionEditDialog question={q} isSuperAdmin={isSuperAdmin} />
                       </TableCell>
                     </TableRow>
-                  ))}
+                    )
+                  })}
                 </TableBody>
               </Table>
             </div>
