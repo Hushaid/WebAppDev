@@ -1,10 +1,14 @@
 /**
  * Alert trigger system.
  *
- * Automatically creates alerts when:
- * 1. An individual submission is classified as HIGH risk
- * 2. IRIX detects a new hotspot
- * 3. Scheduled summary intervals (weekly/monthly)
+ * High-risk flow:
+ *   1. One system-level pending_review alert created (no recipientId)
+ *   2. Email sent immediately to all super-admins — "please review"
+ *   3. Super-admin approves → emails sent to partners + admins (not super-admins again)
+ *      + alert records created for partners + admins on their alerts pages
+ *
+ * Medium-risk flow:
+ *   Dashboard-only alert records for partners/admins/super-admins. No email.
  */
 
 import { db } from "@/lib/db"
@@ -24,126 +28,235 @@ interface HighRiskAlertPayload {
   gpsLng: string | null
 }
 
-/**
- * Create alerts for all partner/admin users when a high or medium risk submission arrives.
- * High risk: creates alert + sends email notification.
- * Medium risk: creates alert record only (visible on dashboard, no email).
- */
-export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
-  const isHigh = payload.overallRiskLevel === "high"
-  const isMedium = payload.overallRiskLevel === "medium"
-  if (!isHigh && !isMedium) return
-
-  // Find all partner and admin users to notify
-  const recipients = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
-    .from(users)
-    .where(
-      inArray(users.role, ["partner", "admin", "super_admin"]),
-    )
-
-  if (recipients.length === 0) return
-
-  const targetLevels = isHigh ? ["high"] : ["medium", "high"]
+function buildAlertContent(payload: HighRiskAlertPayload) {
+  const targetLevels = ["high"]
   const highCategories = [
     targetLevels.includes(payload.stiRiskLevel) ? "STI" : null,
     payload.maternalRiskLevel && targetLevels.includes(payload.maternalRiskLevel) ? "Maternal Health" : null,
     targetLevels.includes(payload.communityWellbeingRiskLevel) ? "Community Well-being" : null,
-  ].filter(Boolean)
+  ].filter(Boolean) as string[]
 
-  const riskLabel = isHigh ? "HIGH" : "MEDIUM"
-  const title = `${isHigh ? "High" : "Medium"} Risk Submission Detected`
   const locationText = payload.gpsLat
     ? `${parseFloat(payload.gpsLat).toFixed(4)}, ${parseFloat(payload.gpsLng!).toFixed(4)}`
     : "No GPS location captured"
 
+  const title = "High Risk Submission Detected"
   const message = [
-    `A submission has been classified as ${riskLabel} risk.`,
+    `A submission has been classified as HIGH risk.`,
     `Categories: ${highCategories.join(", ") || "N/A"}.`,
     `Aggregate score: ${payload.aggregateScore}.`,
     `Location: ${locationText}.`,
     `Submission ID: ${payload.submissionId}.`,
   ].join(" ")
 
-  // Insert alert records
-  const alertValues = recipients.map((r) => ({
-    type: "high_risk_individual" as const,
-    recipientId: r.id,
-    riskLevel: (isHigh ? "high" : "medium") as "high" | "medium",
-    status: "pending" as const,
-    title,
-    message,
-  }))
+  return { title, message, highCategories, locationText }
+}
 
-  const insertedAlerts = await db.insert(alerts).values(alertValues).returning()
+function getResend() {
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  return new Resend(key)
+}
 
-  // Send email notifications only for HIGH risk (medium risk = dashboard-only, no notification)
-  if (!isHigh) return
+const emailFrom = () => process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
+const baseUrl = () => process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 
-  const resendKey = process.env.RESEND_API_KEY
-  if (!resendKey) return
+/**
+ * Called on approval. Sends emails + creates alert records for partners and admins only.
+ * Super-admins are NOT notified again — they already got the review email.
+ */
+export async function sendHighRiskAlertEmails(payload: HighRiskAlertPayload) {
+  const { title, message, highCategories, locationText } = buildAlertContent(payload)
 
-  const resend = new Resend(resendKey)
-  const emailFrom = process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
-  const baseUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  const recipients = await db
+    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+    .from(users)
+    .where(inArray(users.role, ["partner", "admin"]))
 
-  for (let i = 0; i < recipients.length; i++) {
-    const recipient = recipients[i]
-    const alertRecord = insertedAlerts[i]
+  if (recipients.length === 0) return
 
-    // Determine URLs based on role
-    const isAdmin = recipient.role === "admin" || recipient.role === "super_admin"
-    const alertsUrl = isAdmin ? `${baseUrl}/admin/alerts` : `${baseUrl}/partners/alerts`
-    const submissionUrl = isAdmin ? `${baseUrl}/admin/submissions/${payload.submissionId}` : null
+  const resend = getResend()
+  if (!resend) return
+
+  const base = baseUrl()
+
+  // Create sent alert records for partners and admins
+  await db.insert(alerts).values(
+    recipients.map((r) => ({
+      type: "high_risk_individual" as const,
+      recipientId: r.id,
+      riskLevel: "high" as const,
+      status: "sent" as const,
+      sentAt: new Date(),
+      title,
+      message,
+    }))
+  )
+
+  // Send emails
+  for (const recipient of recipients) {
+    const isAdmin = recipient.role === "admin"
+    const alertsUrl = isAdmin ? `${base}/admin/alerts` : `${base}/partners/alerts`
+    const submissionUrl = isAdmin ? `${base}/admin/submissions/${payload.submissionId}` : null
 
     try {
       await resend.emails.send({
-        from: emailFrom,
+        from: emailFrom(),
         to: recipient.email,
         subject: `🚨 ${title}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
-            <h2 style="color: #dc2626;">⚠️ High Risk Submission Alert</h2>
-            <p>Hi ${recipient.name || "there"},</p>
-            <p>A questionnaire submission has been classified as <strong style="color: #dc2626;">HIGH RISK</strong>.</p>
-
-            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-              <tr>
-                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Categories</td>
-                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${highCategories.join(", ")}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Aggregate Score</td>
-                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${payload.aggregateScore}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Location</td>
-                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${locationText}</td>
-              </tr>
-            </table>
-
-            <p>Please review and take appropriate action.</p>
-
-            <a href="${alertsUrl}" style="display: inline-block; background: #dc2626; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 4px 8px 0;">
-              View Alerts
-            </a>
-            ${submissionUrl ? `<a href="${submissionUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 0;">View Submission</a>` : ""}
-
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-            <p style="color: #94a3b8; font-size: 12px;">Hushaid &mdash; Confidential health assessments for Nigerian communities.</p>
-          </div>
-        `,
+        html: buildEmailHtml({
+          recipientName: recipient.name,
+          highCategories,
+          aggregateScore: payload.aggregateScore,
+          locationText,
+          alertsUrl,
+          submissionUrl,
+        }),
       })
-
-      // Mark alert as sent
-      await db
-        .update(alerts)
-        .set({ status: "sent", sentAt: new Date() })
-        .where(eq(alerts.id, alertRecord.id))
     } catch (error) {
       console.error(`Failed to send alert email to ${recipient.email}:`, error)
     }
   }
+}
+
+function buildEmailHtml({
+  recipientName,
+  highCategories,
+  aggregateScore,
+  locationText,
+  alertsUrl,
+  submissionUrl,
+}: {
+  recipientName: string | null
+  highCategories: string[]
+  aggregateScore: number
+  locationText: string
+  alertsUrl: string
+  submissionUrl: string | null
+}) {
+  return `
+    <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+      <h2 style="color: #dc2626;">⚠️ High Risk Submission Alert</h2>
+      <p>Hi ${recipientName || "there"},</p>
+      <p>A questionnaire submission has been classified as <strong style="color: #dc2626;">HIGH RISK</strong> and reviewed by the Hushaid team.</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <tr>
+          <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Categories</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${highCategories.join(", ") || "N/A"}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Aggregate Score</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${aggregateScore}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Location</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${locationText}</td>
+        </tr>
+      </table>
+      <p>Please review and take appropriate action.</p>
+      <a href="${alertsUrl}" style="display: inline-block; background: #dc2626; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 4px 8px 0;">
+        View Alerts
+      </a>
+      ${submissionUrl ? `<a href="${submissionUrl}" style="display: inline-block; background: #11973E; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 8px 0;">View Submission</a>` : ""}
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+      <p style="color: #94a3b8; font-size: 12px;">Hushaid — Confidential health assessments for Nigerian communities.</p>
+    </div>
+  `
+}
+
+/**
+ * Triggers on a high-risk submission:
+ * 1. Creates ONE system-level pending_review alert (no recipientId)
+ * 2. Emails all super-admins to notify them of the pending review
+ */
+export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
+  const isHigh = payload.overallRiskLevel === "high"
+  const isMedium = payload.overallRiskLevel === "medium"
+  if (!isHigh && !isMedium) return
+
+  const { title, message, highCategories, locationText } = buildAlertContent(payload)
+
+  if (isHigh) {
+    // One system-level alert (no recipient — belongs to the event, not a user)
+    await db.insert(alerts).values({
+      type: "high_risk_individual" as const,
+      recipientId: null,
+      riskLevel: "high" as const,
+      status: "pending_review" as const,
+      title,
+      message,
+    })
+
+    // Email all super-admins immediately so they know to review
+    const superAdmins = await db
+      .select({ id: users.id, email: users.email, name: users.name })
+      .from(users)
+      .where(eq(users.role, "super_admin"))
+
+    const resend = getResend()
+    if (resend && superAdmins.length > 0) {
+      const base = baseUrl()
+      const reviewUrl = `${base}/admin/alerts/review`
+
+      for (const sa of superAdmins) {
+        try {
+          await resend.emails.send({
+            from: emailFrom(),
+            to: sa.email,
+            subject: `🔔 High Risk Alert Pending Review`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+                <h2 style="color: #d97706;">🔔 Alert Pending Your Review</h2>
+                <p>Hi ${sa.name || "there"},</p>
+                <p>A <strong>HIGH RISK</strong> submission requires your review before partners are notified.</p>
+                <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                  <tr>
+                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Categories</td>
+                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${highCategories.join(", ") || "N/A"}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Aggregate Score</td>
+                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${payload.aggregateScore}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fafc;">Location</td>
+                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${locationText}</td>
+                  </tr>
+                </table>
+                <a href="${reviewUrl}" style="display: inline-block; background: #d97706; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                  Review Alert
+                </a>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+                <p style="color: #94a3b8; font-size: 12px;">Hushaid — Confidential health assessments for Nigerian communities.</p>
+              </div>
+            `,
+          })
+        } catch (error) {
+          console.error(`Failed to send review email to super-admin ${sa.email}:`, error)
+        }
+      }
+    }
+    return
+  }
+
+  // Medium risk: dashboard-only records for partners/admins/super-admins, no email
+  const recipients = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(inArray(users.role, ["partner", "admin", "super_admin"]))
+
+  if (recipients.length === 0) return
+
+  await db.insert(alerts).values(
+    recipients.map((r) => ({
+      type: "high_risk_individual" as const,
+      recipientId: r.id,
+      riskLevel: "medium" as const,
+      status: "pending" as const,
+      title,
+      message,
+    }))
+  )
 }
 
 /**
@@ -157,24 +270,22 @@ export async function triggerHotspotAlert(
   const recipients = await db
     .select({ id: users.id })
     .from(users)
-    .where(
-      inArray(users.role, ["partner", "admin", "super_admin"]),
-    )
+    .where(inArray(users.role, ["partner", "admin", "super_admin"]))
 
   if (recipients.length === 0) return
 
-  const title = `IRIX Hotspot Detected`
+  const title = "IRIX Hotspot Detected"
   const message = `A geographic area has been flagged as a ${riskLevel.toUpperCase()} risk hotspot with IRIX score ${irixScore.toFixed(2)}.`
 
-  const alertValues = recipients.map((r) => ({
-    type: "threshold_breach" as const,
-    recipientId: r.id,
-    geographicUnitId,
-    riskLevel,
-    status: "pending" as const,
-    title,
-    message,
-  }))
-
-  await db.insert(alerts).values(alertValues)
+  await db.insert(alerts).values(
+    recipients.map((r) => ({
+      type: "threshold_breach" as const,
+      recipientId: r.id,
+      geographicUnitId,
+      riskLevel,
+      status: "pending" as const,
+      title,
+      message,
+    }))
+  )
 }

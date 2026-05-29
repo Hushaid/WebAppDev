@@ -3,7 +3,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, desc, sql, and } from "drizzle-orm"
+import { eq, desc, sql, and, isNull, or } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -17,12 +17,18 @@ export async function getAlerts(page: number = 1) {
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
   const userId = session?.user?.id
+  const callerRole = (session?.user as { role?: string } | undefined)?.role
   if (!userId) return { items: [], total: 0, page, pageSize: PAGE_SIZE, totalPages: 0 }
+
+  // Super-admins see their own alerts + system-level pending_review alerts (recipientId null)
+  const whereClause = callerRole === "super_admin"
+    ? or(eq(alerts.recipientId, userId), isNull(alerts.recipientId))
+    : eq(alerts.recipientId, userId)
 
   const [countResult] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(alerts)
-    .where(eq(alerts.recipientId, userId))
+    .where(whereClause)
 
   const items = await db
     .select({
@@ -40,7 +46,7 @@ export async function getAlerts(page: number = 1) {
     })
     .from(alerts)
     .leftJoin(users, eq(alerts.recipientId, users.id))
-    .where(eq(alerts.recipientId, userId))
+    .where(whereClause)
     .orderBy(desc(alerts.createdAt))
     .limit(PAGE_SIZE)
     .offset(offset)
@@ -54,9 +60,17 @@ export async function getAlerts(page: number = 1) {
   }
 }
 
+export async function getPendingReviewCount(): Promise<number> {
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(alerts)
+    .where(eq(alerts.status, "pending_review"))
+  return result?.count ?? 0
+}
+
 export async function updateAlertStatus(
   alertId: string,
-  status: "sent" | "opened" | "actioned" | "dismissed",
+  status: "sent" | "opened" | "actioned" | "dismissed" | "pending_review",
   note?: string,
 ) {
   const headersList = await headers()

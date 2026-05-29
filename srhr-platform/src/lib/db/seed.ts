@@ -159,16 +159,72 @@ async function seed() {
     Q10: "Do you have any disability? If yes, please state.",
   }
 
+  type DemographicOption = { label: string; value: string; score: number }
+  const demographicOptions: Record<string, DemographicOption[]> = {
+    Q1: [{ label: "Yes", value: "yes", score: 0 }, { label: "No", value: "no", score: 0 }],
+    Q3: [{ label: "Male", value: "male", score: 0 }, { label: "Female", value: "female", score: 0 }],
+    Q4: [
+      { label: "With family", value: "family", score: 0 },
+      { label: "Alone", value: "alone", score: 0 },
+      { label: "In a camp (IDP)", value: "idp_camp", score: 0 },
+      { label: "Other", value: "other", score: 0 },
+    ],
+    Q5: [
+      { label: "15–24 years", value: "15_24", score: 0 },
+      { label: "25–34 years", value: "25_34", score: 0 },
+      { label: "35 years or older", value: "35_plus", score: 0 },
+    ],
+    Q7: [
+      { label: "₦10,000 – ₦20,000", value: "10k_20k", score: 0 },
+      { label: "₦20,000 – ₦30,000", value: "20k_30k", score: 0 },
+      { label: "₦30,000 – ₦40,000", value: "30k_40k", score: 0 },
+      { label: "₦40,000 – ₦50,000", value: "40k_50k", score: 0 },
+    ],
+    Q8: [
+      { label: "Hut", value: "hut", score: 0 },
+      { label: "Bungalow", value: "bungalow", score: 0 },
+      { label: "Homeless", value: "homeless", score: 0 },
+      { label: "IDP camp", value: "idp_camp", score: 0 },
+    ],
+    Q9: [
+      { label: "2–4", value: "2_4", score: 0 },
+      { label: "5–7", value: "5_7", score: 0 },
+      { label: "8–10", value: "8_10", score: 0 },
+    ],
+  }
+  const demographicTypes: Record<string, "single_choice" | "text"> = {
+    Q2: "text", Q6: "text", Q10: "text",
+  }
+
+  const ratingOptions: DemographicOption[] = [
+    { label: "Not well at all", value: "1", score: 0 },
+    { label: "Slightly well", value: "2", score: 0 },
+    { label: "Fairly well", value: "3", score: 0 },
+    { label: "Well", value: "4", score: 0 },
+    { label: "Very well", value: "5", score: 0 },
+  ]
+  const easeOptions: DemographicOption[] = [
+    { label: "Not easy", value: "1", score: 0 },
+    { label: "Slightly easy", value: "2", score: 0 },
+    { label: "Fairly easy", value: "3", score: 0 },
+    { label: "Easy", value: "4", score: 0 },
+    { label: "Very easy", value: "5", score: 0 },
+  ]
+
   const allQuestions = [
     // Demographic (unscored) Q1-Q10
-    ...Array.from({ length: 10 }, (_, i) => ({
-      questionNumber: `Q${i + 1}`,
-      text: demographicTexts[`Q${i + 1}`] ?? `Demographic question ${i + 1}`,
-      type: "single_choice" as const,
-      scoreWeight: 0,
-      diseaseGroup: null,
-      sortOrder: i + 1,
-    })),
+    ...Array.from({ length: 10 }, (_, i) => {
+      const qNum = `Q${i + 1}`
+      return {
+        questionNumber: qNum,
+        text: demographicTexts[qNum] ?? `Demographic question ${i + 1}`,
+        type: (demographicTypes[qNum] ?? "single_choice") as "single_choice" | "text",
+        scoreWeight: 0,
+        diseaseGroup: null,
+        sortOrder: i + 1,
+        ...(demographicOptions[qNum] ? { options: demographicOptions[qNum] } : {}),
+      }
+    }),
     // Scored questions from config with real question texts
     ...SCORED_QUESTIONS.map((q, idx) => {
       const skipRule = SKIP_RULES.find((r) => r.questionId === q.id)
@@ -187,11 +243,11 @@ async function seed() {
     }),
     // Unscored Q44-Q45
     { questionNumber: "Q44", text: "Please provide your phone or WhatsApp number so that relief teams can reach you with supplies or emergency health support during the floods.", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 44 },
-    { questionNumber: "Q45", text: "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?", type: "yes_no" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 45 },
+    { questionNumber: "Q45", text: "Is it okay to use your anonymous answers (no name) to tell relief teams to bring supplies and more doctors and nurses to your community before the floods?", type: "yes_no" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 45, options: [{ label: "Yes", value: "yes", score: 0 }, { label: "No", value: "no", score: 0 }] },
     // Post-survey feedback PS1-PS5
-    { questionNumber: "PS1", text: "How easy to understand were the questions asked?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 46 },
-    { questionNumber: "PS2", text: "How well did the words used to describe specific illnesses, symptoms, or body parts match what people actually call them in this community?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 47 },
-    { questionNumber: "PS3", text: "How well did the questions asked in this survey (and the options provided) reflect the reality in the area and health problems that actually worry you, your family and the community as a whole, the most?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 48 },
+    { questionNumber: "PS1", text: "How easy to understand were the questions asked?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 46, options: easeOptions },
+    { questionNumber: "PS2", text: "How well did the words used to describe specific illnesses, symptoms, or body parts match what people actually call them in this community?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 47, options: ratingOptions },
+    { questionNumber: "PS3", text: "How well did the questions asked in this survey (and the options provided) reflect the reality in the area and health problems that actually worry you, your family and the community as a whole, the most?", type: "single_choice" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 48, options: ratingOptions },
     { questionNumber: "PS4", text: "Do you have any other suggestions to make this survey better or capture the community's health reality more accurately?", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 49 },
     { questionNumber: "PS5", text: "Are there any health issues or local context that this survey missed entirely?", type: "text" as const, scoreWeight: 0, diseaseGroup: null, sortOrder: 50 },
   ]
