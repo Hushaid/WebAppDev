@@ -74,6 +74,7 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
   const [predictions, setPredictions] = useState<FloodPrediction[]>([])
   const [loading, setLoading] = useState(false)
   const [historyDate, setHistoryDate] = useState<string | null>(null)
+  const [historyAvailable, setHistoryAvailable] = useState<boolean | null>(null)
 
   const isHistorical = !!historyDate
 
@@ -83,13 +84,20 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
     async function fetchFloodRisk() {
       setLoading(true)
       try {
-        const url = historyDate
-          ? `/api/climate?path=/api/v1/flood-risk&target_date=${historyDate}`
-          : "/api/climate?path=/api/v1/flood-risk"
-        const res = await fetch(url, { cache: "no-store" })
-        if (res.ok) {
-          const data = await res.json()
-          setPredictions(data.predictions || [])
+        if (historyDate) {
+          const res = await fetch(`/api/climate-history?date=${historyDate}`, { cache: "no-store" })
+          if (res.ok) {
+            const data = await res.json()
+            setHistoryAvailable(data.available)
+            setPredictions(data.predictions || [])
+          }
+        } else {
+          setHistoryAvailable(null)
+          const res = await fetch("/api/climate?path=/api/v1/flood-risk", { cache: "no-store" })
+          if (res.ok) {
+            const data = await res.json()
+            setPredictions(data.predictions || [])
+          }
         }
       } catch {
         // Service may not be running
@@ -127,12 +135,14 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
 
       {visible && (
         <CardContent>
-          {isHistorical && (
-            <p className="mb-3 text-xs text-muted-foreground rounded-md border bg-muted/40 px-2.5 py-1.5">
-              Viewing historical snapshot for <strong>{historyDate}</strong>
-            </p>
-          )}
-          {loading ? (
+          {isHistorical && historyAvailable === false ? (
+            <div className="rounded-lg border border-muted bg-muted/30 px-4 py-5 text-center space-y-1.5">
+              <p className="text-sm font-medium text-muted-foreground">No snapshot for {historyDate}</p>
+              <p className="text-xs text-muted-foreground/70">
+                Daily snapshots are saved each night. This date was before snapshot collection began or was missed.
+              </p>
+            </div>
+          ) : loading ? (
             <p className="text-sm text-muted-foreground">Loading flood conditions...</p>
           ) : !karu ? (
             <p className="text-sm text-muted-foreground">
@@ -143,7 +153,7 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
               {/* Location + date */}
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
-                  Karu LGA, Nasarawa · Updated {karu.prediction_date}
+                  Karu LGA, Nasarawa · {isHistorical ? "Snapshot" : "Updated"} {karu.prediction_date}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Chance of flooding: {(karu.flood_probability * 100).toFixed(0)}%

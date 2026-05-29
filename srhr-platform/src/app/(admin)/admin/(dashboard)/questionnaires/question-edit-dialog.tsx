@@ -36,6 +36,7 @@ interface QuestionData {
   id: string
   questionNumber: string
   text: string
+  type: string
   scoreWeight: number
   diseaseGroup: string | null
   options: unknown
@@ -168,7 +169,7 @@ export function QuestionEditDialog({ question, isSuperAdmin = false }: { questio
             />
           </div>
 
-          {options.length > 0 && (
+          {(options.length > 0 || ["single_choice", "multiple_choice", "yes_no"].includes(question.type)) && (
             <div className="space-y-2">
               <Label>Options &amp; Scores</Label>
               <Table>

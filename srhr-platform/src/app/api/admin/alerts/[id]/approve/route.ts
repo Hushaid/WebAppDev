@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Alert is not pending review" }, { status: 400 })
   }
 
-  // Extract submission ID from message to rebuild payload for email
+  // Extract submission details from stored message
   const submissionIdMatch = alert.message?.match(/Submission ID:\s*([0-9a-f-]+)/)
   const submissionId = submissionIdMatch?.[1] ?? ""
 
@@ -39,13 +39,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const gpsLat = locationParts[0] !== "No GPS location captured" ? locationParts[0] : null
   const gpsLng = locationParts[1] ?? null
 
-  // Mark super-admin's pending_review alert as sent
+  // Mark the system alert as actioned
   await db
     .update(alerts)
-    .set({ status: "sent", sentAt: new Date(), updatedAt: new Date() })
+    .set({ status: "actioned", actionedAt: new Date(), updatedAt: new Date() })
     .where(eq(alerts.id, id))
 
-  // Dispatch emails to all partners and admins
+  // Send emails + create alert records for partners and admins (NOT super-admins)
   await sendHighRiskAlertEmails({
     submissionId,
     overallRiskLevel: alert.riskLevel,
