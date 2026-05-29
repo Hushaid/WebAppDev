@@ -78,15 +78,12 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
   const isHistorical = !!historyDate
 
   useEffect(() => {
-    if (!visible) return
+    if (!visible || isHistorical) return  // Don't fetch for historical dates — no snapshots stored
 
     async function fetchFloodRisk() {
       setLoading(true)
       try {
-        const url = historyDate
-          ? `/api/climate?path=/api/v1/flood-risk&target_date=${historyDate}`
-          : "/api/climate?path=/api/v1/flood-risk"
-        const res = await fetch(url, { cache: "no-store" })
+        const res = await fetch("/api/climate?path=/api/v1/flood-risk", { cache: "no-store" })
         if (res.ok) {
           const data = await res.json()
           setPredictions(data.predictions || [])
@@ -99,7 +96,7 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
     }
 
     fetchFloodRisk()
-  }, [visible, historyDate])
+  }, [visible, isHistorical])
 
   const karu = predictions.find((p) => p.lga_id === "nasarawa_karu")
   const config = RISK_CONFIG[karu?.risk_level ?? "normal"]
@@ -127,12 +124,16 @@ export function ClimateLayer({ visible, onToggle }: ClimateLayerProps) {
 
       {visible && (
         <CardContent>
-          {isHistorical && (
-            <p className="mb-3 text-xs text-muted-foreground rounded-md border bg-muted/40 px-2.5 py-1.5">
-              Viewing historical snapshot for <strong>{historyDate}</strong>
-            </p>
-          )}
-          {loading ? (
+          {isHistorical ? (
+            <div className="rounded-lg border border-muted bg-muted/30 px-4 py-5 text-center space-y-1.5">
+              <p className="text-sm font-medium text-muted-foreground">Historical flood risk not available</p>
+              <p className="text-xs text-muted-foreground/70">
+                The flood risk model runs on live weather data. Historical snapshots are not stored, so past dates cannot be replayed.
+                Snapshots will accumulate from today onwards.
+              </p>
+              <p className="text-xs text-muted-foreground/50 pt-1">Selected: {historyDate}</p>
+            </div>
+          ) : loading ? (
             <p className="text-sm text-muted-foreground">Loading flood conditions...</p>
           ) : !karu ? (
             <p className="text-sm text-muted-foreground">
