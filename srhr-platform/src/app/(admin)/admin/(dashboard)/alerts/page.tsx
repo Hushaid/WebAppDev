@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getAlerts } from "./actions"
+import { getAlerts, getPendingReviewCount } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/table"
 import { PaginationBar } from "@/components/pagination-bar"
 import { AlertActions } from "./alert-actions"
+import Link from "next/link"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 
 /** Extract submission ID from alert message text */
 function extractSubmissionId(message: string | null): string | null {
@@ -43,12 +46,16 @@ function typeBadge(type: string) {
 function statusBadge(status: string) {
   const variants: Record<string, "destructive" | "secondary" | "outline" | "default"> = {
     pending: "secondary",
+    pending_review: "destructive",
     sent: "default",
     opened: "outline",
     actioned: "outline",
     dismissed: "outline",
   }
-  return <Badge variant={variants[status] ?? "outline"}>{status}</Badge>
+  const labels: Record<string, string> = {
+    pending_review: "pending review",
+  }
+  return <Badge variant={variants[status] ?? "outline"}>{labels[status] ?? status}</Badge>
 }
 
 function riskBadge(level: string) {
@@ -67,21 +74,43 @@ export default async function AlertsPage({
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
-  const { items: alertList, total, totalPages, pageSize } = await getAlerts(page)
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string } | undefined)?.role
+  const isSuperAdmin = callerRole === "super_admin"
+
+  const [{ items: alertList, total, totalPages, pageSize }, pendingCount] = await Promise.all([
+    getAlerts(page),
+    isSuperAdmin ? getPendingReviewCount() : Promise.resolve(0),
+  ])
 
   return (
     <div className="-m-6 flex h-[calc(100%+48px)] flex-col">
       {/* Fixed header area */}
       <div className="shrink-0 border-b p-6 pb-4">
-        <header>
-          <hgroup>
-            <h1 className="text-2xl font-bold">Alerts</h1>
-            <p className="text-muted-foreground">
-              Monitor high-risk submissions, hotspot detections, and scheduled
-              summaries.
-            </p>
-          </hgroup>
-        </header>
+        <div className="flex items-start justify-between">
+          <header>
+            <hgroup>
+              <h1 className="text-2xl font-bold">Alerts</h1>
+              <p className="text-muted-foreground">
+                Monitor high-risk submissions, hotspot detections, and scheduled
+                summaries.
+              </p>
+            </hgroup>
+          </header>
+          {isSuperAdmin && (
+            <Link href="/admin/alerts/review">
+              <div className="flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/50 transition-colors">
+                <span className="text-sm font-medium">Review Queue</span>
+                {pendingCount > 0 && (
+                  <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                    {pendingCount}
+                  </Badge>
+                )}
+              </div>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Scrollable table area */}

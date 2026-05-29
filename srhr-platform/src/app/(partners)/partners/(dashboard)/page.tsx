@@ -14,6 +14,7 @@ import { IrixTrendChart } from "@/components/partners/irix-trend-chart"
 import { CellDetail } from "@/components/partners/cell-detail"
 import { ClimateLayer } from "@/components/partners/climate-layer"
 import { FloodForecast } from "@/components/partners/flood-forecast"
+import { HistoryDatePicker } from "@/components/partners/history-date-picker"
 import { MapPin } from "lucide-react"
 
 function StatValue({
@@ -50,6 +51,7 @@ export default function PartnersDashboardPage() {
   const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS)
   const [selectedCell, setSelectedCell] = useState<MapScore | null>(null)
   const [climateVisible, setClimateVisible] = useState(true)
+  const [irixHistoryDate, setIrixHistoryDate] = useState<string | null>(null)
   const [scores, setScores] = useState<MapScore[]>([])
   const [trendData, setTrendData] = useState<
     { period: string; sti_avg: number; maternal_avg: number | null; community_avg: number; overall: number; submissions: number }[]
@@ -113,6 +115,15 @@ export default function PartnersDashboardPage() {
     setFilters((current) => ({ ...current, location: "all" }))
   }, [filters.location, locationOptions])
 
+  // Sync irixHistoryDate into filters dateFrom/dateTo
+  useEffect(() => {
+    setFilters((current) => ({
+      ...current,
+      dateFrom: irixHistoryDate ?? "",
+      dateTo: irixHistoryDate ?? "",
+    }))
+  }, [irixHistoryDate])
+
   const showSkeleton = isLoading
   const dataUnavailable = isError
   const hasData = scores.length > 0
@@ -171,12 +182,28 @@ export default function PartnersDashboardPage() {
 
         {/* Left col (3/5): community health data */}
         <div className="lg:col-span-3 space-y-4">
-          <IrixFilters
-            filters={filters}
-            locationOptions={locationOptions}
-            onChange={setFilters}
-            onReset={() => setFilters(DEFAULT_FILTERS)}
-          />
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <IrixFilters
+              filters={filters}
+              locationOptions={locationOptions}
+              onChange={(f) => {
+                setIrixHistoryDate(null)
+                setFilters(f)
+              }}
+              onReset={() => {
+                setIrixHistoryDate(null)
+                setFilters(DEFAULT_FILTERS)
+              }}
+            />
+            <div className="flex items-center gap-1 shrink-0">
+              {irixHistoryDate && (
+                <span className="text-xs text-muted-foreground mr-1">
+                  IRIX snapshot · {irixHistoryDate}
+                </span>
+              )}
+              <HistoryDatePicker value={irixHistoryDate} onChange={setIrixHistoryDate} />
+            </div>
+          </div>
 
           <div className="relative">
             {showSkeleton ? (

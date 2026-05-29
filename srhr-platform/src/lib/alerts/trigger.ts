@@ -1,10 +1,9 @@
 /**
  * Alert trigger system.
  *
- * Automatically creates alerts when:
- * 1. An individual submission is classified as HIGH risk
- * 2. IRIX detects a new hotspot
- * 3. Scheduled summary intervals (weekly/monthly)
+ * High-risk submissions create pending_review alerts for super-admins only.
+ * Super-admins review and approve before emails are dispatched to partners/admins.
+ * Medium-risk submissions create dashboard-only alerts (no email, no review queue).
  */
 
 import { db } from "@/lib/db"
@@ -24,39 +23,20 @@ interface HighRiskAlertPayload {
   gpsLng: string | null
 }
 
-/**
- * Create alerts for all partner/admin users when a high or medium risk submission arrives.
- * High risk: creates alert + sends email notification.
- * Medium risk: creates alert record only (visible on dashboard, no email).
- */
-export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
-  const isHigh = payload.overallRiskLevel === "high"
-  const isMedium = payload.overallRiskLevel === "medium"
-  if (!isHigh && !isMedium) return
-
-  // Find all partner and admin users to notify
-  const recipients = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
-    .from(users)
-    .where(
-      inArray(users.role, ["partner", "admin", "super_admin"]),
-    )
-
-  if (recipients.length === 0) return
-
+function buildAlertContent(payload: HighRiskAlertPayload, isHigh: boolean) {
   const targetLevels = isHigh ? ["high"] : ["medium", "high"]
   const highCategories = [
     targetLevels.includes(payload.stiRiskLevel) ? "STI" : null,
     payload.maternalRiskLevel && targetLevels.includes(payload.maternalRiskLevel) ? "Maternal Health" : null,
     targetLevels.includes(payload.communityWellbeingRiskLevel) ? "Community Well-being" : null,
-  ].filter(Boolean)
+  ].filter(Boolean) as string[]
 
-  const riskLabel = isHigh ? "HIGH" : "MEDIUM"
-  const title = `${isHigh ? "High" : "Medium"} Risk Submission Detected`
   const locationText = payload.gpsLat
     ? `${parseFloat(payload.gpsLat).toFixed(4)}, ${parseFloat(payload.gpsLng!).toFixed(4)}`
     : "No GPS location captured"
 
+  const riskLabel = isHigh ? "HIGH" : "MEDIUM"
+  const title = `${isHigh ? "High" : "Medium"} Risk Submission Detected`
   const message = [
     `A submission has been classified as ${riskLabel} risk.`,
     `Categories: ${highCategories.join(", ") || "N/A"}.`,
@@ -65,20 +45,23 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
     `Submission ID: ${payload.submissionId}.`,
   ].join(" ")
 
-  // Insert alert records
-  const alertValues = recipients.map((r) => ({
-    type: "high_risk_individual" as const,
-    recipientId: r.id,
-    riskLevel: (isHigh ? "high" : "medium") as "high" | "medium",
-    status: "pending" as const,
-    title,
-    message,
-  }))
+  return { title, message, highCategories, locationText }
+}
 
-  const insertedAlerts = await db.insert(alerts).values(alertValues).returning()
+/**
+ * Send alert emails to all partner and admin users for a given alert.
+ * Called by the super-admin approval route after review.
+ */
+export async function sendHighRiskAlertEmails(payload: HighRiskAlertPayload) {
+  const isHigh = payload.overallRiskLevel === "high"
+  const { title, highCategories, locationText } = buildAlertContent(payload, isHigh)
 
-  // Send email notifications only for HIGH risk (medium risk = dashboard-only, no notification)
-  if (!isHigh) return
+  const recipients = await db
+    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+    .from(users)
+    .where(inArray(users.role, ["partner", "admin", "super_admin"]))
+
+  if (recipients.length === 0) return
 
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) return
@@ -87,11 +70,21 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   const emailFrom = process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.dev>"
   const baseUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 
+  // Create alert records for partners and admins
+  const alertValues = recipients.map((r) => ({
+    type: "high_risk_individual" as const,
+    recipientId: r.id,
+    riskLevel: (isHigh ? "high" : "medium") as "high" | "medium",
+    status: "sent" as const,
+    sentAt: new Date(),
+    title,
+    message: buildAlertContent(payload, isHigh).message,
+  }))
+  const insertedAlerts = await db.insert(alerts).values(alertValues).returning()
+
   for (let i = 0; i < recipients.length; i++) {
     const recipient = recipients[i]
     const alertRecord = insertedAlerts[i]
-
-    // Determine URLs based on role
     const isAdmin = recipient.role === "admin" || recipient.role === "super_admin"
     const alertsUrl = isAdmin ? `${baseUrl}/admin/alerts` : `${baseUrl}/partners/alerts`
     const submissionUrl = isAdmin ? `${baseUrl}/admin/submissions/${payload.submissionId}` : null
@@ -105,7 +98,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
           <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
             <h2 style="color: #dc2626;">⚠️ High Risk Submission Alert</h2>
             <p>Hi ${recipient.name || "there"},</p>
-            <p>A questionnaire submission has been classified as <strong style="color: #dc2626;">HIGH RISK</strong>.</p>
+            <p>A questionnaire submission has been classified as <strong style="color: #dc2626;">HIGH RISK</strong> and reviewed by the Hushaid team.</p>
 
             <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
               <tr>
@@ -135,7 +128,6 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
         `,
       })
 
-      // Mark alert as sent
       await db
         .update(alerts)
         .set({ status: "sent", sentAt: new Date() })
@@ -144,6 +136,60 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
       console.error(`Failed to send alert email to ${recipient.email}:`, error)
     }
   }
+}
+
+/**
+ * Create pending_review alerts for super-admins when a high-risk submission arrives.
+ * No emails are sent — super-admins review and approve before dispatch.
+ * Medium risk: creates dashboard-only alert records for all partners/admins (no review queue).
+ */
+export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
+  const isHigh = payload.overallRiskLevel === "high"
+  const isMedium = payload.overallRiskLevel === "medium"
+  if (!isHigh && !isMedium) return
+
+  const { title, message } = buildAlertContent(payload, isHigh)
+
+  if (isHigh) {
+    // Route to super-admins only for review — no email yet
+    const superAdmins = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.role, "super_admin"))
+
+    if (superAdmins.length === 0) return
+
+    await db.insert(alerts).values(
+      superAdmins.map((r) => ({
+        type: "high_risk_individual" as const,
+        recipientId: r.id,
+        riskLevel: "high" as const,
+        status: "pending_review" as const,
+        title,
+        message,
+      }))
+    )
+    return
+  }
+
+  // Medium risk: create dashboard-only records for partners + admins (no email)
+  const recipients = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(inArray(users.role, ["partner", "admin", "super_admin"]))
+
+  if (recipients.length === 0) return
+
+  await db.insert(alerts).values(
+    recipients.map((r) => ({
+      type: "high_risk_individual" as const,
+      recipientId: r.id,
+      riskLevel: "medium" as const,
+      status: "pending" as const,
+      title,
+      message,
+    }))
+  )
 }
 
 /**
