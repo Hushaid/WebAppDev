@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, History, X } from "lucide-react"
 
@@ -15,7 +16,13 @@ const MIN_DATE = (() => {
 })()
 
 export function HistoryDatePicker({ value, onChange }: HistoryDatePickerProps) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const yesterday = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 1)
+    return d.toISOString().slice(0, 10)
+  }, [])
+
   const isLive = !value || value >= today
 
   function step(days: number) {
@@ -34,11 +41,7 @@ export function HistoryDatePicker({ value, onChange }: HistoryDatePickerProps) {
         variant="ghost"
         size="sm"
         className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-        onClick={() => {
-          const yesterday = new Date()
-          yesterday.setDate(yesterday.getDate() - 1)
-          onChange(yesterday.toISOString().slice(0, 10))
-        }}
+        onClick={() => onChange(yesterday)}
       >
         <History className="h-3.5 w-3.5" />
         History
@@ -61,7 +64,7 @@ export function HistoryDatePicker({ value, onChange }: HistoryDatePickerProps) {
       <input
         type="date"
         value={value}
-        max={new Date(Date.now() - 86400000).toISOString().slice(0, 10)}
+        max={yesterday}
         min={MIN_DATE}
         onChange={(e) => onChange(e.target.value || null)}
         className="h-7 rounded-md border border-input bg-background px-2 text-xs"
@@ -71,7 +74,7 @@ export function HistoryDatePicker({ value, onChange }: HistoryDatePickerProps) {
         size="icon"
         className="h-7 w-7"
         onClick={() => step(1)}
-        disabled={value >= new Date(Date.now() - 86400000).toISOString().slice(0, 10)}
+        disabled={value >= yesterday}
         title="Next day"
       >
         <ChevronRight className="h-3.5 w-3.5" />
