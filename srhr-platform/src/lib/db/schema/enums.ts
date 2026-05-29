@@ -57,6 +57,7 @@ export const alertTypeEnum = pgEnum("alert_type", [
 
 export const alertStatusEnum = pgEnum("alert_status", [
   "pending",
+  "pending_review",
   "sent",
   "opened",
   "actioned",

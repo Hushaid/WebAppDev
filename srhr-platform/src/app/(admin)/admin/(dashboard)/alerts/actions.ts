@@ -3,7 +3,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, desc, sql, and } from "drizzle-orm"
+import { eq, desc, sql, and, ne } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -54,9 +54,17 @@ export async function getAlerts(page: number = 1) {
   }
 }
 
+export async function getPendingReviewCount(): Promise<number> {
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(alerts)
+    .where(eq(alerts.status, "pending_review"))
+  return result?.count ?? 0
+}
+
 export async function updateAlertStatus(
   alertId: string,
-  status: "sent" | "opened" | "actioned" | "dismissed",
+  status: "sent" | "opened" | "actioned" | "dismissed" | "pending_review",
   note?: string,
 ) {
   const headersList = await headers()
