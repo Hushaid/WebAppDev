@@ -12,7 +12,6 @@ export const alerts = pgTable("alerts", {
   id: uuid("id").defaultRandom().primaryKey(),
   type: alertTypeEnum("type").notNull(),
   recipientId: uuid("recipient_id")
-    .notNull()
     .references(() => users.id),
   geographicUnitId: uuid("geographic_unit_id").references(() => geographicUnits.id),
   riskLevel: riskLevelEnum("risk_level").notNull(),
