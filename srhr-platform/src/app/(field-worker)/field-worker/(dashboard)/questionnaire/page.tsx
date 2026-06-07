@@ -27,6 +27,7 @@ export default function FieldWorkerQuestionnairePage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [submitting, setSubmitting] = useState(false)
+  const [bypassDedup, setBypassDedup] = useState(false)
   const [gps, setGps] = useState<GpsState>(() =>
     typeof navigator !== "undefined" && !navigator.geolocation
       ? { status: "denied", error: "Geolocation is not supported by this browser." }
@@ -132,6 +133,7 @@ export default function FieldWorkerQuestionnairePage() {
       gpsLat,
       gpsLng,
       clientSubmissionId: crypto.randomUUID(),
+      bypassDedup: bypassDedup || undefined,
     }
 
     sessionStorage.setItem("lastRiskResult", JSON.stringify(data.riskResult))
@@ -233,6 +235,22 @@ export default function FieldWorkerQuestionnairePage() {
               move: t("moveDifferentLocation"),
             })}
           </p>
+          <div className="pt-1 border-t border-orange-200">
+            <p className="text-xs text-orange-600 mb-2">{t("proceedAnywayHint")}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-orange-300 text-orange-800 hover:bg-orange-100"
+              onClick={() => {
+                if (gpsRef.current) {
+                  setBypassDedup(true)
+                  setGps({ status: "granted", lat: gpsRef.current.lat, lng: gpsRef.current.lng })
+                }
+              }}
+            >
+              {t("proceedAnyway")}
+            </Button>
+          </div>
         </div>
       )}
 

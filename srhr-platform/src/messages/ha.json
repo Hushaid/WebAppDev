@@ -155,6 +155,8 @@
     "startNewAssessmentAfter": "Za ku iya fara sabuwar tantancewa bayan {time}, ko kuma ku {move}.",
     "moveDifferentLocation": "matsawa zuwa wani wuri daban",
     "duplicateAlert": "An gano aika bayanai sau biyu. Da fatan za ku matsa zuwa wani wuri daban kafin sake aikawa.",
+    "proceedAnywayHint": "Idan kuna kimanta mutane da yawa a wannan wuri, zaku iya ci gaba da sabuwar kimantawa.",
+    "proceedAnyway": "Kimanta wani mutum a nan",
     "minute": "minti",
     "minutes": "mintuna",
     "nav": {

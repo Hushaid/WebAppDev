@@ -155,6 +155,8 @@
     "startNewAssessmentAfter": "You can start a new assessment after {time}, or {move}.",
     "moveDifferentLocation": "move to a different location",
     "duplicateAlert": "Duplicate submission detected. Please move to a new location before submitting again.",
+    "proceedAnywayHint": "If you are assessing multiple people at this location, you can proceed with a new assessment.",
+    "proceedAnyway": "Assess another person here",
     "minute": "minute",
     "minutes": "minutes",
     "nav": {
