@@ -122,8 +122,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // b) Same submitter + GPS proximity + time window dedup
-    if (body.gpsLat && body.gpsLng) {
+    // b) Same submitter + GPS proximity + time window dedup (skipped when field worker
+    //    explicitly overrides to assess multiple people at the same location)
+    if (body.gpsLat && body.gpsLng && !body.bypassDedup) {
       const dedup = await getDedupConfig()
       const windowStart = new Date(Date.now() - dedup.windowMs)
       const lat = parseFloat(body.gpsLat)

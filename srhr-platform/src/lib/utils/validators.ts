@@ -35,6 +35,7 @@ export const submissionSchema = z.object({
   sex: z.enum(["male", "female"]),
   responses: z.record(z.string(), z.string()),
   clientSubmissionId: uuid.optional(),
+  bypassDedup: z.boolean().optional(),
 })
 
 /** Subject registration validation */
