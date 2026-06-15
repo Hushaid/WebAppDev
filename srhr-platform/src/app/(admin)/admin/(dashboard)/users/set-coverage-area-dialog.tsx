@@ -43,7 +43,8 @@ export function SetCoverageAreaDialog({
 }: SetCoverageAreaDialogProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState(currentGeographicUnitId ?? "")
+  // Radix Select doesn't accept empty string — use "ALL" as sentinel for "no restriction"
+  const [selected, setSelected] = useState(currentGeographicUnitId ?? "ALL")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,7 +60,7 @@ export function SetCoverageAreaDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "coverage_area",
-          geographicUnitId: selected || null,
+          geographicUnitId: selected === "ALL" ? null : selected,
         }),
       })
       const data = await res.json()
@@ -98,7 +99,7 @@ export function SetCoverageAreaDialog({
                 <SelectValue placeholder="All Areas (no restriction)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Areas (no restriction)</SelectItem>
+                <SelectItem value="ALL">All Areas (no restriction)</SelectItem>
                 {geographicUnits.map((unit) => (
                   <SelectItem key={unit.id} value={unit.id}>
                     {unit.name}
