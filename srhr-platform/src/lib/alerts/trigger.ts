@@ -1,20 +1,20 @@
 /**
  * Alert trigger system.
  *
- * High-risk flow:
- *   1. One system-level pending_review alert created (no recipientId)
- *   2. Email sent immediately to all super-admins — "please review"
- *   3. Super-admin approves → emails sent to partners + admins (not super-admins again)
- *      + alert records created for partners + admins on their alerts pages
+ * High-risk flow (per hushaid-features-update.md §2 — alerts routed through super-admin):
+ *   1. One system-level pending_review alert created (recipientId null)
+ *   2. Super-admins emailed immediately to review
+ *   3. Super-admin approves → partner/admin rows created (status "sent") + emails dispatched
+ *      Partners are filtered by their registered geographic area.
  *
  * Medium-risk flow:
- *   Dashboard-only alert records for partners/admins/super-admins. No email.
+ *   Dashboard-only records for partners/admins/super-admins (area-filtered). No email.
  */
 
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm"
+import { and, eq, inArray, isNull, or } from "drizzle-orm"
 import { Resend } from "resend"
 
 interface HighRiskAlertPayload {
@@ -63,61 +63,41 @@ const emailFrom = () => process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.de
 const baseUrl = () => process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 
 /**
- * Called on approval. Transitions pre-created pending_review rows for partners/admins
- * to "sent" and dispatches emails. Falls back to INSERT for legacy rows created before
- * the upfront-creation change.
+ * Called on super-admin approval. Creates alert records for partners + admins and
+ * dispatches emails. Partners are filtered by their registered geographic area.
  */
 export async function sendHighRiskAlertEmails(payload: HighRiskAlertPayload) {
-  const { highCategories, locationText } = buildAlertContent(payload)
-  const title = `High Risk Submission Detected`
+  const { title, message, highCategories, locationText } = buildAlertContent(payload)
   const base = baseUrl()
   const resend = getResend()
 
-  // Update pre-created pending_review rows for this submission → sent
-  const submissionPattern = `%Submission ID: ${payload.submissionId}%`
-  const updatedRows = await db
-    .update(alerts)
-    .set({ status: "sent" as const, sentAt: new Date(), updatedAt: new Date() })
-    .where(
-      and(
-        sql`${alerts.message} LIKE ${submissionPattern}`,
-        isNotNull(alerts.recipientId),
-        eq(alerts.status, "pending_review"),
-      ),
-    )
-    .returning({ recipientId: alerts.recipientId })
+  // Partners filtered by registered area (null = all areas)
+  const partnerWhere = payload.geographicUnitId
+    ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))
+    : eq(users.role, "partner")
 
-  let recipients: { id: string; email: string; name: string | null; role: string }[]
+  const [partnerRecipients, adminRecipients] = await Promise.all([
+    db.select({ id: users.id, email: users.email, name: users.name, role: users.role }).from(users).where(partnerWhere),
+    db.select({ id: users.id, email: users.email, name: users.name, role: users.role }).from(users).where(eq(users.role, "admin")),
+  ])
 
-  if (updatedRows.length > 0) {
-    const recipientIds = updatedRows.map((r) => r.recipientId).filter((id): id is string => id != null)
-    recipients = await db
-      .select({ id: users.id, email: users.email, name: users.name, role: users.role })
-      .from(users)
-      .where(inArray(users.id, recipientIds))
-  } else {
-    // Legacy path: no pre-created rows exist (submission from before upfront-creation change)
-    const { message } = buildAlertContent(payload)
-    recipients = await db
-      .select({ id: users.id, email: users.email, name: users.name, role: users.role })
-      .from(users)
-      .where(inArray(users.role, ["partner", "admin"]))
-    if (recipients.length > 0) {
-      await db.insert(alerts).values(
-        recipients.map((r) => ({
-          type: "high_risk_individual" as const,
-          recipientId: r.id,
-          riskLevel: "high" as const,
-          status: "sent" as const,
-          sentAt: new Date(),
-          title,
-          message,
-        })),
-      )
-    }
-  }
+  const recipients = [...partnerRecipients, ...adminRecipients]
+  if (recipients.length === 0) return
 
-  if (recipients.length === 0 || !resend) return
+  await db.insert(alerts).values(
+    recipients.map((r) => ({
+      type: "high_risk_individual" as const,
+      recipientId: r.id,
+      geographicUnitId: payload.geographicUnitId ?? null,
+      riskLevel: "high" as const,
+      status: "sent" as const,
+      sentAt: new Date(),
+      title,
+      message,
+    })),
+  )
+
+  if (!resend) return
 
   for (const recipient of recipients) {
     const isAdmin = recipient.role === "admin"
@@ -211,44 +191,6 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
       title,
       message,
     })
-
-    // Create per-recipient pending_review rows for partners/admins immediately so they
-    // see the alert in their dashboard without waiting for super-admin approval.
-    // Email dispatch is still gated — sendHighRiskAlertEmails runs after approval.
-
-    // Partners: filtered by registered area (null = all areas)
-    // If the submission has no geographicUnitId, all partners see it.
-    // If the submission has a geographicUnitId, only partners with that area OR no area see it.
-    const partnerWhere = payload.geographicUnitId
-      ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))
-      : eq(users.role, "partner")
-
-    const partnerRecipients = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(partnerWhere)
-
-    // Admins always receive all alerts regardless of area
-    const adminRecipients = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.role, "admin"))
-
-    const partnerAdminRecipients = [...partnerRecipients, ...adminRecipients]
-
-    if (partnerAdminRecipients.length > 0) {
-      await db.insert(alerts).values(
-        partnerAdminRecipients.map((r) => ({
-          type: "high_risk_individual" as const,
-          recipientId: r.id,
-          geographicUnitId: payload.geographicUnitId ?? null,
-          riskLevel: "high" as const,
-          status: "pending_review" as const,
-          title,
-          message,
-        })),
-      )
-    }
 
     // Email all super-admins immediately so they know to review
     const superAdmins = await db
