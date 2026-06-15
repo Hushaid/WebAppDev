@@ -61,8 +61,7 @@ export async function getAlerts(page: number = 1) {
 }
 
 export async function getPendingReviewCount(): Promise<number> {
-  // Only count system-level rows (recipientId null) — per-recipient pending_review rows
-  // are created upfront for dashboard visibility and should not inflate the review badge.
+  // Only count system-level rows (recipientId null)
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(alerts)
