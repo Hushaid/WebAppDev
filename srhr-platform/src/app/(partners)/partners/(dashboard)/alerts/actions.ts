@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
-import { eq, desc, sql, and } from "drizzle-orm"
+import { eq, desc, sql, and, isNotNull } from "drizzle-orm"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
@@ -68,8 +68,9 @@ export async function updatePartnerAlertStatus(
   const updateData: Record<string, unknown> = { status, updatedAt: new Date() }
   if (status === "actioned") updateData.actionedAt = new Date()
 
-  // Propagate to ALL sibling alerts (same event, different recipients)
-  // so resolution/dismissal reflects for all users
+  // Propagate to ALL sibling recipient alerts (same event, different recipients)
+  // so resolution/dismissal reflects for all users. Exclude system-level rows
+  // (recipientId null) so super-admin review queue is not affected.
   await db
     .update(alerts)
     .set(updateData)
@@ -79,6 +80,7 @@ export async function updatePartnerAlertStatus(
         alertRow.message
           ? eq(alerts.message, alertRow.message)
           : sql`${alerts.message} IS NULL`,
+        isNotNull(alerts.recipientId),
       ),
     )
 
