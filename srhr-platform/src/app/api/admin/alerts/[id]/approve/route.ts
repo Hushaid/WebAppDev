@@ -39,19 +39,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const gpsLat = locationParts[0] !== "No GPS location captured" ? locationParts[0] : null
   const gpsLng = locationParts[1] ?? null
 
+  // Reconstruct per-domain risk levels from the categories text in the message
+  const categoriesMatch = alert.message?.match(/Categories:\s*([^.]+)\./)
+  const categoriesStr = categoriesMatch?.[1]?.trim() ?? ""
+  const stiRiskLevel = categoriesStr.includes("STI") ? "high" as const : "low" as const
+  const maternalRiskLevel = categoriesStr.includes("Maternal Health") ? "high" as const : null
+  const communityWellbeingRiskLevel = categoriesStr.includes("Community Well-being") ? "high" as const : "low" as const
+
   // Mark the system alert as actioned
   await db
     .update(alerts)
     .set({ status: "actioned", actionedAt: new Date(), updatedAt: new Date() })
     .where(eq(alerts.id, id))
 
-  // Send emails + create alert records for partners and admins (NOT super-admins)
+  // Transition pre-created partner/admin pending_review rows → sent and dispatch emails
   await sendHighRiskAlertEmails({
     submissionId,
     overallRiskLevel: alert.riskLevel,
-    stiRiskLevel: alert.riskLevel,
-    maternalRiskLevel: null,
-    communityWellbeingRiskLevel: alert.riskLevel,
+    stiRiskLevel,
+    maternalRiskLevel,
+    communityWellbeingRiskLevel,
     aggregateScore,
     gpsLat,
     gpsLng,

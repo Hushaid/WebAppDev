@@ -14,7 +14,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm"
 import { Resend } from "resend"
 
 interface HighRiskAlertPayload {
@@ -62,38 +62,62 @@ const emailFrom = () => process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.de
 const baseUrl = () => process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 
 /**
- * Called on approval. Sends emails + creates alert records for partners and admins only.
- * Super-admins are NOT notified again — they already got the review email.
+ * Called on approval. Transitions pre-created pending_review rows for partners/admins
+ * to "sent" and dispatches emails. Falls back to INSERT for legacy rows created before
+ * the upfront-creation change.
  */
 export async function sendHighRiskAlertEmails(payload: HighRiskAlertPayload) {
-  const { title, message, highCategories, locationText } = buildAlertContent(payload)
-
-  const recipients = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
-    .from(users)
-    .where(inArray(users.role, ["partner", "admin"]))
-
-  if (recipients.length === 0) return
-
-  const resend = getResend()
-  if (!resend) return
-
+  const { highCategories, locationText } = buildAlertContent(payload)
+  const title = `High Risk Submission Detected`
   const base = baseUrl()
+  const resend = getResend()
 
-  // Create sent alert records for partners and admins
-  await db.insert(alerts).values(
-    recipients.map((r) => ({
-      type: "high_risk_individual" as const,
-      recipientId: r.id,
-      riskLevel: "high" as const,
-      status: "sent" as const,
-      sentAt: new Date(),
-      title,
-      message,
-    }))
-  )
+  // Update pre-created pending_review rows for this submission → sent
+  const submissionPattern = `%Submission ID: ${payload.submissionId}%`
+  const updatedRows = await db
+    .update(alerts)
+    .set({ status: "sent" as const, sentAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        sql`${alerts.message} LIKE ${submissionPattern}`,
+        isNotNull(alerts.recipientId),
+        eq(alerts.status, "pending_review"),
+      ),
+    )
+    .returning({ recipientId: alerts.recipientId })
 
-  // Send emails
+  let recipients: { id: string; email: string; name: string | null; role: string }[]
+
+  if (updatedRows.length > 0) {
+    const recipientIds = updatedRows.map((r) => r.recipientId).filter((id): id is string => id != null)
+    recipients = await db
+      .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+      .from(users)
+      .where(inArray(users.id, recipientIds))
+  } else {
+    // Legacy path: no pre-created rows exist (submission from before upfront-creation change)
+    const { message } = buildAlertContent(payload)
+    recipients = await db
+      .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+      .from(users)
+      .where(inArray(users.role, ["partner", "admin"]))
+    if (recipients.length > 0) {
+      await db.insert(alerts).values(
+        recipients.map((r) => ({
+          type: "high_risk_individual" as const,
+          recipientId: r.id,
+          riskLevel: "high" as const,
+          status: "sent" as const,
+          sentAt: new Date(),
+          title,
+          message,
+        })),
+      )
+    }
+  }
+
+  if (recipients.length === 0 || !resend) return
+
   for (const recipient of recipients) {
     const isAdmin = recipient.role === "admin"
     const alertsUrl = isAdmin ? `${base}/admin/alerts` : `${base}/partners/alerts`
@@ -177,7 +201,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   const { title, message, highCategories, locationText } = buildAlertContent(payload)
 
   if (isHigh) {
-    // One system-level alert (no recipient — belongs to the event, not a user)
+    // One system-level alert (no recipient — belongs to the event, drives the review queue)
     await db.insert(alerts).values({
       type: "high_risk_individual" as const,
       recipientId: null,
@@ -186,6 +210,27 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
       title,
       message,
     })
+
+    // Create per-recipient pending_review rows for partners/admins immediately so they
+    // see the alert in their dashboard without waiting for super-admin approval.
+    // Email dispatch is still gated — sendHighRiskAlertEmails runs after approval.
+    const partnerAdminRecipients = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(inArray(users.role, ["partner", "admin"]))
+
+    if (partnerAdminRecipients.length > 0) {
+      await db.insert(alerts).values(
+        partnerAdminRecipients.map((r) => ({
+          type: "high_risk_individual" as const,
+          recipientId: r.id,
+          riskLevel: "high" as const,
+          status: "pending_review" as const,
+          title,
+          message,
+        })),
+      )
+    }
 
     // Email all super-admins immediately so they know to review
     const superAdmins = await db
