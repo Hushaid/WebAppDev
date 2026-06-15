@@ -289,6 +289,7 @@ export async function POST(request: NextRequest) {
         aggregateScore: risk.aggregateScore,
         gpsLat: body.gpsLat ?? null,
         gpsLng: body.gpsLng ?? null,
+        geographicUnitId: geographicUnitId,
       }).catch(console.error)
     }
 

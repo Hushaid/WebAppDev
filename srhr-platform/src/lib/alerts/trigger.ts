@@ -14,7 +14,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { and, eq, inArray, isNotNull, sql } from "drizzle-orm"
+import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm"
 import { Resend } from "resend"
 
 interface HighRiskAlertPayload {
@@ -26,6 +26,7 @@ interface HighRiskAlertPayload {
   aggregateScore: number
   gpsLat: string | null
   gpsLng: string | null
+  geographicUnitId?: string | null
 }
 
 function buildAlertContent(payload: HighRiskAlertPayload) {
@@ -214,16 +215,33 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
     // Create per-recipient pending_review rows for partners/admins immediately so they
     // see the alert in their dashboard without waiting for super-admin approval.
     // Email dispatch is still gated — sendHighRiskAlertEmails runs after approval.
-    const partnerAdminRecipients = await db
+
+    // Partners: filtered by registered area (null = all areas)
+    // If the submission has no geographicUnitId, all partners see it.
+    // If the submission has a geographicUnitId, only partners with that area OR no area see it.
+    const partnerWhere = payload.geographicUnitId
+      ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))
+      : eq(users.role, "partner")
+
+    const partnerRecipients = await db
       .select({ id: users.id })
       .from(users)
-      .where(inArray(users.role, ["partner", "admin"]))
+      .where(partnerWhere)
+
+    // Admins always receive all alerts regardless of area
+    const adminRecipients = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.role, "admin"))
+
+    const partnerAdminRecipients = [...partnerRecipients, ...adminRecipients]
 
     if (partnerAdminRecipients.length > 0) {
       await db.insert(alerts).values(
         partnerAdminRecipients.map((r) => ({
           type: "high_risk_individual" as const,
           recipientId: r.id,
+          geographicUnitId: payload.geographicUnitId ?? null,
           riskLevel: "high" as const,
           status: "pending_review" as const,
           title,
@@ -285,10 +303,22 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   }
 
   // Medium risk: dashboard-only records for partners/admins/super-admins, no email
-  const recipients = await db
+  // Partners filtered by registered area; admins and super_admins see all
+  const mediumPartnerWhere = payload.geographicUnitId
+    ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))
+    : eq(users.role, "partner")
+
+  const mediumPartnerRecipients = await db
     .select({ id: users.id })
     .from(users)
-    .where(inArray(users.role, ["partner", "admin", "super_admin"]))
+    .where(mediumPartnerWhere)
+
+  const mediumAdminRecipients = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(inArray(users.role, ["admin", "super_admin"]))
+
+  const recipients = [...mediumPartnerRecipients, ...mediumAdminRecipients]
 
   if (recipients.length === 0) return
 
@@ -296,6 +326,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
     recipients.map((r) => ({
       type: "high_risk_individual" as const,
       recipientId: r.id,
+      geographicUnitId: payload.geographicUnitId ?? null,
       riskLevel: "medium" as const,
       status: "pending" as const,
       title,

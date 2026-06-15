@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
-import { eq, desc, sql, and, isNotNull } from "drizzle-orm"
+import { eq, desc, sql, and, isNotNull, gte, lte } from "drizzle-orm"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
@@ -92,4 +92,77 @@ export async function updatePartnerAlertStatus(
   }).catch(console.error)
 
   revalidatePath("/partners/alerts")
+}
+
+export async function getPartnerAlertSummary() {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  if (!session?.user?.id) {
+    return {
+      thisWeek: 0,
+      lastWeek: 0,
+      thisMonth: 0,
+      lastMonth: 0,
+      thisWeekHigh: 0,
+      lastMonthHigh: 0,
+    }
+  }
+
+  const now = new Date()
+
+  // Week boundaries (Mon–Sun)
+  const dayOfWeek = now.getDay() // 0 = Sun, 1 = Mon, ...
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+
+  const thisMonday = new Date(now)
+  thisMonday.setDate(now.getDate() - daysFromMonday)
+  thisMonday.setHours(0, 0, 0, 0)
+
+  const lastMonday = new Date(thisMonday)
+  lastMonday.setDate(thisMonday.getDate() - 7)
+
+  const lastSunday = new Date(thisMonday)
+  lastSunday.setMilliseconds(-1) // 1ms before this Monday = last Sunday 23:59:59.999
+
+  // Month boundaries
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+  const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0)
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+
+  const countWhere = (start: Date, end: Date, highOnly = false) => {
+    const conditions = [
+      eq(alerts.recipientId, session.user.id),
+      gte(alerts.createdAt, start),
+      lte(alerts.createdAt, end),
+    ]
+    if (highOnly) conditions.push(eq(alerts.riskLevel, "high"))
+    return and(...conditions)
+  }
+
+  const [
+    [thisWeekRow],
+    [lastWeekRow],
+    [thisMonthRow],
+    [lastMonthRow],
+    [thisWeekHighRow],
+    [lastMonthHighRow],
+  ] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(thisMonday, now)),
+    db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(lastMonday, lastSunday)),
+    db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(thisMonthStart, thisMonthEnd)),
+    db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(lastMonthStart, lastMonthEnd)),
+    db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(thisMonday, now, true)),
+    db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(lastMonthStart, lastMonthEnd, true)),
+  ])
+
+  return {
+    thisWeek: thisWeekRow.count,
+    lastWeek: lastWeekRow.count,
+    thisMonth: thisMonthRow.count,
+    lastMonth: lastMonthRow.count,
+    thisWeekHigh: thisWeekHighRow.count,
+    lastMonthHigh: lastMonthHighRow.count,
+  }
 }

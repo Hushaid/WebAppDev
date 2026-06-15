@@ -14,6 +14,7 @@ import {
 import { Search } from "lucide-react"
 import { EditUserDialog } from "./edit-user-dialog"
 import { UserActions } from "./user-actions"
+import { SetCoverageAreaDialog } from "./set-coverage-area-dialog"
 
 type User = {
   id: string
@@ -25,7 +26,14 @@ type User = {
   homeAddress: string | null
   role: string
   status: string
+  geographicUnitId: string | null
   createdAt: Date
+}
+
+interface GeographicUnit {
+  id: string
+  name: string
+  level: string
 }
 
 interface UsersTableProps {
@@ -33,9 +41,10 @@ interface UsersTableProps {
   isSuperAdmin: boolean
   callerRole: string
   callerId: string
+  geographicUnits: GeographicUnit[]
 }
 
-export function UsersTable({ users, isSuperAdmin, callerRole, callerId }: UsersTableProps) {
+export function UsersTable({ users, isSuperAdmin, callerRole, callerId, geographicUnits }: UsersTableProps) {
   const [search, setSearch] = useState("")
 
   function mask(value: string | null, visibleChars = 2): string {
@@ -81,6 +90,7 @@ export function UsersTable({ users, isSuperAdmin, callerRole, callerId }: UsersT
               <TableHead>Phone</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Coverage Area</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
               <TableHead>Actions</TableHead>
@@ -89,7 +99,7 @@ export function UsersTable({ users, isSuperAdmin, callerRole, callerId }: UsersT
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
+                <TableCell colSpan={10} className="text-center text-muted-foreground">
                   {search.trim() ? "No users match your search." : "No users found."}
                 </TableCell>
               </TableRow>
@@ -103,6 +113,18 @@ export function UsersTable({ users, isSuperAdmin, callerRole, callerId }: UsersT
                   <TableCell className="max-w-[150px] truncate">{mask(user.homeAddress, 4)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{user.role.replace(/_/g, " ")}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {user.role === "partner" ? (
+                      <span className="text-sm">
+                        {user.geographicUnitId
+                          ? (geographicUnits.find((u) => u.id === user.geographicUnitId)?.name ?? "Unknown area")
+                          : <span className="text-muted-foreground">All Areas</span>
+                        }
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -133,6 +155,15 @@ export function UsersTable({ users, isSuperAdmin, callerRole, callerId }: UsersT
                           currentAlternatePhone={user.alternatePhone ?? ""}
                           currentHomeAddress={user.homeAddress ?? ""}
                           currentSex={user.sex ?? ""}
+                        />
+                      )}
+                      {isSuperAdmin && (
+                        <SetCoverageAreaDialog
+                          userId={user.id}
+                          currentGeographicUnitId={user.geographicUnitId}
+                          currentName={user.name ?? user.email}
+                          userRole={user.role}
+                          geographicUnits={geographicUnits}
                         />
                       )}
                       <UserActions

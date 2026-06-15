@@ -10,8 +10,9 @@ import {
   auditLog,
   climateDatasets,
   fieldWorkerCodes,
+  geographicUnits,
 } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, asc } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -37,6 +38,13 @@ const roleLoginPaths: Record<string, string> = {
 
 export async function getUsers() {
   return db.select().from(users).orderBy(desc(users.createdAt))
+}
+
+export async function getGeographicUnits() {
+  return db
+    .select({ id: geographicUnits.id, name: geographicUnits.name, level: geographicUnits.level })
+    .from(geographicUnits)
+    .orderBy(asc(geographicUnits.name))
 }
 
 export async function updateUserDetails(
