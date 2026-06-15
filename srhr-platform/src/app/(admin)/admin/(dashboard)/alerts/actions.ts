@@ -3,7 +3,7 @@
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, desc, sql, and, isNull, or } from "drizzle-orm"
+import { eq, desc, sql, and, isNull, isNotNull, or } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -61,11 +61,40 @@ export async function getAlerts(page: number = 1) {
 }
 
 export async function getPendingReviewCount(): Promise<number> {
+  // Only count system-level rows (recipientId null) — per-recipient pending_review rows
+  // are created upfront for dashboard visibility and should not inflate the review badge.
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(alerts)
-    .where(eq(alerts.status, "pending_review"))
+    .where(and(eq(alerts.status, "pending_review"), isNull(alerts.recipientId)))
   return result?.count ?? 0
+}
+
+export async function getAllAlertsForExport() {
+  const headersList = await headers()
+  const session = await auth.api.getSession({ headers: headersList })
+  const callerRole = (session?.user as { role?: string } | undefined)?.role
+  if (!callerRole || !["admin", "super_admin"].includes(callerRole)) return []
+
+  const rows = await db
+    .select({
+      id: alerts.id,
+      type: alerts.type,
+      riskLevel: alerts.riskLevel,
+      status: alerts.status,
+      title: alerts.title,
+      message: alerts.message,
+      adminNote: alerts.adminNote,
+      sentAt: alerts.sentAt,
+      createdAt: alerts.createdAt,
+      recipientName: users.name,
+      recipientEmail: users.email,
+    })
+    .from(alerts)
+    .leftJoin(users, eq(alerts.recipientId, users.id))
+    .orderBy(desc(alerts.createdAt))
+
+  return rows
 }
 
 export async function updateAlertStatus(
@@ -103,6 +132,7 @@ export async function updateAlertStatus(
             alertRow.message
               ? eq(alerts.message, alertRow.message)
               : sql`${alerts.message} IS NULL`,
+            isNotNull(alerts.recipientId),
           ),
         )
     }

@@ -26,24 +26,25 @@ export default function PartnersExportsPage() {
   async function handleExportCsv() {
     setExporting(true)
     try {
-      // Fetch de-identified IRIX scores from API
-      const params = new URLSearchParams({ path: "/api/v1/scores" })
-      if (diseaseGroup !== "all") params.set("disease_group", diseaseGroup)
-      if (riskLevel !== "all") params.set("risk_level", riskLevel)
-      if (dateFrom) params.set("date_from", dateFrom)
-      if (dateTo) params.set("date_to", dateTo)
+      // Fetch de-identified IRIX scores from the partners dashboard API (DB-backed, no external dependency)
+      const params = new URLSearchParams()
+      if (diseaseGroup !== "all") params.set("diseaseGroup", diseaseGroup)
+      if (riskLevel !== "all") params.set("riskLevel", riskLevel)
+      if (dateFrom) params.set("dateFrom", dateFrom)
+      if (dateTo) params.set("dateTo", dateTo)
 
-      const res = await fetch(`/api/irix?${params}`)
+      const res = await fetch(`/api/partners/dashboard?${params}`)
       if (!res.ok) {
-        toast.error("Failed to fetch data. The IRIX service may be unavailable.")
+        toast.error("Failed to fetch data. Please try again.")
         return
       }
 
       const data = await res.json()
 
-      // Strip any PII — only include aggregated, de-identified fields
-      const cleanData = (Array.isArray(data) ? data : []).map(
+      // Strip any PII — only include aggregated, de-identified fields (no lat/lng or individual IDs)
+      const cleanData = (Array.isArray(data.areas) ? data.areas : []).map(
         (row: Record<string, unknown>) => ({
+          location: row.location_name,
           h3_index: row.h3_index,
           overall_irix_score: row.overall_irix_score,
           overall_risk_level: row.overall_risk_level,

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getPartnerAlerts } from "./actions"
+import { getPartnerAlerts, getPartnerAlertSummary } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -61,8 +61,10 @@ export default async function PartnersAlertsPage({
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
-  const { items: alertList, total, totalPages, pageSize } =
-    await getPartnerAlerts(page)
+  const [
+    { items: alertList, total, totalPages, pageSize },
+    summary,
+  ] = await Promise.all([getPartnerAlerts(page), getPartnerAlertSummary()])
 
   const pendingCount = alertList.filter(
     (a) => a.status === "pending" || a.status === "sent",
@@ -82,37 +84,91 @@ export default async function PartnersAlertsPage({
             </hgroup>
           </header>
 
-          <div className="grid gap-4 grid-cols-3">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Alerts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{total}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Pending
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-yellow-600">{pendingCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  High Risk
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-red-600">{highRiskCount}</p>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            <div className="grid gap-4 grid-cols-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Total Alerts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{total}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Pending
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-yellow-600">{pendingCount}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    High Risk
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-red-600">{highRiskCount}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Weekly &amp; Monthly Summary</p>
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      This Week
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{summary.thisWeek}</p>
+                    {summary.thisWeekHigh > 0 && (
+                      <p className="text-xs text-red-600 mt-1">{summary.thisWeekHigh} high risk</p>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Last Week
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{summary.lastWeek}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      This Month
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{summary.thisMonth}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Last Month
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{summary.lastMonth}</p>
+                    {summary.lastMonthHigh > 0 && (
+                      <p className="text-xs text-red-600 mt-1">{summary.lastMonthHigh} high risk</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
 
           {alertList.length === 0 && page === 1 ? (

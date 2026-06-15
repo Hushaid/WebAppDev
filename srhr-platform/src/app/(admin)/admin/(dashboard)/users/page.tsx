@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getUsers } from "./actions"
+import { getUsers, getGeographicUnits } from "./actions"
 import { CreateUserDialog } from "./create-user-dialog"
 import { AdminHeaderAction } from "@/components/admin-header-action"
 import { headers } from "next/headers"
@@ -22,7 +22,7 @@ export default async function UsersPage({
   const callerRole = (session?.user as { role?: string } | undefined)?.role ?? "admin"
   const callerId = session?.user?.id ?? ""
   const isSuperAdmin = callerRole === "super_admin"
-  const allUsers = await getUsers()
+  const [allUsers, allGeographicUnits] = await Promise.all([getUsers(), getGeographicUnits()])
 
   const filteredUsers = allUsers.filter((u) => {
     if (filterRole !== "all" && u.role !== filterRole) return false
@@ -60,6 +60,7 @@ export default async function UsersPage({
           isSuperAdmin={isSuperAdmin}
           callerRole={callerRole}
           callerId={callerId}
+          geographicUnits={allGeographicUnits}
         />
       </div>
     </div>

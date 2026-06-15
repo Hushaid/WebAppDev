@@ -7,6 +7,7 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core"
 import { userRoleEnum, userStatusEnum } from "./enums"
+import { geographicUnits } from "./facilities"
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -24,6 +25,7 @@ export const users = pgTable("users", {
   mfaEnabled: boolean("mfa_enabled").default(false).notNull(),
   failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  geographicUnitId: uuid("geographic_unit_id").references(() => geographicUnits.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })

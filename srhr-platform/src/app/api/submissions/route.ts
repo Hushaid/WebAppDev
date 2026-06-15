@@ -278,8 +278,8 @@ export async function POST(request: NextRequest) {
       ipAddress: ip,
     }).catch(console.error)
 
-    // 9. Trigger high-risk alert (non-blocking)
-    if (risk.overallRiskLevel === "high") {
+    // 9. Trigger high-risk / medium-risk alert (non-blocking)
+    if (risk.overallRiskLevel === "high" || risk.overallRiskLevel === "medium") {
       triggerHighRiskAlert({
         submissionId: submission.id,
         overallRiskLevel: risk.overallRiskLevel,
@@ -289,6 +289,7 @@ export async function POST(request: NextRequest) {
         aggregateScore: risk.aggregateScore,
         gpsLat: body.gpsLat ?? null,
         gpsLng: body.gpsLng ?? null,
+        geographicUnitId: geographicUnitId,
       }).catch(console.error)
     }
 
