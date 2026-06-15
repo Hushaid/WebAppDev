@@ -34,6 +34,7 @@ export default function FieldWorkerQuestionnairePage() {
       : { status: "idle" },
   )
   const gpsRef = useRef<{ lat: number; lng: number } | null>(null)
+  const hasInitiatedGps = useRef(false)
 
   // fromButton: true → on failure show the denied error panel
   // fromButton: false (auto-triggered) → on failure fall back to idle so the button appears
@@ -85,14 +86,15 @@ export default function FieldWorkerQuestionnairePage() {
 
   // On mount, check if permission was already granted — if so, auto-request
   // without a button click to avoid unnecessary friction.
-  // If permission is "prompt" or unknown, require a user gesture so the browser
-  // shows its permission dialog (some desktop browsers suppress auto-requests).
+  // Guard with hasInitiatedGps so session re-fetches on tab focus don't re-run
+  // this and wipe out GPS state (and the questionnaire) mid-fill.
   useEffect(() => {
     if (!session) return
-    if (!navigator.geolocation) return // already set as denied in useState initializer
+    if (!navigator.geolocation) return
+    if (hasInitiatedGps.current) return
+    hasInitiatedGps.current = true
 
     if (!navigator.permissions) {
-      // Permissions API not available — fall back to showing the button
       return
     }
 
