@@ -129,6 +129,112 @@
       "history": "History",
       "settings": "Settings",
       "menu": "Menu"
+    },
+    "riskWord": {
+      "low": "low",
+      "medium": "medium",
+      "high": "high"
+    },
+    "historyPage": {
+      "title": "Assessment History",
+      "description": "Your past health assessment and result.",
+      "empty": "You never take any assessment before. Take your first assessment to see your history here.",
+      "colDate": "Date",
+      "colRisk": "Overall Risk",
+      "colScore": "Score"
+    },
+    "detailPage": {
+      "title": "Assessment Result",
+      "backToHistory": "Go back to history",
+      "notAvailable": "Risk classification data no dey available for dis assessment.",
+      "overallRisk": "Overall Risk"
+    },
+    "resultsPage": {
+      "title": "Your Result",
+      "titleWithName": "{name}, here na your result",
+      "disclaimer": "Based on your answers, na dis your personal health risk summary. Dis no be medical diagnosis — abeg consult health worker for professional advice.",
+      "noResults": "No result dey found. Complete health assessment first to see your result here.",
+      "backToDashboard": "Go back to dashboard",
+      "takeAnother": "Take another assessment",
+      "facilitiesTitle": "Health centre wey we recommend",
+      "facilitiesLoading": "We dey find health centre near you...",
+      "facilitiesFound": "Dis health centres dey near your location and dem fit support you.",
+      "facilitiesNone": "No health centre dey found near you. Abeg contact your local health centre for help."
+    },
+    "settingsPage": {
+      "title": "Settings",
+      "description": "Manage your account settings."
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "description": "Update your account password. You go need enter your current password.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Change password",
+      "submitting": "E dey change...",
+      "mismatchError": "New password no match",
+      "tooShortError": "New password must reach character 8",
+      "successMessage": "Password change successful",
+      "failureMessage": "Password no change"
+    },
+    "healthSteps": {
+      "sectionTitle": "Steps to protect your health",
+      "labelLow": "Your answers show say you dey low risk. Follow dis steps to stay healthy.",
+      "labelMedium": "Your answers show say you dey for moderate risk. Abeg follow dis steps within next few days.",
+      "labelHigh": "Your answers show say you dey high risk. Abeg follow dis steps urgent urgent.",
+      "badgeLow": "low risk",
+      "badgeMedium": "medium risk",
+      "badgeHigh": "high risk",
+      "stepsLow": [
+        "No do sex, or make you stay faithful to one partner. If you get more than one partner, always use condom.",
+        "Use condom every time wey you wan do sex. Condom dey protect you from infection and pregnancy wey you no want.",
+        "No do risky sex tin like anal sex, e fit increase chance for you to catch infection.",
+        "If you notice any strange discharge, sore, burning wen you wan piss, or pain wen you dey do sex — go health centre quick quick for correct treatment. No try treat yourself.",
+        "If dem dey treat you for infection, no do sex until treatment don finish. Make sure dem treat your partner too.",
+        "If you dey pregnant or you think say you fit dey pregnant: register for antenatal early — better make e dey between week 8 to 12 of pregnancy. No wait.",
+        "Make sure you attend every antenatal appointment and take all medicine wey health worker give you.",
+        "Go hospital sharp sharp if any of dis tins happen for pregnancy time: serious headache or dizziness, swollen leg or face, bleeding from your private part, strange discharge, or your baby no dey move well.",
+        "Pack your delivery kit early — before your due date. E suppose contain gloves, soap, clean wrapper, baby clothes, cap, socks, towel, delivery pad, and cord tie.",
+        "Know the signs of labour and know which facility you go go. Get transport plan ready before your due date.",
+        "If you or person for your community dey suffer gender-based violence — report am. You fit call 0800-9210-0009. Di call free and na secret."
+      ],
+      "stepsMedium": [
+        "Go health centre within next 2 days for check-up and screening. Tell health worker all the symptoms wey you dey feel, even if e small small.",
+        "Ask dem to test you for HIV and other infections like syphilis and gonorrhea di same day. Plenty infections fit get full cure if you take correct medicine.",
+        "If you dey pregnant and you never start antenatal, or you don miss appointment, go nearest health centre dis week.",
+        "Dem suppose screen and treat your sex partner too. Contact tracing important to stop di infection from spread."
+      ],
+      "stepsHigh": [
+        "Go health centre TODAY. No wait. Your answers show say you fit dey get serious infection or pregnancy problem wey need urgent attention.",
+        "If you no fit reach health centre because road don flood or you no get transport — call National Emergency Management Agency (NEMA) on 080022556362 now and ask for emergency health support. Tell dem your community name.",
+        "If dem don notify health worker about your situation, dem go call di health centre before you reach so dat staff go ready to receive you. No fear — di health workers dey dia to help you.",
+        "After dis emergency visit, health worker go follow up with you make sure you dey recover well and to remove any wahala wey fit stop you from comin back for follow-up care. Abeg make your phone dey on and reachable."
+      ]
+    },
+    "emergencyContacts": {
+      "sectionTitle": "Help Dey Available Always",
+      "description": "24/7 support for health emergency and gender-based violence. You no dey alone.",
+      "contacts": [
+        {
+          "description": "Support for sexual violence",
+          "availability": "Free · 24 hours · Secret"
+        },
+        {
+          "description": "Any kain emergency wey fit kill",
+          "availability": "Free · 24 hours"
+        },
+        {
+          "description": "Disaster and flood response",
+          "availability": "Free · 24 hours"
+        },
+        {
+          "description": "Telecoms complain and support",
+          "availability": "Free · 24 hours"
+        }
+      ]
     }
   },
   "fieldWorker": {

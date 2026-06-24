@@ -100,7 +100,7 @@ export default async function PersonalHomePage() {
             <CardTitle className="flex items-center justify-between">
               {t("latestResult")}
               <Badge variant={riskVariant(latestSubmission.overallRiskLevel)} className="text-sm">
-                {latestSubmission.overallRiskLevel.toUpperCase()}
+                {t(`riskWord.${latestSubmission.overallRiskLevel}`).toUpperCase()}
               </Badge>
             </CardTitle>
             <CardDescription>
@@ -120,7 +120,7 @@ export default async function PersonalHomePage() {
               <dt className="text-muted-foreground">{t("infectionRisk")}</dt>
               <dd className="text-end">
                 <Badge variant={riskVariant(latestSubmission.stiRiskLevel)}>
-                  {latestSubmission.stiRiskLevel} ({latestSubmission.stiScore})
+                  {t(`riskWord.${latestSubmission.stiRiskLevel}`)} ({latestSubmission.stiScore})
                 </Badge>
               </dd>
 
@@ -129,7 +129,7 @@ export default async function PersonalHomePage() {
                   <dt className="text-muted-foreground">{t("maternalHealth")}</dt>
                   <dd className="text-end">
                     <Badge variant={riskVariant(latestSubmission.maternalRiskLevel)}>
-                      {latestSubmission.maternalRiskLevel} ({latestSubmission.maternalScore})
+                      {t(`riskWord.${latestSubmission.maternalRiskLevel}`)} ({latestSubmission.maternalScore})
                     </Badge>
                   </dd>
                 </>
@@ -138,7 +138,7 @@ export default async function PersonalHomePage() {
               <dt className="text-muted-foreground">{t("communityWellbeing")}</dt>
               <dd className="text-end">
                 <Badge variant={riskVariant(latestSubmission.communityWellbeingRiskLevel)}>
-                  {latestSubmission.communityWellbeingRiskLevel} ({latestSubmission.communityWellbeingScore})
+                  {t(`riskWord.${latestSubmission.communityWellbeingRiskLevel}`)} ({latestSubmission.communityWellbeingScore})
                 </Badge>
               </dd>
             </dl>
