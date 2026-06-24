@@ -97,6 +97,9 @@ export function QuestionnaireWizard({
       const db = dbOverrides.get(q.id)
       if (!db) return q
       const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
+      // No DB translation for this locale — keep the i18n-localized text instead of
+      // falling back to the DB's plain English column, which only reflects admin edits.
+      if (locale !== "en" && !tr) return q
       return {
         ...q,
         text: tr?.text ?? db.text,
@@ -113,6 +116,7 @@ export function QuestionnaireWizard({
       const db = dbOverrides.get(q.id)
       if (!db) return q
       const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
+      if (locale !== "en" && !tr) return q
       return {
         ...q,
         text: tr?.text ?? db.text,
@@ -133,6 +137,7 @@ export function QuestionnaireWizard({
       const db = dbOverrides.get(q.id)
       if (!db) return q
       const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
+      if (locale !== "en" && !tr) return q
       return {
         ...q,
         text: tr?.text ?? db.text,
@@ -149,6 +154,7 @@ export function QuestionnaireWizard({
       const db = dbOverrides.get(q.id)
       if (!db) return q
       const tr = locale !== "en" ? db.translations?.[locale as "pcm" | "ha"] : null
+      if (locale !== "en" && !tr) return q
       return {
         ...q,
         text: tr?.text ?? db.text,
