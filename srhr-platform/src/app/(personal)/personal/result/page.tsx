@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
+import { PersonalHealthSteps, PersonalEmergencyContacts } from "@/components/personal/health-steps"
 import {
   Accordion,
   AccordionContent,
@@ -54,6 +55,7 @@ function riskVariant(level: string) {
 }
 
 export default function PersonalResultPage() {
+  const t = useTranslations("personal")
   const { data: session } = useSession()
   const userName = session?.user?.name ?? ""
   const [risk, setRisk] = useState<RiskData | null>(null)
@@ -91,15 +93,15 @@ export default function PersonalResultPage() {
     return (
       <section className="space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Your Results</h1>
-          <p className="text-muted-foreground">No results found. Complete a health assessment first to see your results here.</p>
+          <h1 className="text-2xl font-bold">{t("resultsPage.title")}</h1>
+          <p className="text-muted-foreground">{t("resultsPage.noResults")}</p>
         </header>
         <div className="flex gap-3">
           <Button asChild>
-            <Link href="/personal/questionnaire">Take assessment</Link>
+            <Link href="/personal/questionnaire">{t("takeAssessment")}</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/personal">Back to dashboard</Link>
+            <Link href="/personal">{t("resultsPage.backToDashboard")}</Link>
           </Button>
         </div>
       </section>
@@ -110,69 +112,69 @@ export default function PersonalResultPage() {
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold">
-          {userName ? `${userName}, here are your results` : "Your Results"}
+          {userName ? t("resultsPage.titleWithName", { name: userName }) : t("resultsPage.title")}
         </h1>
         <p className="text-muted-foreground">
-          Based on your answers, here is your personalised health risk summary. This is not a medical diagnosis — please consult a healthcare provider for professional advice.
+          {t("resultsPage.disclaimer")}
         </p>
       </header>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            Overall Risk
+            {t("detailPage.overallRisk")}
             <Badge variant={riskVariant(risk.overallRiskLevel)} className="text-sm">
-              {risk.overallRiskLevel.toUpperCase()}
+              {t(`riskWord.${risk.overallRiskLevel}`).toUpperCase()}
             </Badge>
           </CardTitle>
           <CardDescription>
-            Aggregate score: {risk.aggregateScore}
+            {t("aggregateScore")}: {risk.aggregateScore}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-4 text-sm">
-            <dt className="text-muted-foreground">Infection Risk</dt>
+            <dt className="text-muted-foreground">{t("infectionRisk")}</dt>
             <dd className="text-end">
               <Badge variant={riskVariant(risk.stiRiskLevel)}>
-                {risk.stiRiskLevel} ({risk.stiScore})
+                {t(`riskWord.${risk.stiRiskLevel}`)} ({risk.stiScore})
               </Badge>
             </dd>
 
             {risk.maternalRiskLevel && (
               <>
-                <dt className="text-muted-foreground">Maternal Health</dt>
+                <dt className="text-muted-foreground">{t("maternalHealth")}</dt>
                 <dd className="text-end">
                   <Badge variant={riskVariant(risk.maternalRiskLevel)}>
-                    {risk.maternalRiskLevel} ({risk.maternalScore})
+                    {t(`riskWord.${risk.maternalRiskLevel}`)} ({risk.maternalScore})
                   </Badge>
                 </dd>
               </>
             )}
 
-            <dt className="text-muted-foreground">Community Well-being</dt>
+            <dt className="text-muted-foreground">{t("communityWellbeing")}</dt>
             <dd className="text-end">
               <Badge variant={riskVariant(risk.communityWellbeingRiskLevel)}>
-                {risk.communityWellbeingRiskLevel} ({risk.communityWellbeingScore})
+                {t(`riskWord.${risk.communityWellbeingRiskLevel}`)} ({risk.communityWellbeingScore})
               </Badge>
             </dd>
           </dl>
         </CardContent>
       </Card>
 
-      <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
+      <PersonalHealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
 
       <Accordion type="single" collapsible className="rounded-lg border">
         <AccordionItem value="facilities" className="border-0">
           <AccordionTrigger className="px-6 py-4 hover:no-underline">
-            <span className="text-base font-semibold">Recommended facilities</span>
+            <span className="text-base font-semibold">{t("resultsPage.facilitiesTitle")}</span>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-4">
             <p className="mb-4 text-sm text-muted-foreground">
               {loading
-                ? "Finding health facilities near you..."
+                ? t("resultsPage.facilitiesLoading")
                 : facilities.length > 0
-                  ? "These health facilities are near your location and can provide support."
-                  : "No nearby facilities found. Please contact your local health centre for assistance."}
+                  ? t("resultsPage.facilitiesFound")
+                  : t("resultsPage.facilitiesNone")}
             </p>
             {facilities.length > 0 && (
               <ul className="space-y-3">
@@ -199,14 +201,14 @@ export default function PersonalResultPage() {
         </AccordionItem>
       </Accordion>
 
-      <EmergencyContacts />
+      <PersonalEmergencyContacts />
 
       <nav className="flex gap-3">
         <Button variant="outline" asChild>
-          <Link href="/personal/questionnaire">Take another assessment</Link>
+          <Link href="/personal/questionnaire">{t("resultsPage.takeAnother")}</Link>
         </Button>
         <Button variant="ghost" asChild>
-          <Link href="/personal">Back to dashboard</Link>
+          <Link href="/personal">{t("resultsPage.backToDashboard")}</Link>
         </Button>
       </nav>
     </section>

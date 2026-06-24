@@ -129,6 +129,112 @@
       "history": "Tarihi",
       "settings": "Saituna",
       "menu": "Menu"
+    },
+    "riskWord": {
+      "low": "Ƙasa",
+      "medium": "Matsakaici",
+      "high": "Mai Girma"
+    },
+    "historyPage": {
+      "title": "Tarihin Tantancewa",
+      "description": "Tantancewar lafiyarka ta baya da sakamakonsu.",
+      "empty": "Ba ka yi wani tantancewa har yanzu ba. Yi tantancewar farko don ganin tarihinka a nan.",
+      "colDate": "Kwanan wata",
+      "colRisk": "Babban Haɗari",
+      "colScore": "Maki"
+    },
+    "detailPage": {
+      "title": "Sakamakon Tantancewa",
+      "backToHistory": "Koma zuwa tarihi",
+      "notAvailable": "Babu bayanin matakin haɗari ga wannan tantancewar.",
+      "overallRisk": "Babban Haɗari"
+    },
+    "resultsPage": {
+      "title": "Sakamakonka",
+      "titleWithName": "{name}, ga sakamakonka",
+      "disclaimer": "Bisa amsoshinka, ga taƙaitaccen bayanin haɗarin lafiyarka na musamman. Wannan ba ganewar likita ba ne — don Allah ka tuntuɓi ma'aikacin lafiya don shawara ta gaskiya.",
+      "noResults": "Babu sakamako da aka samu. Kammala tantance lafiya tukuna don ganin sakamakonka a nan.",
+      "backToDashboard": "Koma zuwa dashboard",
+      "takeAnother": "Yi wani tantancewa",
+      "facilitiesTitle": "Wuraren lafiya da aka shawarce",
+      "facilitiesLoading": "Ana neman wuraren lafiya kusa da kai...",
+      "facilitiesFound": "Waɗannan wuraren lafiya suna kusa da inda kake kuma za su iya taimaka maka.",
+      "facilitiesNone": "Babu wuraren lafiya da aka samu kusa da kai. Don Allah ka tuntuɓi cibiyar lafiya ta gundumarku don taimako."
+    },
+    "settingsPage": {
+      "title": "Saituna",
+      "description": "Sarrafa saitunan asusunka."
+    },
+    "changePassword": {
+      "title": "Canza Kalmar Sirri",
+      "description": "Sabunta kalmar sirrin asusunka. Za ka buƙaci shigar da kalmar sirrin da kake amfani da ita yanzu.",
+      "currentPassword": "Kalmar sirrin yanzu",
+      "newPassword": "Sabuwar kalmar sirri",
+      "confirmPassword": "Tabbatar da sabuwar kalmar sirri",
+      "showPassword": "Nuna kalmar sirri",
+      "hidePassword": "Ɓoye kalmar sirri",
+      "submit": "Canza kalmar sirri",
+      "submitting": "Ana canzawa...",
+      "mismatchError": "Sabuwar kalmar sirri ba ta dace ba",
+      "tooShortError": "Sabuwar kalmar sirri dole ta kasance aƙalla haruffa 8",
+      "successMessage": "An canza kalmar sirri cikin nasara",
+      "failureMessage": "An kasa canza kalmar sirri"
+    },
+    "healthSteps": {
+      "sectionTitle": "Matakan Kare Lafiyarka",
+      "labelLow": "Amsoshinka sun nuna ƙaramin matakin haɗari. Bi waɗannan matakai don ka kasance lafiya.",
+      "labelMedium": "Amsoshinka sun nuna matsakaicin matakin haɗari. Don Allah ka bi waɗannan matakai cikin kwanaki kaɗan masu zuwa.",
+      "labelHigh": "Amsoshinka sun nuna babban matakin haɗari. Don Allah ka bi waɗannan matakai cikin gaggawa.",
+      "badgeLow": "ƙaramin haɗari",
+      "badgeMedium": "matsakaicin haɗari",
+      "badgeHigh": "babban haɗari",
+      "stepsLow": [
+        "Ka guji jima'i, ko ka tsaya da abokin tarayya guda. Idan kana da abokan tarayya fiye da ɗaya, ka yi amfani da roba (condom) a koyaushe.",
+        "Yi amfani da roba (condom) duk lokacin da kake yin jima'i. Roba na kare ka daga cututtuka da kuma haihuwar da ba a so.",
+        "Ka guji ayyukan jima'i masu haɗari kamar jima'i ta dubura, wanda yake ƙara damar kamuwa da cuta.",
+        "Idan ka lura da fitar ruwa mara kyau, miki, ƙuna lokacin fitsari, ko zafi yayin jima'i — ka je asibiti da wuri-wuri don samun magani daidai. Kar ka yi maganin kanka.",
+        "Idan ana maka maganin cuta, ka guji jima'i sai an gama maganin. Ka tabbatar an yi wa abokin tarayyarka magani shi ma.",
+        "Idan kina da ciki ko kina zaton kina da ciki: ki yi rajistar kula da ciki da wuri — yana da kyau a kasance tsakanin makonni 8 zuwa 12 na ciki. Kar ki jinkirta.",
+        "Ki halarci duk wani alƙawarin kula da ciki kuma ki sha duk magungunan da ma'aikacin lafiya ya rubuta miki.",
+        "Ki je asibiti nan take idan kin fuskanci wani daga cikin waɗannan a lokacin ciki: ciwon kai mai tsanani ko jiri, ƙumburin ƙafa ko fuska, zub da jini daga al'aura, fitar ruwa mara kyau daga al'aura, ko raguwar motsin jaririn.",
+        "Ki tara kayan haihuwa da wuri — kafin ranar da ake sa ran haihuwar. Ya kamata su haɗa da safar hannu, sabulu, wajan tsabta, tufafin jariri, hular jariri, safa, tawul, kushin haihuwa, da igiyar daure cibiya.",
+        "Ki san alamomin nakuda kuma ki san wace asibiti za ki je. Ki shirya hanyar tafiya kafin ranar da ake sa ran haihuwar.",
+        "Idan kai ko wani a cikin al'ummarki na fuskantar tashin hankalin jinsi — ka bayar da rahoto. Kana iya kira 0800-9210-0009. Kiran kyauta ne kuma asiri ne."
+      ],
+      "stepsMedium": [
+        "Ki je asibiti a cikin kwana 2 mai zuwa don bincike da gwaji. Ka gaya wa ma'aikacin lafiya duk alamomin da kake/kike fuskanta, ko da sun yi kama da ƙanana.",
+        "Ka roƙi a gwada ka don HIV (Cutar Kanjamau) da sauran cututtuka kamar syphilis da gonorrhea a ziyarar nan guda. Ana iya warkar da cututtuka da yawa gaba ɗaya da maganin da ya dace.",
+        "Idan kina da ciki kuma ba ki fara kula da ciki ba, ko kin rasa alƙawura, ki je asibiti mafi kusa wannan makon.",
+        "Abokin jima'inka shi ma ya kamata a bincika kuma a yi masa magani. Bin diddigin lamba yana da muhimmanci wajen dakatar da yaduwar cuta."
+      ],
+      "stepsHigh": [
+        "Je asibiti YAU. Kar ka jinkirta. Amsoshinka na nuna kana iya kamuwa da cuta mai tsanani ko matsalar ciki da ke buƙatar kulawa cikin gaggawa.",
+        "Idan ba za ka iya zuwa asibiti saboda hanyoyi sun cika da ruwa ko ba ka da hanyar sufuri — kira Hukumar Kula da Gaggawa ta Ƙasa (NEMA) a lambar 080022556362 yanzu kuma ka nemi taimakon lafiya na gaggawa. Ka gaya musu sunan al'ummarka.",
+        "Idan an sanar da ma'aikacin lafiya game da halinka, za su kira asibiti tukuna domin ma'aikatan su shirya don karɓarka idan ka zo. Kar ka ji tsoro — ma'aikatan lafiya suna nan don taimaka maka.",
+        "Bayan ziyarar gaggawa wannan, ma'aikacin lafiya zai bibiyi yanayinka domin tabbatar kana samun lafiya sosai kuma domin cire duk wani matsala da zai hana ka komawa don ci gaba da magani. Don Allah ka kiyaye wayarka a kunne kuma a samuwa."
+      ]
+    },
+    "emergencyContacts": {
+      "sectionTitle": "Taimako Yana Nan a Koyaushe",
+      "description": "Tallafi na sa'o'i 24 ga gaggawar lafiya da tashin hankalin jinsi. Ba ki kaɗai ba.",
+      "contacts": [
+        {
+          "description": "Tallafi ga waɗanda aka yi musu tashin hankalin jima'i",
+          "availability": "Kyauta · Awa 24 · Asiri"
+        },
+        {
+          "description": "Duk wani gaggawa mai barazana ga rai",
+          "availability": "Kyauta · Awa 24"
+        },
+        {
+          "description": "Mayar da martani kan bala'i da ambaliyar ruwa",
+          "availability": "Kyauta · Awa 24"
+        },
+        {
+          "description": "Korafe-korafe da tallafin sadarwa",
+          "availability": "Kyauta · Awa 24"
+        }
+      ]
     }
   },
   "fieldWorker": {
