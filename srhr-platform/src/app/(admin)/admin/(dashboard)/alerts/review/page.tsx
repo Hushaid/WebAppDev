@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { db } from "@/lib/db"
 import { alerts, users } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { and, eq, desc, isNull } from "drizzle-orm"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -42,7 +42,7 @@ export default async function AlertReviewPage() {
     })
     .from(alerts)
     .leftJoin(users, eq(alerts.recipientId, users.id))
-    .where(eq(alerts.status, "pending_review"))
+    .where(and(eq(alerts.status, "pending_review"), isNull(alerts.recipientId)))
     .orderBy(desc(alerts.createdAt))
 
   return (

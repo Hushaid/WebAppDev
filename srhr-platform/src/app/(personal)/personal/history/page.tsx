@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { getPersonalSubmissions } from "./actions"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -31,6 +32,7 @@ export default async function PersonalHistoryPage({
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
+  const t = await getTranslations("personal")
   const { items: submissions, total, totalPages, pageSize } =
     await getPersonalSubmissions(page)
 
@@ -39,25 +41,24 @@ export default async function PersonalHistoryPage({
       <div className="flex-1 overflow-y-auto p-4">
         <section className="space-y-6">
           <header>
-            <h1 className="text-2xl font-bold">Assessment History</h1>
+            <h1 className="text-2xl font-bold">{t("historyPage.title")}</h1>
             <p className="text-muted-foreground">
-              Your past health assessments and results.
+              {t("historyPage.description")}
             </p>
           </header>
 
           {submissions.length === 0 ? (
             <p className="text-muted-foreground">
-              You have not taken any assessments yet. Take your first assessment
-              to see your history here.
+              {t("historyPage.empty")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Overall Risk</TableHead>
-                    <TableHead className="text-right">Score</TableHead>
+                    <TableHead>{t("historyPage.colDate")}</TableHead>
+                    <TableHead>{t("historyPage.colRisk")}</TableHead>
+                    <TableHead className="text-right">{t("historyPage.colScore")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -89,7 +90,7 @@ export default async function PersonalHistoryPage({
                         >
                           {sub.overallRiskLevel ? (
                             <Badge variant={riskVariant(sub.overallRiskLevel)}>
-                              {sub.overallRiskLevel}
+                              {t(`riskWord.${sub.overallRiskLevel}`)}
                             </Badge>
                           ) : (
                             <span className="text-muted-foreground">—</span>

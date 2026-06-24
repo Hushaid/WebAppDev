@@ -1,20 +1,20 @@
 /**
  * Alert trigger system.
  *
- * High-risk flow:
- *   1. One system-level pending_review alert created (no recipientId)
- *   2. Email sent immediately to all super-admins — "please review"
- *   3. Super-admin approves → emails sent to partners + admins (not super-admins again)
- *      + alert records created for partners + admins on their alerts pages
+ * High-risk flow (per hushaid-features-update.md §2 — alerts routed through super-admin):
+ *   1. One system-level pending_review alert created (recipientId null)
+ *   2. Super-admins emailed immediately to review
+ *   3. Super-admin approves → partner/admin rows created (status "sent") + emails dispatched
+ *      Partners are filtered by their registered geographic area.
  *
  * Medium-risk flow:
- *   Dashboard-only alert records for partners/admins/super-admins. No email.
+ *   Dashboard-only records for partners/admins/super-admins (area-filtered). No email.
  */
 
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
 import { users } from "@/lib/db/schema"
-import { eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, isNull, or } from "drizzle-orm"
 import { Resend } from "resend"
 
 interface HighRiskAlertPayload {
@@ -26,6 +26,7 @@ interface HighRiskAlertPayload {
   aggregateScore: number
   gpsLat: string | null
   gpsLng: string | null
+  geographicUnitId?: string | null
 }
 
 function buildAlertContent(payload: HighRiskAlertPayload) {
@@ -62,38 +63,42 @@ const emailFrom = () => process.env.EMAIL_FROM ?? "Hushaid <onboarding@resend.de
 const baseUrl = () => process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 
 /**
- * Called on approval. Sends emails + creates alert records for partners and admins only.
- * Super-admins are NOT notified again — they already got the review email.
+ * Called on super-admin approval. Creates alert records for partners + admins and
+ * dispatches emails. Partners are filtered by their registered geographic area.
  */
 export async function sendHighRiskAlertEmails(payload: HighRiskAlertPayload) {
   const { title, message, highCategories, locationText } = buildAlertContent(payload)
+  const base = baseUrl()
+  const resend = getResend()
 
-  const recipients = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
-    .from(users)
-    .where(inArray(users.role, ["partner", "admin"]))
+  // Partners filtered by registered area (null = all areas)
+  const partnerWhere = payload.geographicUnitId
+    ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))
+    : eq(users.role, "partner")
 
+  const [partnerRecipients, adminRecipients] = await Promise.all([
+    db.select({ id: users.id, email: users.email, name: users.name, role: users.role }).from(users).where(partnerWhere),
+    db.select({ id: users.id, email: users.email, name: users.name, role: users.role }).from(users).where(eq(users.role, "admin")),
+  ])
+
+  const recipients = [...partnerRecipients, ...adminRecipients]
   if (recipients.length === 0) return
 
-  const resend = getResend()
-  if (!resend) return
-
-  const base = baseUrl()
-
-  // Create sent alert records for partners and admins
   await db.insert(alerts).values(
     recipients.map((r) => ({
       type: "high_risk_individual" as const,
       recipientId: r.id,
+      geographicUnitId: payload.geographicUnitId ?? null,
       riskLevel: "high" as const,
       status: "sent" as const,
       sentAt: new Date(),
       title,
       message,
-    }))
+    })),
   )
 
-  // Send emails
+  if (!resend) return
+
   for (const recipient of recipients) {
     const isAdmin = recipient.role === "admin"
     const alertsUrl = isAdmin ? `${base}/admin/alerts` : `${base}/partners/alerts`
@@ -177,7 +182,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   const { title, message, highCategories, locationText } = buildAlertContent(payload)
 
   if (isHigh) {
-    // One system-level alert (no recipient — belongs to the event, not a user)
+    // One system-level alert (no recipient — belongs to the event, drives the review queue)
     await db.insert(alerts).values({
       type: "high_risk_individual" as const,
       recipientId: null,
@@ -240,10 +245,22 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   }
 
   // Medium risk: dashboard-only records for partners/admins/super-admins, no email
-  const recipients = await db
+  // Partners filtered by registered area; admins and super_admins see all
+  const mediumPartnerWhere = payload.geographicUnitId
+    ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))
+    : eq(users.role, "partner")
+
+  const mediumPartnerRecipients = await db
     .select({ id: users.id })
     .from(users)
-    .where(inArray(users.role, ["partner", "admin", "super_admin"]))
+    .where(mediumPartnerWhere)
+
+  const mediumAdminRecipients = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(inArray(users.role, ["admin", "super_admin"]))
+
+  const recipients = [...mediumPartnerRecipients, ...mediumAdminRecipients]
 
   if (recipients.length === 0) return
 
@@ -251,6 +268,7 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
     recipients.map((r) => ({
       type: "high_risk_individual" as const,
       recipientId: r.id,
+      geographicUnitId: payload.geographicUnitId ?? null,
       riskLevel: "medium" as const,
       status: "pending" as const,
       title,

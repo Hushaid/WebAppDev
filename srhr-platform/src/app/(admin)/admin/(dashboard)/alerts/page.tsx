@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table"
 import { PaginationBar } from "@/components/pagination-bar"
 import { AlertActions } from "./alert-actions"
+import { ExportAlertsButton } from "./export-alerts-button"
 import Link from "next/link"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
@@ -98,18 +99,21 @@ export default async function AlertsPage({
               </p>
             </hgroup>
           </header>
-          {isSuperAdmin && (
-            <Link href="/admin/alerts/review">
-              <div className="flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/50 transition-colors">
-                <span className="text-sm font-medium">Review Queue</span>
-                {pendingCount > 0 && (
-                  <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
-                    {pendingCount}
-                  </Badge>
-                )}
-              </div>
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            <ExportAlertsButton />
+            {isSuperAdmin && (
+              <Link href="/admin/alerts/review">
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/50 transition-colors">
+                  <span className="text-sm font-medium">Review Queue</span>
+                  {pendingCount > 0 && (
+                    <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </div>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

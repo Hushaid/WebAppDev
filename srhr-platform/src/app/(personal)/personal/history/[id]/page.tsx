@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { db } from "@/lib/db"
 import {
   submissions,
@@ -13,7 +14,7 @@ import { auth } from "@/lib/auth"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { HealthSteps, EmergencyContacts } from "@/components/shared/health-steps"
+import { PersonalHealthSteps, PersonalEmergencyContacts } from "@/components/personal/health-steps"
 
 function riskVariant(level: string | null) {
   switch (level) {
@@ -30,6 +31,7 @@ export default async function PersonalHistoryDetailPage(props: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await props.params
+  const t = await getTranslations("personal")
 
   const headersList = await headers()
   const session = await auth.api.getSession({ headers: headersList })
@@ -53,7 +55,7 @@ export default async function PersonalHistoryDetailPage(props: {
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <hgroup>
-          <h1 className="text-2xl font-bold">Assessment Results</h1>
+          <h1 className="text-2xl font-bold">{t("detailPage.title")}</h1>
           <p className="text-sm text-muted-foreground">
             <time dateTime={submission.createdAt.toISOString()}>
               {submission.createdAt.toLocaleDateString(undefined, {
@@ -67,7 +69,7 @@ export default async function PersonalHistoryDetailPage(props: {
           </p>
         </hgroup>
         <Link href="/personal/history">
-          <Button variant="outline" size="sm">Back to history</Button>
+          <Button variant="outline" size="sm">{t("detailPage.backToHistory")}</Button>
         </Link>
       </header>
 
@@ -76,53 +78,53 @@ export default async function PersonalHistoryDetailPage(props: {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                Overall Risk
+                {t("detailPage.overallRisk")}
                 <Badge variant={riskVariant(risk.overallRiskLevel)} className="text-sm">
-                  {risk.overallRiskLevel.toUpperCase()}
+                  {t(`riskWord.${risk.overallRiskLevel}`).toUpperCase()}
                 </Badge>
               </CardTitle>
               <CardDescription>
-                Aggregate score: {risk.aggregateScore}
+                {t("aggregateScore")}: {risk.aggregateScore}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 gap-4 text-sm">
-                <dt className="text-muted-foreground">Infection Risk</dt>
+                <dt className="text-muted-foreground">{t("infectionRisk")}</dt>
                 <dd className="text-end">
                   <Badge variant={riskVariant(risk.stiRiskLevel)}>
-                    {risk.stiRiskLevel} ({risk.stiScore})
+                    {t(`riskWord.${risk.stiRiskLevel}`)} ({risk.stiScore})
                   </Badge>
                 </dd>
 
                 {risk.maternalRiskLevel && (
                   <>
-                    <dt className="text-muted-foreground">Maternal Health</dt>
+                    <dt className="text-muted-foreground">{t("maternalHealth")}</dt>
                     <dd className="text-end">
                       <Badge variant={riskVariant(risk.maternalRiskLevel)}>
-                        {risk.maternalRiskLevel} ({risk.maternalScore})
+                        {t(`riskWord.${risk.maternalRiskLevel}`)} ({risk.maternalScore})
                       </Badge>
                     </dd>
                   </>
                 )}
 
-                <dt className="text-muted-foreground">Community Well-being</dt>
+                <dt className="text-muted-foreground">{t("communityWellbeing")}</dt>
                 <dd className="text-end">
                   <Badge variant={riskVariant(risk.communityWellbeingRiskLevel)}>
-                    {risk.communityWellbeingRiskLevel} ({risk.communityWellbeingScore})
+                    {t(`riskWord.${risk.communityWellbeingRiskLevel}`)} ({risk.communityWellbeingScore})
                   </Badge>
                 </dd>
               </dl>
             </CardContent>
           </Card>
 
-          <HealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
-          <EmergencyContacts />
+          <PersonalHealthSteps riskLevel={risk.overallRiskLevel as "low" | "medium" | "high"} />
+          <PersonalEmergencyContacts />
         </>
       ) : (
         <Card>
           <CardContent className="py-6">
             <p className="text-muted-foreground">
-              Risk classification data is not available for this assessment.
+              {t("detailPage.notAvailable")}
             </p>
           </CardContent>
         </Card>

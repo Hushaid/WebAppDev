@@ -37,6 +37,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
     await db.update(users).set({ status: body.status, updatedAt: new Date() }).where(eq(users.id, userId))
     logAudit({ actorId: session?.user?.id, action: "update_status", entityType: "user", entityId: userId, metadata: { newStatus: body.status } }).catch(console.error)
+  } else if (body.type === "coverage_area") {
+    if (callerRole !== "super_admin") {
+      return NextResponse.json({ success: false, error: "Only a super admin can set coverage areas." }, { status: 403 })
+    }
+    await db.update(users).set({
+      geographicUnitId: body.geographicUnitId || null,
+      updatedAt: new Date(),
+    }).where(eq(users.id, userId))
+    logAudit({ actorId: session?.user?.id, action: "update_coverage_area", entityType: "user", entityId: userId, metadata: { geographicUnitId: body.geographicUnitId ?? null } }).catch(console.error)
   } else {
     return NextResponse.json({ success: false, error: "Invalid update type." }, { status: 400 })
   }
