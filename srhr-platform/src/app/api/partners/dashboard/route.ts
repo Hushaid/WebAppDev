@@ -110,9 +110,15 @@ export async function GET(request: Request) {
     conditions.push(lte(submissions.createdAt, toDate))
   }
   if (riskLevel !== "all") {
-    conditions.push(
-      eq(riskClassifications.overallRiskLevel, riskLevel as RiskLevel),
-    )
+    if (diseaseGroup === "sti") {
+      conditions.push(eq(riskClassifications.stiRiskLevel, riskLevel as RiskLevel))
+    } else if (diseaseGroup === "maternal_health") {
+      conditions.push(eq(riskClassifications.maternalRiskLevel, riskLevel as RiskLevel))
+    } else if (diseaseGroup === "community_wellbeing") {
+      conditions.push(eq(riskClassifications.communityWellbeingRiskLevel, riskLevel as RiskLevel))
+    } else {
+      conditions.push(eq(riskClassifications.overallRiskLevel, riskLevel as RiskLevel))
+    }
   }
   if (diseaseGroup === "maternal_health") {
     conditions.push(gte(riskClassifications.maternalScore, 0))
