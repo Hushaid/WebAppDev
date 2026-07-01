@@ -18,7 +18,6 @@ type GpsState =
   | { status: "requesting" }
   | { status: "granted"; lat: number; lng: number }
   | { status: "denied"; error: string }
-  | { status: "duplicate"; blockedUntil: string; windowMinutes: number }
 
 export default function FieldWorkerQuestionnairePage() {
   const t = useTranslations("fieldWorker")
@@ -55,8 +54,10 @@ export default function FieldWorkerQuestionnairePage() {
           if (res.ok) {
             const data = await res.json()
             if (data.isDuplicate) {
-              setGps({ status: "duplicate", blockedUntil: data.blockedUntil, windowMinutes: data.windowMinutes })
-              return
+              // Field workers can submit multiple assessments from the same location
+              // (community outreach, health campaigns, etc.). Auto-bypass the dedup
+              // check so the questionnaire opens immediately for the next subject.
+              setBypassDedup(true)
             }
           }
         } catch {
@@ -219,44 +220,7 @@ export default function FieldWorkerQuestionnairePage() {
         </div>
       )}
 
-      {gps.status === "duplicate" && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-orange-800">{t("recentSubmissionDetectedTitle")}</p>
-          <p className="text-sm text-orange-700">
-            {t("recentSubmissionDetectedBody", {
-              minutes: gps.windowMinutes,
-              unit: gps.windowMinutes === 1 ? t("minute") : t("minutes"),
-            })}
-          </p>
-          <p className="text-sm text-orange-700">
-            {t("startNewAssessmentAfter", {
-              time: new Date(gps.blockedUntil).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-              move: t("moveDifferentLocation"),
-            })}
-          </p>
-          <div className="pt-1 border-t border-orange-200">
-            <p className="text-xs text-orange-600 mb-2">{t("proceedAnywayHint")}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-orange-300 text-orange-800 hover:bg-orange-100"
-              onClick={() => {
-                if (gpsRef.current) {
-                  setBypassDedup(true)
-                  setGps({ status: "granted", lat: gpsRef.current.lat, lng: gpsRef.current.lng })
-                }
-              }}
-            >
-              {t("proceedAnyway")}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {!submitting && gps.status === "granted" && (
+{!submitting && gps.status === "granted" && (
         <QuestionnaireWizard
           submitterType="field_worker"
           onComplete={handleComplete}

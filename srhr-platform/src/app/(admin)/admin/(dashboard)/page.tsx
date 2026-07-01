@@ -231,6 +231,9 @@ export default async function AdminDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Risk Type Breakdown</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Per-category counts — one submission may be high risk in more than one category, so the sum across categories can exceed the total high-risk submission count above.
+          </p>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
