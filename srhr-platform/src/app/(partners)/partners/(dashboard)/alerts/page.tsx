@@ -66,10 +66,7 @@ export default async function PartnersAlertsPage({
     summary,
   ] = await Promise.all([getPartnerAlerts(page), getPartnerAlertSummary()])
 
-  const pendingCount = alertList.filter(
-    (a) => a.status === "pending" || a.status === "sent",
-  ).length
-  const highRiskCount = alertList.filter((a) => a.riskLevel === "high").length
+  const { totalHighRisk: highRiskCount, totalPending: pendingCount } = summary
 
   return (
     <div className="-m-4 sm:-m-6 flex h-[calc(100%+32px)] sm:h-[calc(100%+48px)] flex-col">

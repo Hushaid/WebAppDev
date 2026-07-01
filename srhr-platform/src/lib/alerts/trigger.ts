@@ -29,7 +29,7 @@ interface HighRiskAlertPayload {
   geographicUnitId?: string | null
 }
 
-function buildAlertContent(payload: HighRiskAlertPayload) {
+function buildAlertContent(payload: HighRiskAlertPayload, riskLevel: "high" | "medium" = "high") {
   const targetLevels = ["high"]
   const highCategories = [
     targetLevels.includes(payload.stiRiskLevel) ? "STI" : null,
@@ -41,9 +41,12 @@ function buildAlertContent(payload: HighRiskAlertPayload) {
     ? `${parseFloat(payload.gpsLat).toFixed(4)}, ${parseFloat(payload.gpsLng!).toFixed(4)}`
     : "No GPS location captured"
 
-  const title = "High Risk Submission Detected"
+  const title = riskLevel === "high"
+    ? "High Risk Submission Detected"
+    : "Medium Risk Submission Detected"
+  const riskLabel = riskLevel === "high" ? "HIGH" : "MEDIUM"
   const message = [
-    `A submission has been classified as HIGH risk.`,
+    `A submission has been classified as ${riskLabel} risk.`,
     `Categories: ${highCategories.join(", ") || "N/A"}.`,
     `Aggregate score: ${payload.aggregateScore}.`,
     `Location: ${locationText}.`,
@@ -179,9 +182,9 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   const isMedium = payload.overallRiskLevel === "medium"
   if (!isHigh && !isMedium) return
 
-  const { title, message, highCategories, locationText } = buildAlertContent(payload)
-
   if (isHigh) {
+    const { title, message, highCategories, locationText } = buildAlertContent(payload, "high")
+
     // One system-level alert (no recipient — belongs to the event, drives the review queue)
     await db.insert(alerts).values({
       type: "high_risk_individual" as const,
@@ -245,6 +248,8 @@ export async function triggerHighRiskAlert(payload: HighRiskAlertPayload) {
   }
 
   // Medium risk: dashboard-only records for partners/admins/super-admins, no email
+  const { title, message } = buildAlertContent(payload, "medium")
+
   // Partners filtered by registered area; admins and super_admins see all
   const mediumPartnerWhere = payload.geographicUnitId
     ? and(eq(users.role, "partner"), or(isNull(users.geographicUnitId), eq(users.geographicUnitId, payload.geographicUnitId)))

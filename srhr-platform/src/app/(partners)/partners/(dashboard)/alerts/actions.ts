@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { alerts } from "@/lib/db/schema"
-import { eq, desc, sql, and, isNotNull, gte, lte } from "drizzle-orm"
+import { eq, desc, sql, and, isNotNull, gte, lte, inArray } from "drizzle-orm"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
@@ -105,6 +105,8 @@ export async function getPartnerAlertSummary() {
       lastMonth: 0,
       thisWeekHigh: 0,
       lastMonthHigh: 0,
+      totalHighRisk: 0,
+      totalPending: 0,
     }
   }
 
@@ -148,6 +150,8 @@ export async function getPartnerAlertSummary() {
     [lastMonthRow],
     [thisWeekHighRow],
     [lastMonthHighRow],
+    [totalHighRiskRow],
+    [totalPendingRow],
   ] = await Promise.all([
     db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(thisMonday, now)),
     db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(lastMonday, lastSunday)),
@@ -155,6 +159,19 @@ export async function getPartnerAlertSummary() {
     db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(lastMonthStart, lastMonthEnd)),
     db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(thisMonday, now, true)),
     db.select({ count: sql<number>`count(*)::int` }).from(alerts).where(countWhere(lastMonthStart, lastMonthEnd, true)),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(alerts)
+      .where(and(eq(alerts.recipientId, session.user.id), eq(alerts.riskLevel, "high"))),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(alerts)
+      .where(
+        and(
+          eq(alerts.recipientId, session.user.id),
+          inArray(alerts.status, ["pending", "sent"]),
+        ),
+      ),
   ])
 
   return {
@@ -164,5 +181,7 @@ export async function getPartnerAlertSummary() {
     lastMonth: lastMonthRow.count,
     thisWeekHigh: thisWeekHighRow.count,
     lastMonthHigh: lastMonthHighRow.count,
+    totalHighRisk: totalHighRiskRow.count,
+    totalPending: totalPendingRow.count,
   }
 }
