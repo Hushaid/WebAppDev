@@ -44,7 +44,9 @@ async function sendFloodAlertEmails(highRiskPredictions: Prediction[], date: str
         enabledUserIds.push(userId)
       }
     } catch {
-      // skip malformed preference rows
+      // Malformed JSON — treat as no preference, default to enabled
+      const userId = row.key.replace("partner_prefs_", "")
+      enabledUserIds.push(userId)
     }
   }
 
@@ -60,6 +62,16 @@ async function sendFloodAlertEmails(highRiskPredictions: Prediction[], date: str
   )
 
   if (recipients.length === 0) return
+
+  // Idempotency guard: skip if we already sent alerts for this date
+  const sentKey = `flood_alert_sent_${date}`
+  const [alreadySent] = await db
+    .select({ value: platformSettings.value })
+    .from(platformSettings)
+    .where(eq(platformSettings.key, sentKey))
+    .limit(1)
+
+  if (alreadySent) return
 
   const base = baseUrl()
   const alertsUrl = `${base}/partners/alerts`
@@ -95,6 +107,12 @@ async function sendFloodAlertEmails(highRiskPredictions: Prediction[], date: str
       console.error(`Failed to send flood alert email to ${recipient.email}:`, error)
     }
   }
+
+  // Record that alerts were sent today so a second cron fire doesn't duplicate
+  await db
+    .insert(platformSettings)
+    .values({ key: sentKey, value: date })
+    .onConflictDoNothing()
 }
 
 export async function GET(request: Request) {

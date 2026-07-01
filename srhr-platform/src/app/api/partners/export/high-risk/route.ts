@@ -139,8 +139,8 @@ export async function GET(request: Request) {
       }
     })
     .filter((r) => {
-      if (sex !== "all" && r.sex !== sex) return false
-      if (ageGroup !== "all" && r.age_group !== ageGroup) return false
+      if (sex !== "all" && r.sex.toLowerCase() !== sex.toLowerCase()) return false
+      if (ageGroup !== "all" && r.age_group.toLowerCase() !== ageGroup.toLowerCase()) return false
       if (location !== "all" && r.location !== location) return false
       return true
     })
