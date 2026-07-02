@@ -158,6 +158,7 @@ export async function GET(request: Request) {
         monitoredAreas: 0,
         hotspots: 0,
         highRiskAreas: 0,
+        highRiskSubmissions: 0,
         totalSubmissions: 0,
       },
     })
@@ -337,6 +338,7 @@ export async function GET(request: Request) {
     monitoredAreas: areas.length,
     hotspots: areas.filter((area) => area.hotspot_flag).length,
     highRiskAreas: areas.filter((area) => area.overall_risk_level === "high").length,
+    highRiskSubmissions: fullyFilteredRows.filter((r) => groupRiskLevel(r, diseaseGroup) === "high").length,
     totalSubmissions: fullyFilteredRows.length,
   }
 

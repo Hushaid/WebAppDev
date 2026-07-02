@@ -16,13 +16,13 @@ import { PaginationBar } from "@/components/pagination-bar"
 
 function typeBadge(type: string) {
   const labels: Record<string, string> = {
-    high_risk_individual: "High Risk",
+    high_risk_individual: "Risk Alert",
     threshold_breach: "Hotspot",
     climate_warning: "Climate",
     scheduled_summary: "Summary",
   }
   const variants: Record<string, "destructive" | "secondary" | "outline" | "default"> = {
-    high_risk_individual: "destructive",
+    high_risk_individual: "secondary",
     threshold_breach: "secondary",
     climate_warning: "outline",
     scheduled_summary: "default",
@@ -106,11 +106,12 @@ export default async function PartnersAlertsPage({
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    High Risk
+                    High Risk Dispatched
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold text-red-600">{highRiskCount}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Requires admin review first</p>
                 </CardContent>
               </Card>
             </div>

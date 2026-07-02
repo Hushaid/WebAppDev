@@ -61,6 +61,7 @@ export default function PartnersDashboardPage() {
     monitoredAreas: 0,
     hotspots: 0,
     highRiskAreas: 0,
+    highRiskSubmissions: 0,
     totalSubmissions: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
@@ -91,6 +92,7 @@ export default function PartnersDashboardPage() {
           monitoredAreas: 0,
           hotspots: 0,
           highRiskAreas: 0,
+          highRiskSubmissions: 0,
           totalSubmissions: 0,
         })
       } catch (error) {
@@ -99,7 +101,7 @@ export default function PartnersDashboardPage() {
         setScores([])
         setTrendData([])
         setLocationOptions([])
-        setSummary({ monitoredAreas: 0, hotspots: 0, highRiskAreas: 0, totalSubmissions: 0 })
+        setSummary({ monitoredAreas: 0, hotspots: 0, highRiskAreas: 0, highRiskSubmissions: 0, totalSubmissions: 0 })
       } finally {
         if (!controller.signal.aborted) setIsLoading(false)
       }
@@ -142,7 +144,7 @@ export default function PartnersDashboardPage() {
       </header>
 
       {/* ── Summary stats (always full width) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Monitored Areas</CardTitle>
@@ -165,6 +167,14 @@ export default function PartnersDashboardPage() {
           </CardHeader>
           <CardContent>
             <StatValue value={summary.highRiskAreas} showSkeleton={showSkeleton} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">High Risk Submissions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StatValue value={summary.highRiskSubmissions} className="text-red-600" showSkeleton={showSkeleton} />
           </CardContent>
         </Card>
         <Card>

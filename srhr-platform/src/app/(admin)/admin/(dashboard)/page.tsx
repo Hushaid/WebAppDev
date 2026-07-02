@@ -99,10 +99,13 @@ async function getDashboardStats() {
     .select({
       stiHigh: sql<number>`count(*) filter (where ${riskClassifications.stiRiskLevel} = 'high')::int`,
       stiMedium: sql<number>`count(*) filter (where ${riskClassifications.stiRiskLevel} = 'medium')::int`,
+      stiLow: sql<number>`count(*) filter (where ${riskClassifications.stiRiskLevel} = 'low')::int`,
       maternalHigh: sql<number>`count(*) filter (where ${riskClassifications.maternalRiskLevel} = 'high')::int`,
       maternalMedium: sql<number>`count(*) filter (where ${riskClassifications.maternalRiskLevel} = 'medium')::int`,
+      maternalLow: sql<number>`count(*) filter (where ${riskClassifications.maternalRiskLevel} = 'low')::int`,
       communityHigh: sql<number>`count(*) filter (where ${riskClassifications.communityWellbeingRiskLevel} = 'high')::int`,
       communityMedium: sql<number>`count(*) filter (where ${riskClassifications.communityWellbeingRiskLevel} = 'medium')::int`,
+      communityLow: sql<number>`count(*) filter (where ${riskClassifications.communityWellbeingRiskLevel} = 'low')::int`,
     })
     .from(riskClassifications)
 
@@ -128,7 +131,7 @@ async function getDashboardStats() {
     weekSubmissions: weekSubmissions?.count ?? 0,
     highRiskAlerts: highRiskAlerts?.count ?? 0,
     recentSubmissions,
-    riskBreakdown: riskBreakdown[0] ?? { stiHigh: 0, stiMedium: 0, maternalHigh: 0, maternalMedium: 0, communityHigh: 0, communityMedium: 0 },
+    riskBreakdown: riskBreakdown[0] ?? { stiHigh: 0, stiMedium: 0, stiLow: 0, maternalHigh: 0, maternalMedium: 0, maternalLow: 0, communityHigh: 0, communityMedium: 0, communityLow: 0 },
     fieldWorkerActivity,
     roleCounts,
     fieldWorkerLocations: fieldWorkerLocationsWithNames,
@@ -232,30 +235,36 @@ export default async function AdminDashboard() {
         <CardHeader>
           <CardTitle>Risk Type Breakdown</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Per-category counts — one submission may be high risk in more than one category, so the sum across categories can exceed the total high-risk submission count above.
+            Per-category counts across all submissions. One submission may be high risk in more than one category, so high counts across categories can exceed the total high-risk submission count above.
           </p>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-lg border p-4">
               <p className="text-sm font-medium text-muted-foreground">STI Risk</p>
-              <div className="mt-2 flex items-center gap-3">
+              <p className="text-xs text-muted-foreground mt-0.5">Total: {stats.riskBreakdown.stiHigh + stats.riskBreakdown.stiMedium + stats.riskBreakdown.stiLow} submissions</p>
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <Badge className="bg-red-100 text-red-800">{stats.riskBreakdown.stiHigh} high</Badge>
                 <Badge className="bg-yellow-100 text-yellow-800">{stats.riskBreakdown.stiMedium} medium</Badge>
+                <Badge className="bg-green-100 text-green-800">{stats.riskBreakdown.stiLow} low</Badge>
               </div>
             </div>
             <div className="rounded-lg border p-4">
               <p className="text-sm font-medium text-muted-foreground">Maternal Health</p>
-              <div className="mt-2 flex items-center gap-3">
+              <p className="text-xs text-muted-foreground mt-0.5">Total: {stats.riskBreakdown.maternalHigh + stats.riskBreakdown.maternalMedium + stats.riskBreakdown.maternalLow} submissions</p>
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <Badge className="bg-red-100 text-red-800">{stats.riskBreakdown.maternalHigh} high</Badge>
                 <Badge className="bg-yellow-100 text-yellow-800">{stats.riskBreakdown.maternalMedium} medium</Badge>
+                <Badge className="bg-green-100 text-green-800">{stats.riskBreakdown.maternalLow} low</Badge>
               </div>
             </div>
             <div className="rounded-lg border p-4">
               <p className="text-sm font-medium text-muted-foreground">Community Wellbeing</p>
-              <div className="mt-2 flex items-center gap-3">
+              <p className="text-xs text-muted-foreground mt-0.5">Total: {stats.riskBreakdown.communityHigh + stats.riskBreakdown.communityMedium + stats.riskBreakdown.communityLow} submissions</p>
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <Badge className="bg-red-100 text-red-800">{stats.riskBreakdown.communityHigh} high</Badge>
                 <Badge className="bg-yellow-100 text-yellow-800">{stats.riskBreakdown.communityMedium} medium</Badge>
+                <Badge className="bg-green-100 text-green-800">{stats.riskBreakdown.communityLow} low</Badge>
               </div>
             </div>
           </div>
