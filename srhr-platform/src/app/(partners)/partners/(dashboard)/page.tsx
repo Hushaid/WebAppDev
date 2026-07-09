@@ -143,6 +143,30 @@ export default function PartnersDashboardPage() {
         </p>
       </header>
 
+      {/* ── Filters (above cards so intent is clear before reading numbers) ── */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <IrixFilters
+          filters={filters}
+          locationOptions={locationOptions}
+          onChange={(f) => {
+            setIrixHistoryDate(null)
+            setFilters(f)
+          }}
+          onReset={() => {
+            setIrixHistoryDate(null)
+            setFilters(DEFAULT_FILTERS)
+          }}
+        />
+        <div className="flex items-center gap-1 shrink-0">
+          {irixHistoryDate && (
+            <span className="text-xs text-muted-foreground mr-1">
+              IRIX snapshot · {irixHistoryDate}
+            </span>
+          )}
+          <HistoryDatePicker value={irixHistoryDate} onChange={setIrixHistoryDate} />
+        </div>
+      </div>
+
       {/* ── Summary stats (always full width) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
@@ -192,29 +216,6 @@ export default function PartnersDashboardPage() {
 
         {/* Left col (3/5): community health data */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <IrixFilters
-              filters={filters}
-              locationOptions={locationOptions}
-              onChange={(f) => {
-                setIrixHistoryDate(null)
-                setFilters(f)
-              }}
-              onReset={() => {
-                setIrixHistoryDate(null)
-                setFilters(DEFAULT_FILTERS)
-              }}
-            />
-            <div className="flex items-center gap-1 shrink-0">
-              {irixHistoryDate && (
-                <span className="text-xs text-muted-foreground mr-1">
-                  IRIX snapshot · {irixHistoryDate}
-                </span>
-              )}
-              <HistoryDatePicker value={irixHistoryDate} onChange={setIrixHistoryDate} />
-            </div>
-          </div>
-
           <div className="relative">
             {showSkeleton ? (
               <div className="space-y-3 rounded-lg border p-4">

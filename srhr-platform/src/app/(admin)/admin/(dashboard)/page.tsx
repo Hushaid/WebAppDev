@@ -22,6 +22,7 @@ async function getDashboardStats() {
     [todaySubmissions],
     [weekSubmissions],
     [highRiskAlerts],
+    [totalSubmissions],
     recentSubmissions,
   ] = await Promise.all([
     db.select({ count: count() }).from(users),
@@ -41,6 +42,7 @@ async function getDashboardStats() {
       .select({ count: count() })
       .from(riskClassifications)
       .where(eq(riskClassifications.overallRiskLevel, "high")),
+    db.select({ count: count() }).from(submissions),
     db
       .select({
         id: submissions.id,
@@ -130,6 +132,7 @@ async function getDashboardStats() {
     todaySubmissions: todaySubmissions?.count ?? 0,
     weekSubmissions: weekSubmissions?.count ?? 0,
     highRiskAlerts: highRiskAlerts?.count ?? 0,
+    totalSubmissions: totalSubmissions?.count ?? 0,
     recentSubmissions,
     riskBreakdown: riskBreakdown[0] ?? { stiHigh: 0, stiMedium: 0, stiLow: 0, maternalHigh: 0, maternalMedium: 0, maternalLow: 0, communityHigh: 0, communityMedium: 0, communityLow: 0 },
     fieldWorkerActivity,
@@ -182,7 +185,7 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -226,6 +229,16 @@ export default async function AdminDashboard() {
             <p className="text-3xl font-bold text-red-600">
               {stats.highRiskAlerts}
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Submissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{stats.totalSubmissions}</p>
           </CardContent>
         </Card>
       </div>
