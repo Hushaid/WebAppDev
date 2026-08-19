@@ -98,7 +98,7 @@ export function LandingPage() {
             <FeatureCard
               icon={<ClipboardCheck className="h-6 w-6" />}
               title="Confidential assessments"
-              description="Complete a guided questionnaire covering STI risk, maternal health, and community wellbeing — privately."
+              description="Complete a guided questionnaire covering Infection risk, maternal health, and community wellbeing — privately."
             />
             <FeatureCard
               icon={<BarChart3 className="h-6 w-6" />}
@@ -141,7 +141,7 @@ export function LandingPage() {
                 <CardTitle className="text-xl">Personal User</CardTitle>
                 <CardDescription className="text-sm leading-relaxed">
                   Take a confidential health risk assessment on your own.
-                  Assess your STI, maternal health, and community
+                  Assess your Infection, maternal health, and community
                   wellbeing risks privately.
                 </CardDescription>
               </CardHeader>
