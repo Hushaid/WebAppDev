@@ -60,7 +60,7 @@ export function LandingPage() {
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Hushaid empowers communities across Nigeria with confidential,
-              AI-powered sexual and reproductive health risk assessments
+              AI-powered reproductive and maternal health risk assessments
               — by collecting community and climate data to generate actionable insights.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
