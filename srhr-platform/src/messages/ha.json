@@ -1,0 +1,675 @@
+{
+  "common": {
+    "appName": "Hushaid SRHR",
+    "loading": "Ana lodi...",
+    "submit": "Aika",
+    "cancel": "Soke",
+    "save": "Ajiye",
+    "back": "Komawa",
+    "next": "Gaba",
+    "close": "Rufe",
+    "search": "Bincike",
+    "filter": "Tace",
+    "export": "Fitar",
+    "view": "Duba",
+    "edit": "Gyara",
+    "delete": "Goge",
+    "confirm": "Tabbatar",
+    "online": "A kan layi",
+    "offline": "Ba a kan layi ba",
+    "syncing": "Ana daidaitawa...",
+    "pending": "Jiran daidaitawa"
+  },
+  "auth": {
+    "logIn": "Shiga",
+    "createAccount": "Yi Rajista",
+    "signOut": "Fita",
+    "email": "Imel",
+    "password": "Kalmar sirri",
+    "name": "Cikakken Suna",
+    "accessCode": "Lambar Shiga",
+    "forgotPassword": "An manta kalmar sirri?",
+    "noAccount": "Ba ka da asusu?",
+    "hasAccount": "Kana da asusu?",
+    "mfaSetup": "Saita Tabbatarwa ta Hanyoyi Biyu",
+    "mfaVerify": "Tabbatar da Lambar",
+    "mfaRequired": "Ana buƙatar tabbatarwa ta hanyoyi biyu don matsayinka."
+  },
+  "questionnaire": {
+    "title": "Gwajin Lafiyar SRHR",
+    "progress": "Tambaya {current} daga {total}",
+    "sectionSti": "Gwajin Haɗarin STI",
+    "sectionMaternal": "Lafiyar Uwa",
+    "sectionCommunity": "Jin Daɗin Al'umma",
+    "skipNote": "An tsallake wannan tambaya bisa amsar da ta gabata.",
+    "submitting": "Ana aika gwaji...",
+    "submitted": "An aika gwajin da nasara!",
+    "cooldown": "Lokacin Jira",
+    "cooldownMessage": "Za ka iya aika wani gwaji bayan {time}.",
+    "gpsCapture": "Ana ɗaukar wurin GPS...",
+    "gpsRequired": "Ana buƙatar wurin GPS don aika daga filin.",
+    "surveyEndedTitle": "An Gama Bincike",
+    "surveyEndedMessage": "Mun gode da lokacinku. Da yake ba a ba da izini ba, ba za a iya ci gaba da binciken ba. An mutunta sirrinku kuma ba a tattara bayanan ku ba.",
+    "startOver": "Fara Daga Farko",
+    "pageTitle": "Gwajin Lafiya",
+    "checkingAvailability": "Ana duba samuwa...",
+    "cooldownTitle": "Da fatan za a jira kafin sake yin gwaji",
+    "cooldownBody": "Kun gama gwaji kwanan nan. Don tabbatar da ingancin sakamakon ku, akwai ɗan lokaci na jira tsakanin gwaje-gwaje.",
+    "cooldownAfter": "Za ku iya yin wani gwaji bayan {time}.",
+    "viewLastResults": "Duba sakamakon ku na ƙarshe",
+    "pageDescription": "Amsa tambayoyin da ke ƙasa don samun gwajin haɗarin lafiya na sirri. An ɓoye bayananku kuma suna da sirri.",
+    "submittingAnswers": "Ana aika amsoshinku...",
+    "selectOption": "Zaɓi ɗaya daga cikin zaɓuɓɓuka",
+    "enterResponse": "Da fatan za a shigar da amsa kafin a ci gaba.",
+    "selectResponse": "Da fatan za a zaɓi amsa kafin a ci gaba.",
+    "locationRequiredTitle": "Ana buƙatar izinin wuri",
+    "locationPermissionPrompt": "Wannan kima yana buƙatar wurinka. Taɓa maɓallin da ke ƙasa don ba da izinin wuri — mai binciken ku zai nemi izini.",
+    "grantLocationAccess": "Ba da Izinin Wuri",
+    "waitingForLocationAccess": "Ana nemo wurinku… Da fatan a jira.",
+    "locationRequiredBody": "Ana buƙatar izinin wuri don fara kima. Da fatan a kunna izinin wuri a saitunan mai binciken ku sannan ku sake loda shafin.",
+    "reloadPage": "Sake loda shafi"
+  },
+  "risk": {
+    "low": "Ƙaramin Haɗari",
+    "medium": "Matsakaicin Haɗari",
+    "high": "Babban Haɗari",
+    "stiRisk": "Haɗarin STI",
+    "maternalRisk": "Haɗarin Lafiyar Uwa",
+    "communityRisk": "Jin Daɗin Al'umma",
+    "overallRisk": "Jimlar Matakin Haɗari",
+    "referral": "Cibiyar da Aka Bayar da Shawara"
+  },
+  "dashboard": {
+    "welcome": "Barka da zuwa, {name}",
+    "recentSubmissions": "Abubuwan da Aka Aika Kwanan Nan",
+    "todayCount": "Na Yau",
+    "weekCount": "Wannan Mako",
+    "totalCount": "Jimla",
+    "noSubmissions": "Babu abubuwan da aka aika tukuna."
+  },
+  "partners": {
+    "title": "Hukumar Abokan Hulɗa",
+    "description": "Duba haɗarin SRHR na al'umma a kan taswira.",
+    "geoCells": "Yankunan Ƙasa",
+    "hotspots": "Wuraren Haɗari",
+    "highRisk": "Wuraren Babban Haɗari",
+    "totalSubmissions": "Jimlar Abubuwan da Aka Aika",
+    "climateLayer": "Yaduwar Haɗarin Ambaliya",
+    "floodRisk": "Haɗarin Ambaliya",
+    "compoundRisk": "Haɗarin Haɗe-haɗe"
+  },
+  "admin": {
+    "users": "Masu amfani",
+    "submissions": "Abubuwan da Aka Aika",
+    "accessCodes": "Lambobin Shiga",
+    "questionnaires": "Tambayoyi",
+    "alerts": "Sanarwa",
+    "auditLog": "Bayanan Duba",
+    "settings": "Saituna"
+  },
+  "personal": {
+    "welcome": "Barka da zuwa",
+    "welcomeWithName": "Barka da zuwa, {name}",
+    "description": "Dashboard ɗin tantance lafiyar ku na sirri. An ɓoye duk bayananku kuma suna da sirri.",
+    "quickActions": "Ayyuka na Gaggawa",
+    "takeAssessment": "Yi tantancewa",
+    "viewLastResult": "Duba sakamakon baya",
+    "latestResult": "Sakamakon Kwanan Nan",
+    "takenOn": "An yi shi a",
+    "aggregateScore": "Jimillar maki",
+    "infectionRisk": "Haɗarin kamuwa da cuta",
+    "maternalHealth": "Lafiyar uwa",
+    "communityWellbeing": "Jin daɗin al'umma",
+    "viewAllAssessments": "Duba dukkan tantancewa",
+    "assessmentHistory": "Tarihin Tantancewa",
+    "noAssessmentsYet": "Ba ku yi wata tantancewa ba tukuna. Kammala ta farko don samun bayanin haɗarin ku da shawarwarin cibiyoyin lafiya.",
+    "nav": {
+      "dashboard": "Dashboard",
+      "assessment": "Tantancewa",
+      "history": "Tarihi",
+      "settings": "Saituna",
+      "menu": "Menu"
+    },
+    "riskWord": {
+      "low": "Ƙasa",
+      "medium": "Matsakaici",
+      "high": "Mai Girma"
+    },
+    "historyPage": {
+      "title": "Tarihin Tantancewa",
+      "description": "Tantancewar lafiyarka ta baya da sakamakonsu.",
+      "empty": "Ba ka yi wani tantancewa har yanzu ba. Yi tantancewar farko don ganin tarihinka a nan.",
+      "colDate": "Kwanan wata",
+      "colRisk": "Babban Haɗari",
+      "colScore": "Maki"
+    },
+    "detailPage": {
+      "title": "Sakamakon Tantancewa",
+      "backToHistory": "Koma zuwa tarihi",
+      "notAvailable": "Babu bayanin matakin haɗari ga wannan tantancewar.",
+      "overallRisk": "Babban Haɗari"
+    },
+    "resultsPage": {
+      "title": "Sakamakonka",
+      "titleWithName": "{name}, ga sakamakonka",
+      "disclaimer": "Bisa amsoshinka, ga taƙaitaccen bayanin haɗarin lafiyarka na musamman. Wannan ba ganewar likita ba ne — don Allah ka tuntuɓi ma'aikacin lafiya don shawara ta gaskiya.",
+      "noResults": "Babu sakamako da aka samu. Kammala tantance lafiya tukuna don ganin sakamakonka a nan.",
+      "backToDashboard": "Koma zuwa dashboard",
+      "takeAnother": "Yi wani tantancewa",
+      "facilitiesTitle": "Wuraren lafiya da aka shawarce",
+      "facilitiesLoading": "Ana neman wuraren lafiya kusa da kai...",
+      "facilitiesFound": "Waɗannan wuraren lafiya suna kusa da inda kake kuma za su iya taimaka maka.",
+      "facilitiesNone": "Babu wuraren lafiya da aka samu kusa da kai. Don Allah ka tuntuɓi cibiyar lafiya ta gundumarku don taimako."
+    },
+    "settingsPage": {
+      "title": "Saituna",
+      "description": "Sarrafa saitunan asusunka."
+    },
+    "changePassword": {
+      "title": "Canza Kalmar Sirri",
+      "description": "Sabunta kalmar sirrin asusunka. Za ka buƙaci shigar da kalmar sirrin da kake amfani da ita yanzu.",
+      "currentPassword": "Kalmar sirrin yanzu",
+      "newPassword": "Sabuwar kalmar sirri",
+      "confirmPassword": "Tabbatar da sabuwar kalmar sirri",
+      "showPassword": "Nuna kalmar sirri",
+      "hidePassword": "Ɓoye kalmar sirri",
+      "submit": "Canza kalmar sirri",
+      "submitting": "Ana canzawa...",
+      "mismatchError": "Sabuwar kalmar sirri ba ta dace ba",
+      "tooShortError": "Sabuwar kalmar sirri dole ta kasance aƙalla haruffa 8",
+      "successMessage": "An canza kalmar sirri cikin nasara",
+      "failureMessage": "An kasa canza kalmar sirri"
+    },
+    "healthSteps": {
+      "sectionTitle": "Matakan Kare Lafiyarka",
+      "labelLow": "Amsoshinka sun nuna ƙaramin matakin haɗari. Bi waɗannan matakai don ka kasance lafiya.",
+      "labelMedium": "Amsoshinka sun nuna matsakaicin matakin haɗari. Don Allah ka bi waɗannan matakai cikin kwanaki kaɗan masu zuwa.",
+      "labelHigh": "Amsoshinka sun nuna babban matakin haɗari. Don Allah ka bi waɗannan matakai cikin gaggawa.",
+      "badgeLow": "ƙaramin haɗari",
+      "badgeMedium": "matsakaicin haɗari",
+      "badgeHigh": "babban haɗari",
+      "stepsLow": [
+        "Ka guji jima'i, ko ka tsaya da abokin tarayya guda. Idan kana da abokan tarayya fiye da ɗaya, ka yi amfani da roba (condom) a koyaushe.",
+        "Yi amfani da roba (condom) duk lokacin da kake yin jima'i. Roba na kare ka daga cututtuka da kuma haihuwar da ba a so.",
+        "Ka guji ayyukan jima'i masu haɗari kamar jima'i ta dubura, wanda yake ƙara damar kamuwa da cuta.",
+        "Idan ka lura da fitar ruwa mara kyau, miki, ƙuna lokacin fitsari, ko zafi yayin jima'i — ka je asibiti da wuri-wuri don samun magani daidai. Kar ka yi maganin kanka.",
+        "Idan ana maka maganin cuta, ka guji jima'i sai an gama maganin. Ka tabbatar an yi wa abokin tarayyarka magani shi ma.",
+        "Idan kina da ciki ko kina zaton kina da ciki: ki yi rajistar kula da ciki da wuri — yana da kyau a kasance tsakanin makonni 8 zuwa 12 na ciki. Kar ki jinkirta.",
+        "Ki halarci duk wani alƙawarin kula da ciki kuma ki sha duk magungunan da ma'aikacin lafiya ya rubuta miki.",
+        "Ki je asibiti nan take idan kin fuskanci wani daga cikin waɗannan a lokacin ciki: ciwon kai mai tsanani ko jiri, ƙumburin ƙafa ko fuska, zub da jini daga al'aura, fitar ruwa mara kyau daga al'aura, ko raguwar motsin jaririn.",
+        "Ki tara kayan haihuwa da wuri — kafin ranar da ake sa ran haihuwar. Ya kamata su haɗa da safar hannu, sabulu, wajan tsabta, tufafin jariri, hular jariri, safa, tawul, kushin haihuwa, da igiyar daure cibiya.",
+        "Ki san alamomin nakuda kuma ki san wace asibiti za ki je. Ki shirya hanyar tafiya kafin ranar da ake sa ran haihuwar.",
+        "Idan kai ko wani a cikin al'ummarki na fuskantar tashin hankalin jinsi — ka bayar da rahoto. Kana iya kira 0800-9210-0009. Kiran kyauta ne kuma asiri ne."
+      ],
+      "stepsMedium": [
+        "Ki je asibiti a cikin kwana 2 mai zuwa don bincike da gwaji. Ka gaya wa ma'aikacin lafiya duk alamomin da kake/kike fuskanta, ko da sun yi kama da ƙanana.",
+        "Ka roƙi a gwada ka don HIV (Cutar Kanjamau) da sauran cututtuka kamar syphilis da gonorrhea a ziyarar nan guda. Ana iya warkar da cututtuka da yawa gaba ɗaya da maganin da ya dace.",
+        "Idan kina da ciki kuma ba ki fara kula da ciki ba, ko kin rasa alƙawura, ki je asibiti mafi kusa wannan makon.",
+        "Abokin jima'inka shi ma ya kamata a bincika kuma a yi masa magani. Bin diddigin lamba yana da muhimmanci wajen dakatar da yaduwar cuta."
+      ],
+      "stepsHigh": [
+        "Je asibiti YAU. Kar ka jinkirta. Amsoshinka na nuna kana iya kamuwa da cuta mai tsanani ko matsalar ciki da ke buƙatar kulawa cikin gaggawa.",
+        "Idan ba za ka iya zuwa asibiti saboda hanyoyi sun cika da ruwa ko ba ka da hanyar sufuri — kira Hukumar Kula da Gaggawa ta Ƙasa (NEMA) a lambar 080022556362 yanzu kuma ka nemi taimakon lafiya na gaggawa. Ka gaya musu sunan al'ummarka.",
+        "Idan an sanar da ma'aikacin lafiya game da halinka, za su kira asibiti tukuna domin ma'aikatan su shirya don karɓarka idan ka zo. Kar ka ji tsoro — ma'aikatan lafiya suna nan don taimaka maka.",
+        "Bayan ziyarar gaggawa wannan, ma'aikacin lafiya zai bibiyi yanayinka domin tabbatar kana samun lafiya sosai kuma domin cire duk wani matsala da zai hana ka komawa don ci gaba da magani. Don Allah ka kiyaye wayarka a kunne kuma a samuwa."
+      ]
+    },
+    "emergencyContacts": {
+      "sectionTitle": "Taimako Yana Nan a Koyaushe",
+      "description": "Tallafi na sa'o'i 24 ga gaggawar lafiya da tashin hankalin jinsi. Ba ki kaɗai ba.",
+      "contacts": [
+        {
+          "description": "Tallafi ga waɗanda aka yi musu tashin hankalin jima'i",
+          "availability": "Kyauta · Awa 24 · Asiri"
+        },
+        {
+          "description": "Duk wani gaggawa mai barazana ga rai",
+          "availability": "Kyauta · Awa 24"
+        },
+        {
+          "description": "Mayar da martani kan bala'i da ambaliyar ruwa",
+          "availability": "Kyauta · Awa 24"
+        },
+        {
+          "description": "Korafe-korafe da tallafin sadarwa",
+          "availability": "Kyauta · Awa 24"
+        }
+      ]
+    }
+  },
+  "fieldWorker": {
+    "dashboardTitle": "Dashboard na Ma'aikacin Filin",
+    "welcomeWithName": "Barka da zuwa, {name}",
+    "description": "Ayyukan tantancewarku a taƙaice. Kowace tantancewa da kuka yi na taimakawa gano haɗurran lafiya a cikin al'umma.",
+    "newAssessment": "Sabuwar tantancewa",
+    "questionnaireDescription": "Kammala tantance haɗarin lafiya ga mutumin da kuke taimakawa.",
+    "noAssessmentsYetTitle": "Babu tantancewa tukuna",
+    "noAssessmentsYetBody": "Ba ku gudanar da wata tantancewa ba tukuna. Fara ta farko domin taimakawa gano haɗurran lafiya a cikin al'umma.",
+    "startFirstAssessment": "Fara tantancewa ta farko",
+    "submissions": "abubuwan da aka aika",
+    "total": "Jimla",
+    "withLocationCaptured": "{count} tare da bayanin wuri",
+    "locationCaptured": "An kama bayanin wuri",
+    "waitingForLocationAccess": "Ana nemo wurin ku… Da fatan jira.",
+    "locationRequiredTitle": "Ana buƙatar izinin wuri",
+    "locationPermissionPrompt": "Wannan tantancewa na buƙatar wuɗin ku don hana aika bayanai sau biyu. Danna maballin da ke ƙasa don ba da izini — burauzarku zai tambaye ku.",
+    "grantLocationAccess": "Ba Da Izinin Wuri",
+    "locationRequiredBody": "Ana buƙatar izinin wuri don aika tantancewa. Ana amfani da shi ne don hana tattara bayanai sau biyu. Da fatan za a kunna izinin wuri a saitunan burauzarku sannan ku sake loda shafin.",
+    "reloadPage": "Sake loda shafi",
+    "recentSubmissionDetectedTitle": "An gano sabuwar aika bayanai",
+    "recentSubmissionDetectedBody": "An riga an yi aika bayanai daga wannan wuri cikin {minutes} {unit} da suka gabata. Don hana tattara bayanai sau biyu, ba za ku iya fara sabuwar tantancewa daga nan yanzu ba.",
+    "startNewAssessmentAfter": "Za ku iya fara sabuwar tantancewa bayan {time}, ko kuma ku {move}.",
+    "moveDifferentLocation": "matsawa zuwa wani wuri daban",
+    "duplicateAlert": "An gano aika bayanai sau biyu. Da fatan za ku matsa zuwa wani wuri daban kafin sake aikawa.",
+    "proceedAnywayHint": "Idan kuna kimanta mutane da yawa a wannan wuri, zaku iya ci gaba da sabuwar kimantawa.",
+    "proceedAnyway": "Kimanta wani mutum a nan",
+    "minute": "minti",
+    "minutes": "mintuna",
+    "nav": {
+      "dashboard": "Dashboard",
+      "newAssessment": "Sabuwar Tantancewa",
+      "history": "Tarihi",
+      "referrals": "Tura Zuwa Wani",
+      "settings": "Saituna",
+      "menu": "Menu"
+    }
+  },
+  "questions": {
+    "Q1": {
+      "text": "Wannan bincike zai taimaka wajen fahimtar buƙatun kiwon lafiyarku, tare da tabbatar da cewa al'ummarku na da kayan aiki kamar magunguna, kayan haihuwa, kayan daukar jinin al'ada, hanyoyin hana daukar ciki, da jinya ta kyauta a lokacin ambaliya. Amsoshin ku sirri ne. Za mu iya farawa?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a"
+      }
+    },
+    "Q2": {
+      "text": "Sunan jiha da al'umma?"
+    },
+    "Q3": {
+      "text": "Mene ne jinsinku?",
+      "options": {
+        "male": "Namiji",
+        "female": "Mace"
+      }
+    },
+    "Q4": {
+      "text": "Ina kuke zaune? Tare da",
+      "options": {
+        "family": "Iyali",
+        "alone": "Ni kaɗai",
+        "idp_camp": "A sansanin 'yan gudun hijira (IDP)",
+        "other": "Wani abu"
+      }
+    },
+    "Q5": {
+      "text": "Shekarun haihuwa?",
+      "options": {
+        "15_24": "Shekara 15–24",
+        "25_34": "Shekara 25–34",
+        "35_plus": "Shekara 35 ko sama"
+      }
+    },
+    "Q6": {
+      "text": "Mene ne sana'arku?"
+    },
+    "Q7": {
+      "text": "Adadin kudin shiga a shekara?",
+      "options": {
+        "10k_20k": "₦10,000 – ₦20,000",
+        "20k_30k": "₦20,000 – ₦30,000",
+        "30k_40k": "₦30,000 – ₦40,000",
+        "40k_50k": "₦40,000 – ₦50,000"
+      }
+    },
+    "Q8": {
+      "text": "Nau'in muhalli/zama?",
+      "options": {
+        "hut": "Bukka",
+        "bungalow": "Gidan Bungalow",
+        "homeless": "Ba ni da matsuguni",
+        "idp_camp": "Sansanin 'yan gudun hijira (IDP)"
+      }
+    },
+    "Q9": {
+      "text": "Girman iyali?",
+      "options": {
+        "2_4": "2–4",
+        "5_7": "5–7",
+        "8_10": "8–10"
+      }
+    },
+    "Q10": {
+      "text": "Kuna da nakasa? Idan eh, bayyana."
+    },
+    "Q11": {
+      "text": "Shin kun lura da waɗannan alamu kwanan nan? Yi alama kan duk wanda ya dace.",
+      "options": {
+        "discharge": "Zubar jini ko wani abu mara kyau daga al'aura, ko wari",
+        "sores": "Rauni, kumburi ko kuraje a baki ko al'aura",
+        "burning": "Jin kunnawa ko ƙonawa lokacin fitsari",
+        "pain_sex": "Jin zafi ko zubar jini yayin jima'i ko bayan sa",
+        "tummy_pain": "Ciwon a ƙasan ciki",
+        "fever": "Zazzabi ko yawan zufa da dare",
+        "yellow_eyes": "Rawaya a idanu/fata ko fitsari mai duhu sosai",
+        "none": "Babu ɗaya daga cikin waɗannan"
+      }
+    },
+    "Q12": {
+      "text": "Yaya tsawon lokaci da wannan ke faruwa?",
+      "options": {
+        "less_1_week": "Ƙasa da mako 1",
+        "1_4_weeks": "Makonni 1–4 da suka wuce",
+        "more_4_weeks": "Fiye da makonni 4"
+      }
+    },
+    "Q13": {
+      "text": "Shin alamun da ke sama suna taɓarɓarewa, sun kasance iri ɗaya, ko suna kyautatuwa?",
+      "options": {
+        "improving": "Suna kyautatuwa",
+        "same": "Sun kasance iri ɗaya",
+        "worse": "Suna taɓarɓarewa"
+      }
+    },
+    "Q14": {
+      "text": "Yaushe ne kuka je gwajin jini na HIV ko wasu cututtuka?",
+      "options": {
+        "last_6_months": "A cikin watanni 6 da suka wuce",
+        "more_6_months": "Fiye da watanni 6 da suka wuce",
+        "never_tested": "Ban taɓa yin gwajin ba"
+      }
+    },
+    "Q15": {
+      "text": "Shin kun sami abokin jima'i a cikin shekara guda da ta wuce?",
+      "options": {
+        "no": "A'a",
+        "yes": "Eh"
+      }
+    },
+    "Q16": {
+      "text": "Sau nawa kuke iya amfani da kwaroron roba?",
+      "options": {
+        "every_time": "Kowane lokaci",
+        "sometimes": "Wasu lokuta",
+        "never": "Ba na taɓa amfani da shi"
+      }
+    },
+    "Q17": {
+      "text": "Kwanan nan, shin wani ya tilasta ko danna ku yin jima'i ba da son ranku ba?",
+      "options": {
+        "no": "A'a",
+        "yes": "Eh",
+        "rather_not_say": "Ba na son amsawa"
+      }
+    },
+    "Q18": {
+      "text": "Shin kun taɓa yin jima'i don samun kuɗi, abinci, kyaututtuka, ko wurin zama?",
+      "options": {
+        "no": "A'a",
+        "yes": "Eh"
+      }
+    },
+    "Q19": {
+      "text": "Shin abokin jima'inku yana da wasu abokan jima'i ko wata matsalar lafiya da kuka sani?",
+      "options": {
+        "no": "A'a",
+        "yes": "Eh",
+        "not_sure": "Ban tabbata ba"
+      }
+    },
+    "Q20": {
+      "text": "Shin ba ku amfani da wani hanyar kariya daga cututtukan jima'i (STI) ko hana haihuwa?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a",
+        "want_but_no_access": "Ina so amma ba ni da damar samun shi"
+      }
+    },
+    "Q21": {
+      "text": "Wanne ne kuke amfani da shi? Yi alama a duk abin da ya dace.",
+      "options": {
+        "condom": "Kwaroron roba",
+        "pills": "Ƙwayoyin hana daukar ciki",
+        "injection": "Allura",
+        "implant": "Implant (ƙaramin sanda a hannu)",
+        "iud": "IUD (coil)",
+        "natural": "Hanyar halitta (janye ko ƙididdiga)",
+        "herbs": "Magani na gargajiya"
+      }
+    },
+    "Q22": {
+      "text": "Shin kina da juna biyu?",
+      "options": {
+        "no": "A'a",
+        "not_sure": "Ban tabbata",
+        "yes": "Eh"
+      }
+    },
+    "Q23": {
+      "text": "Watanni nawa kike da ciki?",
+      "options": {
+        "early": "Farkon ciki (watanni 1–3)",
+        "middle": "Tsakiyar ciki (watanni 4–6)",
+        "late": "Ƙarshen ciki (watanni 7+)",
+        "not_sure": "Ban tabbata ba"
+      }
+    },
+    "Q24": {
+      "text": "Yaushe ne kuka je kula da masu juna biyu (antenatal) ta ƙarshe a cikin wannan ciki?",
+      "options": {
+        "last_month": "A cikin watan da ya wuce",
+        "1_3_months": "Watanni 1–3 da suka wuce",
+        "more_3_months": "Fiye da watanni 3 da suka wuce",
+        "never": "Ban taɓa zuwa ba"
+      }
+    },
+    "Q25": {
+      "text": "Mene ne ke hana ki zuwa antenatal?",
+      "options": {
+        "no_barrier": "Babu cikas",
+        "far_away": "Cibiyar lafiya tana da nisa",
+        "no_money": "Ba ni da kuɗi",
+        "cultural": "Dalilai na al'ada ko iyali",
+        "not_aware": "Ban san ayyukan saɓis na antenatal din ba"
+      }
+    },
+    "Q26": {
+      "text": "Shin kun fuskanci waɗannan a wannan ciki ko a cikin haihuwa da ta wuce? Yi alama a duk abin da ya dace.",
+      "options": {
+        "headaches": "Mumunan ciwon kai ko jiri",
+        "swelling": "Kumburi a ƙafafu, hannaye, ko fuska",
+        "blurred_vision": "Raunin gani (kallon abubuwa ba a sarari)",
+        "bleeding": "Zuban jini da ba a saba ba ko mai yawa",
+        "c_section": "An yi min aiki (C-section)",
+        "high_bp": "Hawan jini mai yawa",
+        "high_sugar": "Sukari mai yawa",
+        "none": "Babu ɗaya daga waɗannan"
+      }
+    },
+    "Q27": {
+      "text": "Shekarun ki a ciki na farko?",
+      "options": {
+        "never_pregnant": "Ban taɓa yin ciki ba",
+        "over_18": "Fiye da shekara 18",
+        "under_18_or_over_35": "Ƙasa da shekara 18 ko fiye da shekara 35"
+      }
+    },
+    "Q28": {
+      "text": "Menene tazarar haihuwa tsakanin kowane ɗa (in kuna da 'ya'ya 2 ko fiye)?",
+      "options": {
+        "no_children": "Babu 'ya'ya",
+        "over_2_years": "Fiye da shekara 2 ko ina da ɗa ɗaya kaɗai",
+        "under_2_years": "Ƙasa da shekara 2"
+      }
+    },
+    "Q29": {
+      "text": "In kuna da ciki yanzu, ina kuke shirin haifa?",
+      "options": {
+        "health_centre": "A cibiyar lafiya",
+        "home": "A gida",
+        "traditional": "Tare da mai haihuwa na gargajiya (TBA)"
+      }
+    },
+    "Q30": {
+      "text": "Shin kina shirye-shiryen haihuwa amma ba ki da kayan haihuwa (sabulu, hannu na roba, gyale, tufafin jariri, hula, takalmi, tawul, matuƙin haihuwa)?",
+      "options": {
+        "no": "A'a",
+        "yes": "Eh"
+      }
+    },
+    "Q31": {
+      "text": "Inda kika haifa 'ya'yanki (In ba ki da ciki yanzu amma kin haifa a baya)?",
+      "options": {
+        "no_deliveries": "Babu haihuwa da ta gabata",
+        "health_centre": "A cibiyar lafiya",
+        "home": "A gida",
+        "traditional": "Tare da mai haihuwa na gargajiya (TBA)"
+      }
+    },
+    "Q32": {
+      "text": "Shin akwai tarihin zubar ciki?",
+      "options": {
+        "no": "A'a",
+        "yes": "Eh"
+      }
+    },
+    "Q33": {
+      "text": "In eh, zubar ciki nawa?",
+      "options": {
+        "0_1": "0–1",
+        "2_3": "2–3",
+        "more_3": "Fiye da 3"
+      }
+    },
+    "Q34": {
+      "text": "Wane rukuni ne ke cikin haɗarin matsalolin lafiyar jima'i da haihuwa (SRHR) a lokacin ambaliya? Yi alama a duk abin da ya dace.",
+      "options": {
+        "pregnant": "Mata masu ciki",
+        "nursing": "Masu shayarwa",
+        "disability": "Mutanen da ke da nakasa (PWD)",
+        "others": "Wasu rukunoni"
+      }
+    },
+    "Q35": {
+      "text": "A lokacin ambaliya, waɗanne suna samuwa a wuraren mafaka na wucin gadi? Za ku iya zaɓa fiye da ɗaya.",
+      "options": {
+        "delivery_spaces": "Wuraren haihuwa masu aminci",
+        "privacy": "Sirri ga mata da 'yan mata",
+        "hygiene": "Kayan tsaftar al'ada",
+        "violence_reporting": "Hanyoyin ba da rahoton cin zarafi",
+        "none": "Babu ɗaya cikin waɗannan"
+      }
+    },
+    "Q36": {
+      "text": "A lokacin ambaliya, shin an sami rahotanni na cin zarafin mata a al'ummarku?",
+      "options": {
+        "no": "A'a",
+        "not_sure": "Ban tabbata ba",
+        "yes": "Eh"
+      }
+    },
+    "Q37": {
+      "text": "Shin waɗannan suna samuwa a cibiyar lafiya a al'ummarku? Yi alama a duk abin da ya dace.",
+      "options": {
+        "sanitary_pads": "Kayan mata na jinin al'ada",
+        "condoms": "Kwaroron roba",
+        "birth_control": "Hanyoyin hana ciki (ƙwayoyi, allura, implants)",
+        "delivery_pack": "Kayan Haihuwa",
+        "chew": "Ma'aikatan lafiya na al'umma (CHEW)",
+        "nurses_doctors": "Jiyo ko likitoci masu horo",
+        "private_rooms": "Dakuna masu sirri don magana/gwaji",
+        "none": "Babu ɗaya daga waɗannan"
+      }
+    },
+    "Q38": {
+      "text": "Shin cibiyar lafiya tana kusa da ku?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a"
+      }
+    },
+    "Q39": {
+      "text": "A lokacin ambaliya, shin kuna iya isa cibiyar lafiya mafi kusa, ko hanyoyin sun cika da ruwa?",
+      "options": {
+        "yes": "Zan iya isa cibiyar lafiya",
+        "flooded": "Hanyoyin sun cika da ruwa",
+        "not_sure": "Ban tabbata ba"
+      }
+    },
+    "Q40": {
+      "text": "Shin an sami damar samun magunguna a lokacin ambaliya da ta wuce?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a"
+      }
+    },
+    "Q41": {
+      "text": "In kuna da yara ƙasa da shekara 5, shin wani daga cikinsu ya rasa allurar rigakafi kwanan nan saboda ambaliya?",
+      "options": {
+        "no_children": "Ba ni da yara ƙasa da shekara 5",
+        "up_to_date": "A'a, sun cika",
+        "missed": "Eh, sun rasa wasu"
+      }
+    },
+    "Q42": {
+      "text": "Za a iya samun taimakon lafiya da magungunan kariya cikin kwanaki 3 bayan cin zarafin jima'i, domin hana kamuwa da HIV, cututtukan jima'i, ko ɗaukar ciki?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a"
+      }
+    },
+    "Q43": {
+      "text": "Shin ana aika gargaɗi kafin ambaliya ta faru?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a",
+        "not_sure": "Ban tabbata ba"
+      }
+    },
+    "Q44": {
+      "text": "Da fatan za ku ba da bayanin hulɗa domin ƙungiyoyin agajin su isa ku da kayayyaki ko tallafin kiwon lafiya na gaggawa a lokacin ambaliya. Lambar Waya / WhatsApp (Na zaɓi)."
+    },
+    "Q45": {
+      "text": "Shin za a iya amfani da amsoshin ku ba tare da suna ba don sanar da ƙungiyoyin agaji su kawo kayayyaki da ƙarin likitoci da jiyo ga al'ummarku kafin ambaliya?",
+      "options": {
+        "yes": "Eh",
+        "no": "A'a"
+      }
+    },
+    "PS1": {
+      "text": "Yaya sauƙin fahimtar tambayoyin da aka yi?",
+      "options": {
+        "1": "Ba sauƙi ba",
+        "2": "Dan sauƙi",
+        "3": "Matsakaicin sauƙi",
+        "4": "Mai sauƙi",
+        "5": "Mai sauƙi ƙwarai"
+      }
+    },
+    "PS2": {
+      "text": "Yaya kalmomin da aka yi amfani da su wajen bayyana cututtuka, alamomi, ko sassan jiki suka yi daidai da abin da mutane ke kira su a wannan al'umma?",
+      "options": {
+        "1": "Ba su yi daidai ba kwata-kwata",
+        "2": "Dan daidai",
+        "3": "Matsakaicin daidai",
+        "4": "Sun yi daidai",
+        "5": "Sun yi daidai ƙwarai"
+      }
+    },
+    "PS3": {
+      "text": "Yaya tambayoyin da aka yi a wannan bincike suka nuna gaskiyar yanayin lafiya a yankin da matsalolin lafiya da ke damun ku, iyalinku, da al'umma baki ɗaya?",
+      "options": {
+        "1": "Ba su nuna ba kwata-kwata",
+        "2": "Dan nuna",
+        "3": "Matsakaicin nuna",
+        "4": "Sun nuna",
+        "5": "Sun nuna ƙwarai"
+      }
+    },
+    "PS4": {
+      "text": "Kuna da wata shawara don inganta wannan bincike ko kama gaskiyar yanayin lafiyar al'umma daidai?"
+    },
+    "PS5": {
+      "text": "Akwai wata matsalar lafiya ko yanayin gida da wannan bincike ya rasa gaba ɗaya?"
+    }
+  }
+}
